@@ -68,22 +68,22 @@ See `src/stability.py` for exact definitions and the label-alignment caveat.
 
 ## Results
 
-Sweeping 16 defensible pipelines over the 10x Visium mouse-brain coronal section
+Sweeping 30 defensible pipelines over the 10x Visium mouse-brain coronal section
 (2,688 spots, 18,078 genes):
 
 | Metric | Value |
 | --- | --- |
-| Recovered spatial domains | 8–22 (mean 13.2 ± 3.9) |
-| Mean pairwise Adjusted Rand Index between pipelines | 0.68 (0.49–0.90) |
-| Spots with robust domain (S³ ≥ 0.8) | 57% |
-| Spots fragile (S³ < 0.5) | 4% |
-| Genes robustly spatially variable (S³ > 0.8) | 28% |
-| Agreement with reference anatomy (ARI) | 0.65 (up to 0.76) |
+| Recovered spatial domains | 8–23 (mean 13.7 ± 4.0) |
+| Mean pairwise Adjusted Rand Index between pipelines | 0.68 (0.46–0.90) |
+| Spots with robust domain (S³ ≥ 0.8) | 62% |
+| Spots fragile (S³ < 0.5) | 11% |
+| Genes robustly spatially variable (S³ > 0.8) | 25% |
+| Agreement with reference anatomy (ARI) | 0.66 (up to 0.77) |
 
 **Stability tracks biology, not analysis.** Validated against the dataset's reference
-anatomical annotation, robust regions coincide with well-defined structures (thalamus
-S³ ≈ 0.98, hippocampus) and fragile regions with boundaries and the lateral ventricle
-(S³ ≈ 0.48).
+anatomical annotation, robust regions coincide with well-defined structures (thalamus,
+hippocampus, cortical layers) while fragile regions fall at boundaries and the lateral
+ventricle.
 
 ![Specification montage](results/figures/fig1_spec_montage.png)
 

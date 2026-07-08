@@ -208,11 +208,11 @@ specs:
     spatially_variable_genes: { method: morans_i }
     cell_cell_communication: { enabled: false }
 
-  - name: large_k15_coarse
-    normalization: log1p
+  - name: sqrt_smallk_coarse
+    normalization: sqrt
     feature_selection: { method: seurat, n_genes: 3000 }
     dimensionality_reduction: { n_components: 30 }
-    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    neighborhood_graph: { type: knn, k_or_radius: 6 }
     clustering: { method: leiden, resolution: 0.3 }
     spatially_variable_genes: { method: morans_i }
     cell_cell_communication: { enabled: false }

@@ -13,7 +13,7 @@ makes per-spot S³ meaningful rather than an artifact of label numbering.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import anndata as ad
 import numpy as np

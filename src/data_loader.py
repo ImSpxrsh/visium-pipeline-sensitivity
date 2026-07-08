@@ -39,7 +39,10 @@ def load_dataset(
         if verbose:
             logger.info("Loading Visium H&E (breast cancer)...")
         adata = sq.datasets.visium_hne_adata()
-        image = sq.datasets.visium_hne_image()
+        # The H&E image (~400 MB) is used only for figure overlays, not the
+        # analysis. Fetch it best-effort so a slow/failed download never blocks
+        # the multiverse sweep.
+        image = _try_load_image(sq.datasets.visium_hne_image, verbose=verbose)
     elif dataset_name == "visium_fluo":
         if verbose:
             logger.info("Loading Visium fluorescence (mouse brain)...")
@@ -49,6 +52,20 @@ def load_dataset(
         raise ValueError(f"Unknown dataset: {dataset_name!r}")
 
     return adata, image
+
+
+def _try_load_image(loader, retries: int = 2, verbose: bool = True):
+    """Attempt to load the tissue image, tolerating download failures."""
+    for attempt in range(1, retries + 1):
+        try:
+            return loader()
+        except Exception as e:  # network timeout, partial download, etc.
+            if verbose:
+                logger.warning(
+                    "Image load failed (attempt %d/%d): %s", attempt, retries, e
+                )
+    logger.warning("Proceeding without the H&E image; overlays will use spot coords.")
+    return None
 
 
 def validate_dataset(adata: ad.AnnData, verbose: bool = True) -> bool:

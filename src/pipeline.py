@@ -200,21 +200,23 @@ class SpatialPipeline:
         if self.verbose:
             logger.info("Clustering: %s (resolution=%s)", method, resolution)
 
-        # Store both methods under the "leiden" key for downstream consistency.
+        # Both methods write to the "leiden" key so downstream code is uniform.
         if method == "leiden":
+            # Pin the leidenalg flavor: it is resolution-aware and deterministic
+            # given a seed. (scanpy's default flavor is changing to "igraph",
+            # which we avoid to keep results stable across scanpy versions.)
             sc.tl.leiden(
                 self.adata,
                 resolution=resolution,
                 random_state=self.random_state,
+                flavor="leidenalg",
                 key_added="leiden",
             )
         elif method == "louvain":
-            sc.tl.louvain(
-                self.adata,
-                resolution=resolution,
-                random_state=self.random_state,
-                key_added="leiden",
-            )
+            # Drive Louvain through igraph's community_multilevel: it honors the
+            # resolution parameter monotonically, unlike scanpy's igraph-flavor
+            # louvain, and does not need the unbuildable `louvain` PyPI package.
+            self._louvain_igraph(resolution)
         else:
             raise ValueError(f"Unknown clustering method: {method!r}")
 
@@ -224,6 +226,23 @@ class SpatialPipeline:
         self.metadata["clustering_method"] = method
         self.metadata["clustering_resolution"] = resolution
         self.metadata["n_clusters_found"] = n_clusters
+
+    def _louvain_igraph(self, resolution: float) -> None:
+        """Resolution-aware, deterministic Louvain via python-igraph."""
+        import random
+
+        import igraph
+        import pandas as pd
+        from scanpy._utils import get_igraph_from_adjacency
+
+        # Seed igraph's RNG so the (order-dependent) Louvain pass is reproducible.
+        # igraph expects a random.Random-style generator (needs .gauss), not a
+        # numpy RandomState.
+        igraph.set_random_number_generator(random.Random(self.random_state))
+        g = get_igraph_from_adjacency(self.adata.obsp["connectivities"], directed=False)
+        partition = g.community_multilevel(weights="weight", resolution=resolution)
+        labels = np.asarray(partition.membership).astype(str)
+        self.adata.obs["leiden"] = pd.Categorical(labels)
 
     def _svg_detection(self) -> None:
         import squidpy as sq

@@ -21,9 +21,12 @@ env/
 # squidpy / scanpy cache
 .cache/
 
-# Data (large, reproducible from code)
+# Data (large, reproducible from code / re-downloadable via squidpy)
 data/raw/*.h5ad
 data/processed/*.h5ad
+data/anndata/
+data/images/
+data/**/tmp*
 
 # Results (generated, not tracked)
 results/runs/

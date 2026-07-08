@@ -189,7 +189,7 @@ in the large majority of pipelines ($S^3 \ge 0.8$); \SpotFragileFrac{} are fragi
 ($S^3 < 0.5$).
 
 \paragraph{Stability tracks biology, not analysis.} Validated against the reference
-anatomical annotation (Figure~\ref{fig:map}), consensus domains recover known structures,
+anatomical annotation (Figure~\ref{fig:refval}), consensus domains recover known structures,
 and each specification agrees with the annotation at mean ARI \RefAriMean{} (up to
 \RefAriMax{}). Per-region $S^3$ is highest in transcriptomically distinct structures
 (thalamus, hippocampus, cortical layers) and lowest at the lateral ventricle and mixed
@@ -239,6 +239,18 @@ SVG calls still churn substantially across pipelines.
   $S^3$; (B) gene $\times$ specification concordance for genes tested in every
   specification (black = called). SVG status depends heavily on the pipeline.}
   \label{fig:genes}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{ed7_reference_validation.png}
+  \caption{Extended Data: validation against the reference anatomy. (A) Row-normalized
+  agreement between reference anatomical regions and multiverse consensus domains: each
+  region maps predominantly to one domain, so the pipelines recover known structure.
+  (B) Mean per-spot $S^3$ within each anatomical region: transcriptomically distinct
+  structures (thalamus, hippocampus, cortical layers) are robust, while the lateral
+  ventricle and mixed cortical zones are fragile.}
+  \label{fig:refval}
 \end{figure}
 
 \section{Discussion and Limitations}

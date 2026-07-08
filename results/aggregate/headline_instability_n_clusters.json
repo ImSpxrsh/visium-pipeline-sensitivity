@@ -1,0 +1,9 @@
+{
+  "metric": "n_clusters_found",
+  "n_specs": 16,
+  "mean": 13.1875,
+  "std": 3.9245819841099,
+  "min": 8.0,
+  "max": 22.0,
+  "range": 14.0
+}

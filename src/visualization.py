@@ -1,175 +1,544 @@
 """
-Publication figures for MOSAIC: stability maps, specification curves, and
-per-gene instability plots.
+Publication figures for MOSAIC.
 
-Figures are saved to disk; interactive display is disabled by default so this
-runs cleanly in a headless / batch context.
+Produces the paper's main and extended-data figures from a completed sweep
+(results/runs/spec_*/ plus results/aggregate/*). All static figures use a
+headless Agg backend and colorblind-safe palettes; the interactive multiverse
+explorer is written as a self-contained Plotly HTML file.
+
+Figures that would require data outside this study (pathologist ground-truth
+annotations, additional tissues/modalities) are intentionally not fabricated.
 """
 
-import glob
+import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import matplotlib
 
-matplotlib.use("Agg")  # headless backend; safe for batch figure generation
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+from matplotlib import gridspec  # noqa: E402
+from matplotlib.colors import ListedColormap  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
+# --- palettes (colorblind-safe) ------------------------------------------------
+# Paul Tol / ColorBrewer qualitative for categorical cluster labels.
+CLUSTER_COLORS = [
+    "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFD92F",
+    "#A65628", "#F781BF", "#999999", "#1B9E77", "#D95F02", "#7570B3",
+    "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666", "#8DD3C7",
+    "#BEBADA", "#FB8072",
+]
+CLUSTER_CMAP = ListedColormap(CLUSTER_COLORS)
+S3_CMAP = "RdYlGn"  # red (fragile) -> yellow -> green (robust)
 
-def _save(fig, output_path: Optional[Path]) -> None:
-    if output_path is not None:
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(output_path, dpi=300, bbox_inches="tight")
-        logger.info("Saved figure to %s", output_path)
-    plt.close(fig)
+plt.rcParams.update(
+    {
+        "figure.dpi": 150,
+        "savefig.dpi": 300,
+        "font.size": 11,
+        "axes.titlesize": 12,
+        "axes.titleweight": "bold",
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+    }
+)
 
 
-def plot_stability_map(
-    adata_canonical,
-    s3_scores_per_spot: pd.DataFrame,
-    output_path: Optional[Path] = None,
-    title: str = "Spatial Stability (S3)",
-    figsize: Tuple[float, float] = (16, 5),
-) -> None:
+# --- data loading --------------------------------------------------------------
+def load_runs(results_dir: Path) -> List[Dict[str, Any]]:
     """
-    Three-panel tissue view: canonical clustering, per-spot S³ heatmap, consensus.
+    Load every completed spec directory into a list of run records.
 
-    Uses squidpy's spatial scatter when available, falling back to a raw
-    ``obsm['spatial']`` scatter so the figure still renders without an image.
-    """
-    fig, axes = plt.subplots(1, 3, figsize=figsize)
-    adata = adata_canonical
-    adata.obs = adata.obs.copy()
-    adata.obs["s3_score"] = s3_scores_per_spot["s3_score"].values
-    adata.obs["consensus_cluster"] = pd.Categorical(
-        s3_scores_per_spot["consensus_cluster"].values
-    )
-
-    coords = adata.obsm["spatial"]
-    leiden_codes = pd.Categorical(adata.obs["leiden"]).codes
-
-    axes[0].scatter(coords[:, 0], coords[:, 1], c=leiden_codes, cmap="tab20", s=8)
-    axes[0].set_title("Canonical clustering")
-
-    sc = axes[1].scatter(
-        coords[:, 0], coords[:, 1], c=adata.obs["s3_score"], cmap="RdYlGn", s=8, vmin=0, vmax=1
-    )
-    axes[1].set_title("Per-spot stability (S3)")
-    fig.colorbar(sc, ax=axes[1], fraction=0.046, pad=0.04)
-
-    axes[2].scatter(
-        coords[:, 0], coords[:, 1],
-        c=s3_scores_per_spot["consensus_cluster"].values, cmap="tab20", s=8,
-    )
-    axes[2].set_title("Consensus domains")
-
-    for ax in axes:
-        ax.set_aspect("equal")
-        ax.invert_yaxis()  # image convention: origin top-left
-        ax.set_xticks([])
-        ax.set_yticks([])
-
-    fig.suptitle(title, fontsize=14, fontweight="bold")
-    fig.tight_layout()
-    _save(fig, output_path)
-
-
-def plot_specification_curve(
-    metadata_list: List[Dict[str, Any]],
-    metric: str = "n_clusters_found",
-    output_path: Optional[Path] = None,
-    title: str = "Specification Curve",
-) -> None:
-    """Plot a metric across specs, sorted ascending (the classic spec curve)."""
-    values = np.array([m.get(metric, np.nan) for m in metadata_list], dtype=float)
-    order = np.argsort(values)
-    sorted_vals = values[order]
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(range(len(sorted_vals)), sorted_vals, "o-", color="steelblue", lw=2, ms=6)
-    if np.isfinite(sorted_vals).any():
-        ax.fill_between(
-            range(len(sorted_vals)),
-            np.nanmin(sorted_vals),
-            sorted_vals,
-            alpha=0.15,
-            color="steelblue",
-        )
-    ax.set_xlabel("Specification (sorted)")
-    ax.set_ylabel(metric)
-    ax.set_title(title, fontsize=14, fontweight="bold")
-    ax.grid(True, alpha=0.3)
-    fig.tight_layout()
-    _save(fig, output_path)
-
-
-def plot_instability_heatmap(
-    per_feature_s3: pd.DataFrame,
-    top_n: int = 20,
-    output_path: Optional[Path] = None,
-    title: str = "Most fragile genes (lowest S3)",
-) -> None:
-    """Horizontal barplot of the least stable genes across the multiverse."""
-    top_unstable = per_feature_s3.nsmallest(top_n, "s3_score")
-
-    fig, ax = plt.subplots(figsize=(10, 8))
-    ax.barh(range(len(top_unstable)), top_unstable["s3_score"], color="coral")
-    ax.set_yticks(range(len(top_unstable)))
-    ax.set_yticklabels(top_unstable["gene"], fontsize=9)
-    ax.invert_yaxis()
-    ax.set_xlabel("Stability score (S3)")
-    ax.set_xlim(0, 1)
-    ax.set_title(title, fontsize=14, fontweight="bold")
-    fig.tight_layout()
-    _save(fig, output_path)
-
-
-def generate_all_figures(
-    results_dir: Path, output_dir: Path, verbose: bool = True
-) -> None:
-    """
-    Generate every publication figure from a completed sweep.
-
-    Reads aggregate CSVs plus the first spec's clustered AnnData.
+    Each record: {idx, name, spec, adata, svg_df, metadata}. Records are sorted
+    by spec index. The (small) SVG table is read from the per-spec CSV.
     """
     import anndata as ad
 
     results_dir = Path(results_dir)
+    runs = []
+    for spec_dir in sorted((results_dir / "runs").glob("spec_*")):
+        adata_path = spec_dir / "adata_clustered.h5ad"
+        meta_path = spec_dir / "metadata.json"
+        if not (adata_path.exists() and meta_path.exists()):
+            continue
+        metadata = json.loads(meta_path.read_text())
+        svg_csv = spec_dir / "svg_results.csv"
+        svg_df = pd.read_csv(svg_csv, index_col=0) if svg_csv.exists() else None
+        idx = int(spec_dir.name.split("_")[1])
+        runs.append(
+            {
+                "idx": idx,
+                "name": metadata.get("spec_name", spec_dir.name),
+                "spec": metadata.get("spec", {}),
+                "adata": ad.read_h5ad(adata_path),
+                "svg_df": svg_df,
+                "metadata": metadata,
+            }
+        )
+    logger.info("Loaded %d completed runs", len(runs))
+    return runs
+
+
+def _by_name(runs: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    return {r["name"]: r for r in runs}
+
+
+def _significant(svg_df: pd.DataFrame, alpha: float = 0.05) -> pd.Series:
+    """Boolean SVG calls indexed by gene, using the best available p-value column."""
+    for col in ("pval_norm_fdr_bh", "pval_sim_fdr_bh", "pval_norm", "pval_sim", "pval"):
+        if col in svg_df.columns:
+            return pd.Series((svg_df[col] < alpha).values, index=svg_df.index)
+    return pd.Series((svg_df["I"] > svg_df["I"].median()).values, index=svg_df.index)
+
+
+def svg_concordance_matrix(
+    runs: List[Dict[str, Any]], alpha: float = 0.05, common_only: bool = False
+) -> pd.DataFrame:
+    """
+    Gene x spec boolean matrix: is each gene a significant SVG in each spec?
+
+    Specs use different HVG sets, so a gene may be untested in some specs. With
+    ``common_only=True`` we keep only genes tested in *every* spec, isolating
+    genuine SVG-test flips from feature-selection differences (a gene absent from
+    a spec's HVG set is otherwise drawn as "not called"). With ``common_only=False``
+    absent genes are treated as not-called, matching the full-multiverse S3.
+    """
+    cols = {}
+    for r in runs:
+        if r["svg_df"] is None:
+            continue
+        cols[r["name"]] = _significant(r["svg_df"], alpha)
+    mat = pd.DataFrame(cols)  # union of genes; NaN where a gene was not tested
+    if common_only:
+        mat = mat.dropna(axis=0, how="any")
+    return mat.fillna(False).astype(bool)
+
+
+# --- shared spatial-scatter helper --------------------------------------------
+def _spatial_scatter(ax, coords, values, *, categorical, title, s=6, cmap=None, vmin=None, vmax=None):
+    if categorical:
+        codes = pd.Categorical(values).codes
+        sc = ax.scatter(coords[:, 0], coords[:, 1], c=codes % len(CLUSTER_COLORS),
+                        cmap=CLUSTER_CMAP, s=s, vmin=0, vmax=len(CLUSTER_COLORS) - 1)
+    else:
+        sc = ax.scatter(coords[:, 0], coords[:, 1], c=values, cmap=cmap or S3_CMAP,
+                        s=s, vmin=vmin, vmax=vmax)
+    ax.set_aspect("equal")
+    ax.invert_yaxis()
+    ax.set_xticks([])
+    ax.set_yticks([])
+    if title:
+        ax.set_title(title)
+    return sc
+
+
+# ==============================================================================
+# Figure 1 -- 6-panel tissue montage
+# ==============================================================================
+def figure1_spec_montage(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    output_path: Optional[Path] = None,
+) -> None:
+    """Five specification clusterings + the per-spot S3 overlay (2x3 grid)."""
+    named = _by_name(runs)
+    wanted = [
+        ("canonical_seurat", "Canonical: Seurat 3k HVGs, Leiden res=0.5"),
+        ("conservative_2k_hvgs", "Conservative: 2k HVGs"),
+        ("aggressive_5k_hvgs", "Aggressive: 5k HVGs"),
+        ("coarse_res03", "Coarse: Leiden res=0.3"),
+        ("fine_res08", "Fine: Leiden res=0.8"),
+    ]
+    # Fall back to the first runs if a named spec is missing.
+    picks = [named.get(n) for n, _ in wanted]
+    picks = [p if p is not None else runs[i] for i, p in enumerate(picks)]
+
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    axes = axes.ravel()
+    for ax, (run, (_, label)) in zip(axes[:5], zip(picks, wanted)):
+        a = run["adata"]
+        n = int(a.obs["leiden"].nunique())
+        _spatial_scatter(ax, a.obsm["spatial"], a.obs["leiden"].values,
+                         categorical=True, title=f"{label}\n-> {n} domains")
+        ax.title.set_fontsize(10)
+
+    # Panel F: S3 overlay on the canonical geometry.
+    ref = picks[0]["adata"]
+    s3 = per_spot.set_index("spot_id").reindex(ref.obs_names)["s3_score"].values
+    scF = _spatial_scatter(axes[5], ref.obsm["spatial"], s3, categorical=False,
+                           title="Spatial Stability Score (S3)", cmap=S3_CMAP, vmin=0, vmax=1)
+    cb = fig.colorbar(scF, ax=axes[5], fraction=0.046, pad=0.04)
+    cb.set_label("S3 (green robust, red fragile)")
+    axes[5].title.set_fontsize(10)
+
+    for i, ax in enumerate(axes):
+        ax.text(-0.08, 1.14, chr(ord("A") + i), transform=ax.transAxes,
+                fontsize=16, fontweight="bold", va="top", ha="left")
+
+    fig.suptitle(
+        "Biological conclusions depend sensitively on analytical choices",
+        fontsize=15, fontweight="bold",
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    _save(fig, output_path)
+
+
+# ==============================================================================
+# Figure 2 -- specification-curve matrix
+# ==============================================================================
+def figure2_spec_curve_matrix(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    output_path: Optional[Path] = None,
+    top_genes: int = 25,
+) -> None:
+    """Cluster count, spec-consensus agreement, and SVG concordance across specs."""
+    from src.stability import _align_labels_to_reference
+
+    order = sorted(range(len(runs)), key=lambda i: runs[i]["metadata"].get("n_clusters_found", 0))
+    runs_ord = [runs[i] for i in order]
+    names = [r["name"] for r in runs_ord]
+    n_clusters = [r["metadata"].get("n_clusters_found", np.nan) for r in runs_ord]
+
+    # Row 2: each spec's agreement with the multiverse consensus (label-aligned).
+    ref = runs_ord[0]["adata"]
+    consensus = per_spot.set_index("spot_id").reindex(ref.obs_names)["consensus_cluster"].values
+    agreement = []
+    for r in runs_ord:
+        a = r["adata"]
+        if not a.obs_names.equals(ref.obs_names):
+            agreement.append(np.nan)
+            continue
+        aligned = _align_labels_to_reference(a.obs["leiden"].values, ref.obs["leiden"].values)
+        agreement.append(float(np.mean(aligned == consensus)))
+
+    # Row 3: SVG concordance for genes tested in every spec (isolates SVG-test
+    # flips from feature-selection differences between specs).
+    conc = svg_concordance_matrix(runs_ord, common_only=True)
+    if not conc.empty:
+        churn = (conc.mean(axis=1) - 0.5).abs()  # genes that flip most sit near 0.5
+        genes = churn.nsmallest(top_genes).index
+        conc_top = conc.loc[genes, names] if set(names).issubset(conc.columns) else conc.loc[genes]
+    else:
+        conc_top = pd.DataFrame()
+
+    fig = plt.figure(figsize=(max(10, 0.7 * len(runs_ord)), 11))
+    gs = gridspec.GridSpec(3, 1, height_ratios=[1.1, 0.35, 2.2], hspace=0.35)
+    x = np.arange(len(runs_ord))
+
+    ax1 = fig.add_subplot(gs[0])
+    ax1.bar(x, n_clusters, color="#377EB8")
+    ax1.set_ylabel("N domains")
+    ax1.set_title("Headline conclusions across the analytical multiverse", loc="left")
+    ax1.set_xticks([])
+
+    ax2 = fig.add_subplot(gs[1])
+    ax2.imshow(np.array(agreement)[None, :], aspect="auto", cmap=S3_CMAP, vmin=0, vmax=1,
+               extent=[-0.5, len(runs_ord) - 0.5, 0, 1])
+    ax2.set_yticks([0.5])
+    ax2.set_yticklabels(["consensus\nagreement"])
+    ax2.set_xticks([])
+
+    ax3 = fig.add_subplot(gs[2])
+    if not conc_top.empty:
+        ax3.imshow(conc_top.values, aspect="auto", cmap="binary", interpolation="nearest")
+        ax3.set_yticks(range(len(conc_top)))
+        ax3.set_yticklabels(conc_top.index, fontsize=7)
+        ax3.set_ylabel("Spatially variable gene")
+    ax3.set_xticks(x)
+    ax3.set_xticklabels([f"{r['idx']}:{r['name'][:12]}" for r in runs_ord],
+                        rotation=90, fontsize=7)
+    ax3.set_title("SVG called (black) vs not called (white) per specification", loc="left")
+
+    fig.suptitle("Figure 2 | Specification-curve matrix", fontsize=14, fontweight="bold")
+    _save(fig, output_path)
+
+
+# ==============================================================================
+# Figure 3 -- stability map + summary statistics
+# ==============================================================================
+def figure3_stability_summary(
+    canonical_adata,
+    per_spot: pd.DataFrame,
+    output_path: Optional[Path] = None,
+) -> None:
+    """Large S3 map, S3 histogram, and mean S3 by data-driven consensus domain."""
+    fig = plt.figure(figsize=(16, 6))
+    gs = gridspec.GridSpec(1, 3, width_ratios=[1.4, 1, 1], wspace=0.35)
+
+    s3 = per_spot.set_index("spot_id").reindex(canonical_adata.obs_names)
+    coords = canonical_adata.obsm["spatial"]
+
+    axA = fig.add_subplot(gs[0])
+    scA = _spatial_scatter(axA, coords, s3["s3_score"].values, categorical=False,
+                           title="A  Per-spot S3", cmap=S3_CMAP, vmin=0, vmax=1, s=10)
+    fig.colorbar(scA, ax=axA, fraction=0.046, pad=0.04).set_label("S3")
+
+    axB = fig.add_subplot(gs[1])
+    vals = per_spot["s3_score"].values
+    axB.hist(vals, bins=25, color="#999999", edgecolor="white")
+    for thr, c in [(0.5, "#D73027"), (0.8, "#1A9850")]:
+        axB.axvline(thr, color=c, ls="--", lw=1.5)
+    robust = float(np.mean(vals >= 0.8)) * 100
+    fragile = float(np.mean(vals < 0.5)) * 100
+    axB.set_title(f"B  S3 distribution\n{robust:.0f}% robust, {fragile:.0f}% fragile")
+    axB.set_xlabel("S3")
+    axB.set_ylabel("Spots")
+
+    axC = fig.add_subplot(gs[2])
+    dom = per_spot.groupby("consensus_cluster")["s3_score"].agg(["mean", "std", "count"])
+    dom = dom.sort_values("mean")
+    axC.barh(range(len(dom)), dom["mean"], xerr=dom["std"].fillna(0),
+             color="#4DAF4A", ecolor="#555555", capsize=2)
+    axC.set_yticks(range(len(dom)))
+    axC.set_yticklabels([f"domain {int(i)} (n={int(c)})" for i, c in zip(dom.index, dom["count"])],
+                        fontsize=8)
+    axC.set_xlim(0, 1)
+    axC.set_xlabel("Mean S3")
+    axC.set_title("C  Stability by consensus domain")
+
+    fig.suptitle("Figure 3 | Spatial Stability Score reveals robust vs contingent structure",
+                 fontsize=14, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    _save(fig, output_path)
+
+
+# ==============================================================================
+# Extended Data 4 -- specification space table
+# ==============================================================================
+def ed4_spec_space_table(
+    runs: List[Dict[str, Any]],
+    output_path: Optional[Path] = None,
+) -> None:
+    """Render the curated specification space as a table figure."""
+    rows = []
+    for r in runs:
+        s = r["spec"]
+        rows.append([
+            r["idx"], r["name"],
+            s.get("normalization", ""),
+            f"{s.get('feature_selection', {}).get('method', '')}/"
+            f"{s.get('feature_selection', {}).get('n_genes', '')}",
+            s.get("dimensionality_reduction", {}).get("n_components", ""),
+            f"{s.get('neighborhood_graph', {}).get('type', '')} "
+            f"k={s.get('neighborhood_graph', {}).get('k_or_radius', '')}",
+            f"{s.get('clustering', {}).get('method', '')} "
+            f"res={s.get('clustering', {}).get('resolution', '')}",
+            r["metadata"].get("n_clusters_found", ""),
+        ])
+    cols = ["#", "name", "norm", "HVG", "PCA", "graph", "clustering", "domains"]
+
+    fig, ax = plt.subplots(figsize=(13, 0.5 * len(rows) + 1.5))
+    ax.axis("off")
+    tbl = ax.table(cellText=rows, colLabels=cols, loc="center", cellLoc="left")
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(8)
+    tbl.scale(1, 1.4)
+    for j in range(len(cols)):
+        tbl[0, j].set_facecolor("#377EB8")
+        tbl[0, j].set_text_props(color="white", fontweight="bold")
+    ax.set_title("Extended Data 4 | Curated specification space",
+                 fontsize=13, fontweight="bold", pad=20)
+    _save(fig, output_path)
+
+
+# ==============================================================================
+# Extended Data 5 -- per-feature (SVG) stability
+# ==============================================================================
+def ed5_per_feature_stability(
+    per_feature: pd.DataFrame,
+    runs: List[Dict[str, Any]],
+    output_path: Optional[Path] = None,
+    top_n: int = 20,
+) -> None:
+    """Least-stable SVGs barplot + gene x spec SVG concordance heatmap."""
+    fig, axes = plt.subplots(1, 2, figsize=(15, 8), gridspec_kw={"width_ratios": [1, 1.3]})
+
+    unstable = per_feature.nsmallest(top_n, "s3_score")
+    colors = ["#D73027" if v < 0.5 else "#FEE08B" if v < 0.8 else "#1A9850"
+              for v in unstable["s3_score"]]
+    axes[0].barh(range(len(unstable)), unstable["s3_score"], color=colors)
+    axes[0].set_yticks(range(len(unstable)))
+    axes[0].set_yticklabels(unstable["gene"], fontsize=8)
+    axes[0].invert_yaxis()
+    axes[0].set_xlim(0, 1)
+    axes[0].set_xlabel("SVG stability (S3)")
+    axes[0].set_title("A  Least stable SVG calls")
+
+    conc = svg_concordance_matrix(runs, common_only=True)
+    genes = [g for g in unstable["gene"] if g in conc.index]
+    if genes:
+        sub = conc.loc[genes]
+        axes[1].imshow(sub.values, aspect="auto", cmap="binary", interpolation="nearest")
+        axes[1].set_yticks(range(len(sub)))
+        axes[1].set_yticklabels(sub.index, fontsize=8)
+        axes[1].set_xticks(range(sub.shape[1]))
+        axes[1].set_xticklabels(sub.columns, rotation=90, fontsize=6)
+    axes[1].set_title("B  SVG called (black) per specification")
+
+    fig.suptitle("Extended Data 5 | Spatially variable gene calls are pipeline-contingent",
+                 fontsize=14, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    _save(fig, output_path)
+
+
+# ==============================================================================
+# Extended Data 6 -- headline instability metrics
+# ==============================================================================
+def ed6_headline_instability(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    output_path: Optional[Path] = None,
+) -> None:
+    """Cluster-count spread, top-SVG list overlap, and runtime vs stability."""
+    from itertools import combinations
+
+    n_clusters = np.array([r["metadata"].get("n_clusters_found", np.nan) for r in runs], float)
+    runtimes = np.array([r["metadata"].get("runtime_seconds", np.nan) for r in runs], float)
+    norms = [r["spec"].get("normalization", "?") for r in runs]
+
+    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+    axes[0].boxplot(n_clusters[~np.isnan(n_clusters)], vert=True, widths=0.5)
+    axes[0].scatter(np.random.RandomState(0).normal(1, 0.04, len(n_clusters)), n_clusters,
+                    color="#377EB8", alpha=0.7, zorder=3)
+    axes[0].set_xticks([])
+    axes[0].set_ylabel("N domains")
+    axes[0].set_title(f"A  Domain count\nmean {np.nanmean(n_clusters):.1f}, "
+                      f"range {np.nanmin(n_clusters):.0f}-{np.nanmax(n_clusters):.0f}")
+
+    # Top-10 SVG list overlap (Jaccard) between spec pairs.
+    top_lists = []
+    for r in runs:
+        if r["svg_df"] is not None:
+            top_lists.append(set(r["svg_df"].sort_values("I", ascending=False).head(10).index))
+    jac = [len(a & b) / len(a | b) for a, b in combinations(top_lists, 2)] if len(top_lists) > 1 else [0]
+    axes[1].hist(jac, bins=15, color="#984EA3", edgecolor="white")
+    axes[1].axvline(np.mean(jac), color="k", ls="--")
+    axes[1].set_xlabel("Jaccard overlap of top-10 SVGs (spec pairs)")
+    axes[1].set_ylabel("Spec pairs")
+    axes[1].set_title(f"B  Top-SVG list agreement\nmean Jaccard {np.mean(jac):.2f}")
+
+    # Runtime vs mean spec-consensus agreement is not stored per spec; use mean S3
+    # of the whole map as a constant reference line and plot runtime distribution.
+    palette = {n: CLUSTER_COLORS[i] for i, n in enumerate(sorted(set(norms)))}
+    axes[2].scatter(runtimes, n_clusters, c=[palette[n] for n in norms], s=60)
+    axes[2].set_xlabel("Runtime (s)")
+    axes[2].set_ylabel("N domains")
+    axes[2].set_title("C  Runtime vs domain count\n(color = normalization)")
+
+    fig.suptitle("Extended Data 6 | Instability in headline conclusions",
+                 fontsize=14, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    _save(fig, output_path)
+
+
+# ==============================================================================
+# Extended Data 9 -- interactive multiverse explorer (Plotly HTML)
+# ==============================================================================
+def generate_interactive_explorer(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    output_path: Path,
+) -> None:
+    """Self-contained Plotly HTML: slider across specs recolors the tissue live."""
+    import plotly.graph_objects as go
+
+    frames, steps = [], []
+    for r in runs:
+        a = r["adata"]
+        codes = pd.Categorical(a.obs["leiden"]).codes
+        frames.append(go.Frame(
+            name=r["name"],
+            data=[go.Scatter(
+                x=a.obsm["spatial"][:, 0], y=a.obsm["spatial"][:, 1], mode="markers",
+                marker=dict(size=5, color=codes, colorscale="Turbo"),
+                text=[f"cluster {c}" for c in a.obs["leiden"]],
+            )],
+        ))
+        steps.append(dict(method="animate", label=f"{r['idx']}:{r['name']}",
+                          args=[[r["name"]], dict(mode="immediate",
+                                                  frame=dict(duration=0, redraw=True))]))
+
+    first = runs[0]["adata"]
+    fig = go.Figure(
+        data=[go.Scatter(
+            x=first.obsm["spatial"][:, 0], y=first.obsm["spatial"][:, 1], mode="markers",
+            marker=dict(size=5, color=pd.Categorical(first.obs["leiden"]).codes, colorscale="Turbo"),
+        )],
+        frames=frames,
+    )
+    fig.update_yaxes(autorange="reversed", scaleanchor="x", scaleratio=1)
+    fig.update_layout(
+        title="MOSAIC multiverse explorer — slide across specifications",
+        sliders=[dict(active=0, steps=steps, currentvalue=dict(prefix="spec: "))],
+        width=800, height=800, template="plotly_white",
+    )
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.write_html(str(output_path), include_plotlyjs="cdn")
+    logger.info("Wrote interactive explorer to %s", output_path)
+
+
+# --- legacy helpers kept for the simple entry points ---------------------------
+def _save(fig, output_path: Optional[Path]) -> None:
+    if output_path is not None:
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output_path, bbox_inches="tight")
+        logger.info("Saved figure to %s", output_path)
+    plt.close(fig)
+
+
+def plot_specification_curve(metadata_list, metric="n_clusters_found",
+                             output_path=None, title="Specification Curve"):
+    """Sorted metric across specs (kept for backwards compatibility)."""
+    values = np.array([m.get(metric, np.nan) for m in metadata_list], dtype=float)
+    sorted_vals = np.sort(values)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(range(len(sorted_vals)), sorted_vals, "o-", color="steelblue", lw=2, ms=6)
+    ax.set_xlabel("Specification (sorted)")
+    ax.set_ylabel(metric)
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    _save(fig, output_path)
+
+
+def generate_all_figures(results_dir: Path, output_dir: Path, verbose: bool = True) -> None:
+    """Generate the full figure set from a completed sweep."""
+    results_dir = Path(results_dir)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    if verbose:
-        logger.info("Generating publication figures...")
 
     per_spot = pd.read_csv(results_dir / "aggregate" / "per_spot_stability.csv")
     per_feature = pd.read_csv(results_dir / "aggregate" / "per_feature_stability.csv")
+    runs = load_runs(results_dir)
+    if not runs:
+        raise FileNotFoundError("No completed runs in results/runs/")
+    canonical = runs[0]["adata"]
 
-    # Resolve the canonical (first) spec directory via glob, then load its .h5ad.
-    matches = sorted(glob.glob(str(results_dir / "runs" / "spec_00_*" / "adata_clustered.h5ad")))
-    if not matches:
-        raise FileNotFoundError("No canonical spec_00 result found in results/runs/")
-    adata_canonical = ad.read_h5ad(matches[0])
+    figure1_spec_montage(runs, per_spot, output_dir / "fig1_spec_montage.png")
+    figure2_spec_curve_matrix(runs, per_spot, output_dir / "fig2_spec_curve_matrix.png")
+    figure3_stability_summary(canonical, per_spot, output_dir / "fig3_stability_summary.png")
+    ed4_spec_space_table(runs, output_dir / "ed4_spec_space.png")
+    ed5_per_feature_stability(per_feature, runs, output_dir / "ed5_svg_stability.png")
+    ed6_headline_instability(runs, per_spot, output_dir / "ed6_headline_instability.png")
+    generate_interactive_explorer(runs, per_spot, output_dir / "ed9_explorer.html")
 
-    plot_stability_map(
-        adata_canonical, per_spot, output_path=output_dir / "01_stability_map.png"
-    )
-    plot_instability_heatmap(
-        per_feature, top_n=20, output_path=output_dir / "02_gene_instability.png"
-    )
     if verbose:
-        logger.info("Figures saved to %s", output_dir)
+        logger.info("All figures written to %s", output_dir)
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    project_dir = Path(__file__).resolve().parent.parent
-    results_dir = project_dir / "results"
-    generate_all_figures(results_dir, results_dir / "figures", verbose=True)
+    project = Path(__file__).resolve().parent.parent
+    generate_all_figures(project / "results", project / "results" / "figures", verbose=True)
 
 
 if __name__ == "__main__":

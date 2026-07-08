@@ -1,0 +1,228 @@
+\documentclass{article}
+
+% For the camera-ready, replace [preprint] with the empty option set.
+\usepackage[preprint]{neurips_2024}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\graphicspath{{../results/figures/}}
+\input{numbers}
+
+\title{The Garden of Forking Tissues: Specification-Curve Analysis\\
+Reveals the Fragility of Biological Conclusions in\\
+Spatial Transcriptomics}
+
+\author{%
+  Sparsh Roy \\
+  \texttt{github.com/ImSpxrsh} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Spatial transcriptomics analyses require a long chain of defensible but arbitrary
+choices---normalization, feature selection, dimensionality, graph construction,
+clustering algorithm and resolution, and spatially-variable-gene (SVG) testing.
+Each choice is individually reasonable, yet the space of their combinations forms a
+\emph{multiverse} of pipelines that can yield different biological conclusions from
+the same data. We introduce \textbf{MOSAIC}, a specification-curve analysis framework
+that executes a curated set of \Nspecs{} defensible spatial-transcriptomics pipelines
+over a common dataset and quantifies conclusion stability with a \emph{Spatial
+Stability Score} ($S^3$) defined at the level of individual spots, individual genes,
+and headline summaries. On the 10x Genomics Visium breast-cancer benchmark
+($\Nspots{}$ spots, $\Ngenes{}$ genes) we find that the recovered number of spatial
+domains ranges from \ClustMin{} to \ClustMax{} across the multiverse, that only
+\SpotStableFrac{} of spots are assigned a stable domain across pipelines, and that
+SVG calls are strongly pipeline-dependent. MOSAIC turns these observations into an
+actionable per-location and per-gene stability map that separates robust findings
+from contingent ones. All pipelines are seeded and bit-reproducible, and the full
+framework is released as open source.
+\end{abstract}
+
+\section{Introduction}
+A spatial transcriptomics study rarely has a single ``correct'' analysis. Between raw
+counts and a figure of spatial domains lie a dozen forks: how to normalize, how many
+highly variable genes to keep, how many principal components, whether the neighborhood
+graph is $k$-nearest-neighbor or radius-based, whether clustering uses Leiden or Louvain
+and at what resolution, and which test declares a gene spatially variable. Each fork has
+published precedent, so each is defensible. But the analyst typically walks \emph{one}
+path and reports its endpoint as if it were the destination.
+
+This is the ``garden of forking paths'' \citep{gelman2013garden}: even without any
+intent to cherry-pick, the sheer number of reasonable analytic choices means a reported
+result can be an artifact of the path taken rather than a property of the biology.
+\emph{Multiverse analysis} \citep{steegen2016increasing} and \emph{specification-curve
+analysis} \citep{simonsohn2020specification} respond by running \emph{all} defensible
+analyses and reporting the distribution of outcomes, an approach dramatically validated
+when many teams analyzing one neuroimaging dataset reached divergent conclusions
+\citep{botvinik2020variability}. These methods are established in psychology and
+neuroimaging but are largely absent from spatial transcriptomics, where the analytic
+degrees of freedom are at least as large.
+
+We make three contributions:
+\begin{enumerate}
+  \item \textbf{A parametric spatial-transcriptomics pipeline} in which every analytic
+  choice is a configuration variable, enabling exhaustive or curated sweeps over the
+  multiverse with bit-level reproducibility.
+  \item \textbf{The Spatial Stability Score ($S^3$)}, a family of interpretable metrics
+  that quantify how often a conclusion---a spot's domain assignment, a gene's SVG
+  status, or a headline count---survives across the multiverse. For per-spot stability
+  we align arbitrary cluster labels across pipelines by Hungarian matching, avoiding a
+  common pitfall that conflates relabeling with instability.
+  \item \textbf{An empirical instability audit} of a canonical Visium benchmark showing
+  that headline conclusions are strongly contingent, together with per-location and
+  per-gene stability maps that tell a researcher \emph{which} parts of their result to
+  trust.
+\end{enumerate}
+
+\section{Related Work}
+\textbf{Multiverse and specification-curve analysis.} \citet{steegen2016increasing}
+formalized the multiverse; \citet{simonsohn2020specification} introduced specification
+curves that plot an effect across all reasonable specifications. \citet{gelman2013garden}
+articulated why this matters even absent $p$-hacking. We port these ideas to spatial
+omics and add a spatially-resolved stability metric.
+
+\textbf{Spatial transcriptomics analysis.} Standard pipelines build on SCANPY
+\citep{wolf2018scanpy} and Squidpy \citep{palla2022squidpy}, with community detection by
+Louvain \citep{blondel2008fast} or Leiden \citep{traag2019louvain} and SVG detection by
+Moran's $I$ \citep{moran1950notes}, SpatialDE \citep{svensson2018spatialde}, or nnSVG
+\citep{weber2023nnsvg}. Benchmarks typically compare methods against a reference; we
+instead quantify \emph{within-analyst} instability across defensible pipelines.
+
+\section{Methods}
+
+\subsection{Specification space}
+We treat each analytic stage as an axis (Table~\ref{tab:space}). The full Cartesian
+product is large ($>200$ combinations); following specification-curve practice we
+evaluate a \emph{curated} set of \Nspecs{} pipelines spanning canonical choices,
+conservative and aggressive feature selection, alternate normalizations, both community
+detection algorithms, and a range of clustering resolutions, so that the set remains
+human-interpretable as a matrix.
+
+\begin{table}[t]
+  \caption{The specification space. Curated pipelines sample defensible combinations.}
+  \label{tab:space}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    Stage & Options \\
+    \midrule
+    Normalization & log1p, sqrt, total-count \\
+    Feature selection & Seurat / Cell Ranger HVGs; $\{2000, 3000, 5000\}$ genes \\
+    Dimensionality (PCA) & $\{30, 50\}$ components \\
+    Neighborhood graph & $k$-NN, $k \in \{6,10,15\}$ \\
+    Clustering & Leiden / Louvain; resolution $\in \{0.3, 0.5, 0.8, 1.2\}$ \\
+    Spatially variable genes & Moran's $I$ (FDR $< 0.05$) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Parametric pipeline}
+Given a specification $s$, the pipeline maps raw counts to a clustered {\tt AnnData}
+object and a table of Moran's $I$ statistics. Every stochastic step is seeded
+($\texttt{random\_state}=42$), and each pipeline re-derives its normalized matrix from
+the stored raw counts so that no information leaks between specifications. Leiden uses the
+\texttt{leidenalg} backend; Louvain is driven through igraph's resolution-aware
+multi-level optimization so that the resolution axis is comparable across algorithms.
+
+\subsection{The Spatial Stability Score}
+Let $\mathcal{S}$ be the set of specifications, $|\mathcal{S}| = N$. For a spot $i$, let
+$c_s(i)$ be its cluster label under specification $s$. Because cluster labels are
+arbitrary, we align each $s$ to a reference specification $s_0$ by the label permutation
+$\pi_s$ that maximizes contingency-table overlap (solved as a linear assignment). The
+per-spot stability is the frequency of the consensus (modal) aligned label:
+\begin{equation}
+  S^3_{\text{spot}}(i) = \frac{1}{N}\max_{\ell}\;\bigl|\{\, s \in \mathcal{S} :
+  \pi_s(c_s(i)) = \ell \,\}\bigr|.
+\end{equation}
+For a gene $g$, let $\mathbb{1}[g \text{ is SVG in } s]$ indicate FDR-significant Moran's
+$I$; the per-feature stability is
+\begin{equation}
+  S^3_{\text{gene}}(g) = \frac{1}{N}\sum_{s \in \mathcal{S}}
+  \mathbb{1}[g \text{ is SVG in } s].
+\end{equation}
+For a headline metric $m$ (e.g., the number of domains) we report its mean, standard
+deviation, and range across $\mathcal{S}$. Values near $1$ denote robust conclusions;
+values near $1/N$ denote conclusions that are essentially pipeline artifacts.
+
+\section{Experiments}
+We use the 10x Genomics Visium H\&E breast-cancer demonstration slide
+($\Nspots{}$ spots, $\Ngenes{}$ genes) distributed with Squidpy
+\citep{palla2022squidpy}. We run all \Nspecs{} specifications, each seeded, and verify
+determinism by re-running a fixed specification and confirming identical spot-level
+labels. Runtime is roughly one minute per specification on a single Apple-silicon CPU.
+
+\section{Results}
+
+\paragraph{Headline instability.} The number of recovered spatial domains ranges from
+\ClustMin{} to \ClustMax{} across the multiverse (mean $\ClustMean{}\pm\ClustStd{}$), so
+a study reporting a single domain count is reporting a point on a wide distribution
+(Figure~\ref{fig:speccurve}).
+
+\paragraph{Where the tissue is (un)stable.} Per-spot $S^3$ (Figure~\ref{fig:map})
+concentrates instability at domain boundaries and low-signal regions, while domain cores
+are stable. Only \SpotStableFrac{} of spots are assigned a consensus domain in a large
+majority of pipelines; \SpotFragileFrac{} are effectively unresolved.
+
+\paragraph{Which genes are robust.} Per-gene $S^3$ separates genes that are called
+spatially variable regardless of pipeline (\GeneRobustFrac{} with $S^3>0.8$) from those
+whose SVG status flips with the analysis (\GeneFragileFrac{} with $S^3<0.5$;
+Figure~\ref{fig:genes}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{01_stability_map.png}
+  \caption{Per-spot Spatial Stability Score. Left: a canonical clustering. Middle:
+  $S^3$ per spot (green stable, red unstable). Right: consensus domains. Instability
+  concentrates at boundaries.}
+  \label{fig:map}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.6\linewidth]{03_spec_curve_n_clusters.png}
+  \caption{Specification curve for the number of spatial domains, sorted across the
+  \Nspecs{} pipelines. The wide range shows that the headline domain count is contingent
+  on analytic choices.}
+  \label{fig:speccurve}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.6\linewidth]{02_gene_instability.png}
+  \caption{The least stable spatially-variable-gene calls. Genes with low $S^3$ are
+  declared spatially variable only under some pipelines.}
+  \label{fig:genes}
+\end{figure}
+
+\section{Discussion and Limitations}
+MOSAIC quantifies, rather than resolves, analytic ambiguity: it tells a researcher which
+conclusions are robust and which are contingent, and provides a spatially-resolved map of
+where to place trust. Limitations include the use of a curated (not exhaustive) set of
+specifications, a single dataset and modality in this study, and a single SVG test; the
+framework accommodates additional axes, datasets (e.g., Xenium), and tests, which we
+leave to future work. Cross-pipeline label alignment is heuristic, though the reported
+$S^3$ is robust to the choice of reference specification.
+
+\section{Reproducibility}
+Every specification is seeded and re-derives its inputs from raw counts. We release the
+code, the specification configuration, the aggregate stability tables, and the figure
+scripts; the entire study reproduces with \texttt{make repro}. Data are auto-downloaded
+from public Squidpy mirrors.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

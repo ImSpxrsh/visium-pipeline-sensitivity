@@ -1,0 +1,163 @@
+# MOSAIC Multiverse Specification
+# A curated set of defensible spatial-transcriptomics pipelines. This is NOT the
+# full Cartesian product (2x2x3x2x3x2x4 ~= 288) — it is a human-readable set of
+# representative specs chosen for interpretability. Interns (Adharv) expand this
+# with literature-grounded choices toward ~30-40 specs.
+
+global:
+  random_state: 42
+  n_jobs: 4
+  verbose: true
+
+specs:
+  # --- canonical -------------------------------------------------------------
+  - name: canonical_seurat
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- feature-selection variants -------------------------------------------
+  - name: conservative_2k_hvgs
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 2000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: aggressive_5k_hvgs
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 5000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: hvg_cellranger
+    normalization: log1p
+    feature_selection: { method: scanpy, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- normalization variants ------------------------------------------------
+  - name: norm_sqrt
+    normalization: sqrt
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: norm_total
+    normalization: total
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- dimensionality --------------------------------------------------------
+  - name: pca_50
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 50 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- neighborhood graph ----------------------------------------------------
+  - name: small_k6
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 6 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: medium_k10
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 10 }
+    clustering: { method: leiden, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- clustering resolution -------------------------------------------------
+  - name: coarse_res03
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.3 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: fine_res08
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.8 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: veryfine_res12
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 1.2 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- clustering algorithm --------------------------------------------------
+  - name: louvain_res05
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: louvain, resolution: 0.5 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: louvain_res08
+    normalization: log1p
+    feature_selection: { method: seurat, n_genes: 3000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: louvain, resolution: 0.8 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  # --- combined "extreme" variants ------------------------------------------
+  - name: extreme_sqrt_2k_fine
+    normalization: sqrt
+    feature_selection: { method: seurat, n_genes: 2000 }
+    dimensionality_reduction: { n_components: 50 }
+    neighborhood_graph: { type: knn, k_or_radius: 6 }
+    clustering: { method: louvain, resolution: 1.2 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }
+
+  - name: extreme_total_5k_coarse
+    normalization: total
+    feature_selection: { method: scanpy, n_genes: 5000 }
+    dimensionality_reduction: { n_components: 30 }
+    neighborhood_graph: { type: knn, k_or_radius: 15 }
+    clustering: { method: leiden, resolution: 0.3 }
+    spatially_variable_genes: { method: morans_i }
+    cell_cell_communication: { enabled: false }

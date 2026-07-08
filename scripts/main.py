@@ -7,6 +7,7 @@ manifest, then computes cross-spec stability (S³) and writes aggregate results.
 Run from the project root:  python scripts/main.py
 """
 
+import json
 import logging
 import sys
 from pathlib import Path
@@ -49,8 +50,28 @@ def run_multiverse_sweep(
         spec_name = spec.get("name", f"spec_{i:02d}")
         spec_hash = dict_to_hash(spec)
         spec_dir = output_dir / f"spec_{i:02d}_{spec_hash}"
-        spec_dir.mkdir(parents=True, exist_ok=True)
 
+        # Incremental execution: skip a spec whose output (matched by content hash,
+        # not index) already exists, so re-running only computes new specs.
+        existing = next(
+            (p for p in output_dir.glob(f"spec_*_{spec_hash}")
+             if (p / "adata_clustered.h5ad").exists()),
+            None,
+        )
+        if existing is not None:
+            import anndata as ad
+
+            logger.info("[%d/%d] %s already computed -> %s (skip)",
+                        i + 1, len(specs), spec_name, existing.name)
+            all_results.append({
+                "spec": spec,
+                "adata": ad.read_h5ad(existing / "adata_clustered.h5ad"),
+                "metadata": json.loads((existing / "metadata.json").read_text()),
+                "output_dir": str(existing),
+            })
+            continue
+
+        spec_dir.mkdir(parents=True, exist_ok=True)
         logger.info("[%d/%d] Running %s ...", i + 1, len(specs), spec_name)
         try:
             result = run_pipeline(adata.copy(), spec, random_state=random_state, verbose=verbose)

@@ -137,6 +137,10 @@ def compute_aggregate_stability(
         scorer.compute_partition_concordance(cluster_key="leiden"),
         output_dir / "partition_concordance_ari.json",
     )
+    save_json(
+        scorer.concordance_with_reference("leiden", "cluster"),
+        output_dir / "reference_concordance_ari.json",
+    )
     # Persist the per-spec metadata as a specification-curve table.
     save_json(
         {"metadata": [r["metadata"] for r in results]},
@@ -146,17 +150,36 @@ def compute_aggregate_stability(
 
 
 def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the MOSAIC multiverse sweep.")
+    parser.add_argument(
+        "--dataset", default="visium_hne",
+        help="squidpy dataset name (e.g. visium_hne, visium_fluo)",
+    )
+    parser.add_argument(
+        "--results-root", default=None,
+        help="output root (default: results/ for visium_hne, results/<dataset>/ otherwise)",
+    )
+    args = parser.parse_args()
+
     project_dir = Path(__file__).resolve().parent.parent
-    results_dir = project_dir / "results"
+    # Keep the primary dataset at results/; namespace any other dataset.
+    if args.results_root is not None:
+        results_dir = Path(args.results_root)
+    elif args.dataset == "visium_hne":
+        results_dir = project_dir / "results"
+    else:
+        results_dir = project_dir / "results" / args.dataset
     setup_logging(results_dir / "logs" / "sweep.log")
 
     logger.info("=" * 60)
-    logger.info("MOSAIC: Multiverse Spatial Transcriptomics Analysis")
+    logger.info("MOSAIC: Multiverse Spatial Transcriptomics Analysis (%s)", args.dataset)
     logger.info("=" * 60)
 
     logger.info("--- Loading data ---")
-    adata, _ = load_dataset("visium_hne", verbose=True)
-    adata = prepare_data(adata, output_dir=project_dir / "data" / "processed", verbose=True)
+    adata, _ = load_dataset(args.dataset, verbose=True)
+    adata = prepare_data(adata, verbose=True)
 
     logger.info("--- Loading specifications ---")
     config = load_specs_from_config(project_dir / "configs" / "multiverse_spec.yaml")

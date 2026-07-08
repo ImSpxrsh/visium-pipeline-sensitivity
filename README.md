@@ -1,5 +1,9 @@
 # MOSAIC: The Garden of Forking Tissues
 
+[![CI](https://github.com/ImSpxrsh/Spatial-Transcriptomics/actions/workflows/ci.yml/badge.svg)](https://github.com/ImSpxrsh/Spatial-Transcriptomics/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 **Multiverse Of Spatial Analysis: Instability & Concordance**
 
 A specification-curve analysis framework for spatial transcriptomics. MOSAIC sweeps
@@ -100,6 +104,28 @@ The full figure set (main + extended data + an interactive Plotly explorer) is i
 Every stochastic step is seeded with `random_state=42`. Each spec starts from raw
 counts (`adata.layers["counts"]`) and normalizes independently — no information leaks
 from global statistics computed before the sweep.
+
+## Reproducing the study
+
+```bash
+make install            # venv + dependencies
+make repro              # download data -> sweep -> figures (primary dataset)
+python scripts/main.py --dataset visium_fluo   # second dataset (generalization)
+python scripts/generate_cross_dataset.py       # Extended Data 8
+make paper              # build the NeurIPS PDF (needs LaTeX / tectonic)
+```
+
+## Citation
+
+```bibtex
+@misc{roy2026mosaic,
+  title  = {The Garden of Forking Tissues: Specification-Curve Analysis Reveals
+            the Fragility of Biological Conclusions in Spatial Transcriptomics},
+  author = {Roy, Sparsh},
+  year   = {2026},
+  note   = {https://github.com/ImSpxrsh/Spatial-Transcriptomics}
+}
+```
 
 ## Contributing
 

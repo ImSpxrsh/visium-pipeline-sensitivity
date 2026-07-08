@@ -113,7 +113,7 @@ product is large ($>200$ combinations); following specification-curve practice w
 evaluate a \emph{curated} set of \Nspecs{} pipelines spanning canonical choices,
 conservative and aggressive feature selection, alternate normalizations, both community
 detection algorithms, and a range of clustering resolutions, so that the set remains
-human-interpretable as a matrix.
+human-interpretable as a matrix (the full listing is in Figure~\ref{fig:specspace}).
 
 \begin{table}[t]
   \caption{The specification space. Curated pipelines sample defensible combinations.}
@@ -161,6 +161,19 @@ For a headline metric $m$ (e.g., the number of domains) we report its mean, stan
 deviation, and range across $\mathcal{S}$. Values near $1$ denote robust conclusions;
 values near $1/N$ denote conclusions that are essentially pipeline artifacts.
 
+\subsection{Statistical analyses}
+We quantify uncertainty and attribution with five analyses. A \emph{permutation test}
+assesses per-region stability by randomly reassigning spots' anatomical labels
+($1000$ permutations) and comparing the observed per-region mean $S^3$ to the null. A
+\emph{Type-II ANOVA} variance decomposition regresses the domain count on all analytical
+axes and reports each axis's share of explained variance. \emph{Bootstrap} resampling of
+specifications ($1000$ iterations) gives $95\%$ confidence intervals on per-region $S^3$.
+A \emph{confound check} correlates per-spot $S^3$ with total UMI counts to test whether
+instability is a sequencing-depth artifact. Finally, a \emph{convergence} analysis
+subsamples specification sets of increasing size to confirm that $S^3$ estimates
+stabilize. Real histology (H\&E) shipped with each dataset is used directly for the
+tissue figures, including magnified boundary/core insets and marker-gene expression maps.
+
 \section{Experiments}
 We use the 10x Genomics Visium H\&E mouse-brain coronal section
 ($\Nspots{}$ spots, $\Ngenes{}$ genes) distributed with Squidpy
@@ -180,7 +193,9 @@ a study reporting a single domain count is reporting a point on a wide distribut
 pairwise Adjusted Rand Index between specifications' spot partitions is \AriMean{}
 (range $\AriMin{}$--$\AriMax{}$), confirming that different pipelines carve the tissue
 into materially different domains rather than merely relabeling the same partition
-(Figure~\ref{fig:montage}).
+(Figure~\ref{fig:montage}). Domain count is driven predominantly by clustering
+resolution, and top-SVG lists agree only partially across pipelines
+(Figure~\ref{fig:headline}).
 
 \paragraph{Where the tissue is (un)stable.} Per-spot $S^3$ (Figure~\ref{fig:map})
 concentrates instability at region boundaries and ventricular/low-signal areas, while
@@ -201,6 +216,29 @@ variable regardless of pipeline (\GeneRobustFrac{} with $S^3>0.8$) from those wh
 status flips with the analysis (\GeneFragileFrac{} with $S^3<0.5$;
 Figure~\ref{fig:genes}). Restricting to genes tested in every specification, individual
 SVG calls still churn substantially across pipelines.
+
+\paragraph{Generalization.} The instability pattern is not specific to one sample.
+Repeating the full \Nspecs{}-specification sweep on an independently prepared
+mouse-brain section (fluorescence Visium, 2{,}800 spots) yields a per-spot $S^3$
+distribution with a comparable robust core and fragile tail (Figure~\ref{fig:cross}),
+and instability again concentrates at region boundaries. This suggests $S^3$ captures a
+general property of spatial-domain analysis rather than an artifact of a single slide.
+
+\paragraph{One choice dominates instability.} A Type-II variance decomposition of the
+domain count across analytical axes attributes \VarTopFrac{} of the variance to a single
+choice---clustering \VarTopAxis{}---with all remaining axes (normalization, feature
+selection, dimensionality, graph $k$, algorithm) each contributing at most a few percent
+(Figure~\ref{fig:variance}). This is directly actionable: standardizing resolution is
+far more consequential than standardizing any other step.
+
+\paragraph{Stability is biological, not technical.} A natural objection is that ``fragile''
+merely labels low-quality spots. It does not: per-spot $S^3$ is essentially uncorrelated
+with sequencing depth (Pearson $r = \ConfoundR{}$ against total UMI counts;
+Figure~\ref{fig:confound}), so robust and fragile spots span the full range of counts. A
+label-permutation null further shows that \RegionsStable{} of \NregionsTotal{} anatomical
+regions are more stable than chance ($p<0.05$), and $S^3$ estimates converge as the number
+of specifications grows, indicating the multiverse is large enough to estimate stability
+reliably.
 
 \begin{figure}[t]
   \centering
@@ -253,14 +291,88 @@ SVG calls still churn substantially across pipelines.
   \label{fig:refval}
 \end{figure}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{ed8_cross_dataset.png}
+  \caption{Extended Data: generalization across independent datasets. Top: per-spot
+  $S^3$ maps for two independently prepared mouse-brain sections (H\&E and
+  fluorescence Visium). Bottom: their $S^3$ distributions are conserved (comparable
+  medians and robust fractions), indicating the instability pattern is not specific to
+  one slide.}
+  \label{fig:cross}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{ed4_spec_space.png}
+  \caption{Extended Data: the curated specification space. Each row is one of the
+  \Nspecs{} pipelines with its analytical choices and resulting number of domains.}
+  \label{fig:specspace}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{ed6_headline_instability.png}
+  \caption{Extended Data: instability in headline conclusions. (A) Domain-count spread.
+  (B) Jaccard overlap of top-10 SVG lists between specification pairs. (C) Domain count
+  versus clustering resolution, split by algorithm---resolution is the dominant lever.}
+  \label{fig:headline}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.75\linewidth]{08_variance_decomposition.png}
+  \caption{Extended Data: variance in domain count attributed to each analytical axis
+  (Type-II ANOVA). Clustering resolution dominates.}
+  \label{fig:variance}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.7\linewidth]{11_confound_umi.png}
+  \caption{Extended Data: per-spot $S^3$ versus total UMI counts. The near-zero
+  correlation shows $S^3$ is not a proxy for sequencing depth; robust (green) and fragile
+  (red) spots occur at all depths.}
+  \label{fig:confound}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{05_zoomed_insets.png}
+  \caption{Extended Data: real H\&E tissue at a robust core versus a fragile boundary,
+  with per-spot $S^3$ overlays. Fragile zones coincide with morphological transitions.}
+  \label{fig:insets}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{06_marker_genes.png}
+  \caption{Extended Data: spatial expression of canonical mouse-brain markers on the
+  H\&E image; the recovered patterns match known neuroanatomy (myelin in fiber tracts,
+  \emph{Hpca} in hippocampus, \emph{Pcp4} in thalamus).}
+  \label{fig:markers}
+\end{figure}
+
+\section{Practical Recommendations}
+For researchers who cannot run a full multiverse, our variance decomposition
+(Figure~\ref{fig:variance}) gives a concrete priority order. First, \emph{fix and report
+the clustering resolution}: it accounts for \VarTopFrac{} of the variability in the number
+of recovered domains, dwarfing every other choice. Second, report the neighborhood graph
+size ($k$), the next largest contributor. Normalization, feature-selection method, HVG
+count, PCA dimensionality, and the Leiden-versus-Louvain choice each move the result only
+marginally and can be set to community defaults with little effect on the domain count.
+Finally, treat spatially-variable-gene calls near the significance threshold as
+provisional: they are the least reproducible conclusion across pipelines, and we recommend
+reporting an $S^3$ per gene alongside any SVG list.
+
 \section{Discussion and Limitations}
 MOSAIC quantifies, rather than resolves, analytic ambiguity: it tells a researcher which
 conclusions are robust and which are contingent, and provides a spatially-resolved map of
 where to place trust. The agreement between per-spot $S^3$ and reference anatomy suggests
 $S^3$ measures biological, not merely analytical, uncertainty. Limitations include the use
-of a curated (not exhaustive) set of specifications, a single dataset and modality in this
-study, and a single SVG test; the framework accommodates additional axes, datasets (e.g.,
-Xenium), and tests, which we leave to future work. Cross-pipeline label alignment is
+of a curated (not exhaustive) set of specifications, two mouse-brain Visium sections (a
+broader survey across tissues and platforms such as Xenium remains future work), and a
+single SVG test; the framework accommodates additional axes, datasets, and tests. Cross-pipeline label alignment is
 heuristic, though the reported $S^3$ is robust to the choice of reference specification,
 and our headline agreement metric (ARI) is label-free.
 

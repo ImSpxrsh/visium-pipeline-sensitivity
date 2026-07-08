@@ -243,6 +243,44 @@ class StabilityScorer:
             )
         return result
 
+    def concordance_with_reference(
+        self, cluster_key: str = "leiden", reference_key: str = "cluster"
+    ) -> Dict[str, Any]:
+        """
+        Agreement (ARI) between each spec's partition and a reference annotation.
+
+        Uses the anatomical annotation shipped with the dataset (e.g. brain
+        regions in ``adata.obs['cluster']``) as ground truth. Returns the mean/
+        min/max ARI over specs, quantifying how well the multiverse recovers
+        known structure.
+        """
+        from sklearn.metrics import adjusted_rand_score
+
+        aris = []
+        for _, adata, _ in self.results:
+            if cluster_key in adata.obs and reference_key in adata.obs:
+                aris.append(
+                    adjusted_rand_score(adata.obs[reference_key], adata.obs[cluster_key])
+                )
+        if not aris:
+            return {}
+        aris = np.asarray(aris)
+        result = {
+            "metric": "ari_vs_reference",
+            "reference_key": reference_key,
+            "n_specs": int(aris.size),
+            "mean": float(aris.mean()),
+            "std": float(aris.std()),
+            "min": float(aris.min()),
+            "max": float(aris.max()),
+        }
+        if self.verbose:
+            logger.info(
+                "Concordance with reference (ARI): mean=%.3f over %d specs (min=%.3f, max=%.3f)",
+                result["mean"], result["n_specs"], result["min"], result["max"],
+            )
+        return result
+
     def summary_report(self) -> Dict[str, Any]:
         """Bundle the stability views into one dict."""
         return {

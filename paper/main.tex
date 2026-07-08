@@ -41,14 +41,18 @@ the same data. We introduce \textbf{MOSAIC}, a specification-curve analysis fram
 that executes a curated set of \Nspecs{} defensible spatial-transcriptomics pipelines
 over a common dataset and quantifies conclusion stability with a \emph{Spatial
 Stability Score} ($S^3$) defined at the level of individual spots, individual genes,
-and headline summaries. On the 10x Genomics Visium breast-cancer benchmark
+and headline summaries. On the 10x Genomics Visium mouse-brain coronal benchmark
 ($\Nspots{}$ spots, $\Ngenes{}$ genes) we find that the recovered number of spatial
-domains ranges from \ClustMin{} to \ClustMax{} across the multiverse, that only
-\SpotStableFrac{} of spots are assigned a stable domain across pipelines, and that
-SVG calls are strongly pipeline-dependent. MOSAIC turns these observations into an
-actionable per-location and per-gene stability map that separates robust findings
-from contingent ones. All pipelines are seeded and bit-reproducible, and the full
-framework is released as open source.
+domains ranges from \ClustMin{} to \ClustMax{} across the multiverse (mean
+pairwise Adjusted Rand Index \AriMean{} between pipelines), that \SpotStableFrac{} of
+spots are assigned a stable domain across pipelines while a fragile tail is not, and
+that SVG calls are strongly pipeline-dependent. Crucially, per-spot stability tracks
+biology rather than analysis: validated against the dataset's reference anatomical
+annotation (ARI \RefAriMean{}), robust regions coincide with well-defined structures
+(thalamus, hippocampus) and fragile regions with boundaries and ventricles. MOSAIC
+turns these observations into an actionable per-location and per-gene stability map
+that separates robust findings from contingent ones. All pipelines are seeded and
+bit-reproducible, and the framework is released as open source.
 \end{abstract}
 
 \section{Introduction}
@@ -158,66 +162,95 @@ deviation, and range across $\mathcal{S}$. Values near $1$ denote robust conclus
 values near $1/N$ denote conclusions that are essentially pipeline artifacts.
 
 \section{Experiments}
-We use the 10x Genomics Visium H\&E breast-cancer demonstration slide
+We use the 10x Genomics Visium H\&E mouse-brain coronal section
 ($\Nspots{}$ spots, $\Ngenes{}$ genes) distributed with Squidpy
-\citep{palla2022squidpy}. We run all \Nspecs{} specifications, each seeded, and verify
-determinism by re-running a fixed specification and confirming identical spot-level
-labels. Runtime is roughly one minute per specification on a single Apple-silicon CPU.
+\citep{palla2022squidpy}. The dataset ships with a reference anatomical annotation
+(15 regions: cortical layers, hippocampus, thalamus, striatum, fiber tract, ventricle,
+etc.) that we treat as ground truth for validation. We run all \Nspecs{} specifications,
+each seeded, and verify determinism by re-running a fixed specification and confirming
+identical spot-level labels. Runtime is roughly one minute per specification on a single
+Apple-silicon CPU.
 
 \section{Results}
 
 \paragraph{Headline instability.} The number of recovered spatial domains ranges from
 \ClustMin{} to \ClustMax{} across the multiverse (mean $\ClustMean{}\pm\ClustStd{}$), so
 a study reporting a single domain count is reporting a point on a wide distribution
-(Figure~\ref{fig:speccurve}). Label-invariant agreement is also modest: the mean
+(Figure~\ref{fig:speccurve}, top). Label-invariant agreement is also modest: the mean
 pairwise Adjusted Rand Index between specifications' spot partitions is \AriMean{}
 (range $\AriMin{}$--$\AriMax{}$), confirming that different pipelines carve the tissue
-into materially different domains rather than merely relabeling the same partition.
+into materially different domains rather than merely relabeling the same partition
+(Figure~\ref{fig:montage}).
 
 \paragraph{Where the tissue is (un)stable.} Per-spot $S^3$ (Figure~\ref{fig:map})
-concentrates instability at domain boundaries and low-signal regions, while domain cores
-are stable. Only \SpotStableFrac{} of spots are assigned a consensus domain in a large
-majority of pipelines; \SpotFragileFrac{} are effectively unresolved.
+concentrates instability at region boundaries and ventricular/low-signal areas, while
+region interiors are stable. \SpotStableFrac{} of spots are assigned a consensus domain
+in the large majority of pipelines ($S^3 \ge 0.8$); \SpotFragileFrac{} are fragile
+($S^3 < 0.5$).
 
-\paragraph{Which genes are robust.} Per-gene $S^3$ separates genes that are called
-spatially variable regardless of pipeline (\GeneRobustFrac{} with $S^3>0.8$) from those
-whose SVG status flips with the analysis (\GeneFragileFrac{} with $S^3<0.5$;
-Figure~\ref{fig:genes}).
+\paragraph{Stability tracks biology, not analysis.} Validated against the reference
+anatomical annotation (Figure~\ref{fig:map}), consensus domains recover known structures,
+and each specification agrees with the annotation at mean ARI \RefAriMean{} (up to
+\RefAriMax{}). Per-region $S^3$ is highest in transcriptomically distinct structures
+(thalamus, hippocampus, cortical layers) and lowest at the lateral ventricle and mixed
+cortical zones, indicating that the instability MOSAIC surfaces marks genuine biological
+transitions rather than mere analytic noise.
+
+\paragraph{Which genes are robust.} Per-gene $S^3$ separates genes called spatially
+variable regardless of pipeline (\GeneRobustFrac{} with $S^3>0.8$) from those whose SVG
+status flips with the analysis (\GeneFragileFrac{} with $S^3<0.5$;
+Figure~\ref{fig:genes}). Restricting to genes tested in every specification, individual
+SVG calls still churn substantially across pipelines.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{01_stability_map.png}
-  \caption{Per-spot Spatial Stability Score. Left: a canonical clustering. Middle:
-  $S^3$ per spot (green stable, red unstable). Right: consensus domains. Instability
-  concentrates at boundaries.}
-  \label{fig:map}
+  \includegraphics[width=\linewidth]{fig1_spec_montage.png}
+  \caption{The same mouse-brain section analyzed with five defensible specifications
+  (A--E) yields \ClustMin{}--18 spatial domains with visibly different extents; (F) the
+  per-spot Spatial Stability Score ($S^3$) summarizes agreement across the full
+  multiverse (green robust, red fragile).}
+  \label{fig:montage}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.6\linewidth]{03_spec_curve_n_clusters.png}
-  \caption{Specification curve for the number of spatial domains, sorted across the
-  \Nspecs{} pipelines. The wide range shows that the headline domain count is contingent
-  on analytic choices.}
+  \includegraphics[width=\linewidth]{fig2_spec_curve_matrix.png}
+  \caption{Specification-curve matrix. Top: number of domains, sorted across the
+  \Nspecs{} pipelines. Middle: each specification's agreement with the multiverse
+  consensus. Bottom: for genes tested in every specification, whether each is called a
+  significant spatially variable gene (black) per pipeline, revealing substantial churn.}
   \label{fig:speccurve}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.6\linewidth]{02_gene_instability.png}
-  \caption{The least stable spatially-variable-gene calls. Genes with low $S^3$ are
-  declared spatially variable only under some pipelines.}
+  \includegraphics[width=\linewidth]{fig3_stability_summary.png}
+  \caption{(A) Per-spot $S^3$ map. (B) $S^3$ distribution across all \Nspots{} spots
+  with robust ($\ge 0.8$) and fragile ($<0.5$) thresholds. (C) Mean $S^3$ by
+  data-driven consensus domain. Extended Data validates these domains against the
+  reference anatomy.}
+  \label{fig:map}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{ed5_svg_stability.png}
+  \caption{Extended Data: (A) least stable spatially-variable-gene calls ranked by
+  $S^3$; (B) gene $\times$ specification concordance for genes tested in every
+  specification (black = called). SVG status depends heavily on the pipeline.}
   \label{fig:genes}
 \end{figure}
 
 \section{Discussion and Limitations}
 MOSAIC quantifies, rather than resolves, analytic ambiguity: it tells a researcher which
 conclusions are robust and which are contingent, and provides a spatially-resolved map of
-where to place trust. Limitations include the use of a curated (not exhaustive) set of
-specifications, a single dataset and modality in this study, and a single SVG test; the
-framework accommodates additional axes, datasets (e.g., Xenium), and tests, which we
-leave to future work. Cross-pipeline label alignment is heuristic, though the reported
-$S^3$ is robust to the choice of reference specification.
+where to place trust. The agreement between per-spot $S^3$ and reference anatomy suggests
+$S^3$ measures biological, not merely analytical, uncertainty. Limitations include the use
+of a curated (not exhaustive) set of specifications, a single dataset and modality in this
+study, and a single SVG test; the framework accommodates additional axes, datasets (e.g.,
+Xenium), and tests, which we leave to future work. Cross-pipeline label alignment is
+heuristic, though the reported $S^3$ is robust to the choice of reference specification,
+and our headline agreement metric (ARI) is label-free.
 
 \section{Reproducibility}
 Every specification is seeded and re-derives its inputs from raw counts. We release the

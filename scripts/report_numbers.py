@@ -29,6 +29,8 @@ def main() -> None:
     specs = json.loads((AGG / "specification_curves.json").read_text())["metadata"]
     ari_path = AGG / "partition_concordance_ari.json"
     ari = json.loads(ari_path.read_text()) if ari_path.exists() else {}
+    ref_path = AGG / "reference_concordance_ari.json"
+    ref = json.loads(ref_path.read_text()) if ref_path.exists() else {}
 
     n_specs = len(specs)
     n_spots = len(per_spot)
@@ -49,6 +51,8 @@ def main() -> None:
         "AriMean": _fmt(ari["mean"], digits=2) if ari else "TBD",
         "AriMin": _fmt(ari["min"], digits=2) if ari else "TBD",
         "AriMax": _fmt(ari["max"], digits=2) if ari else "TBD",
+        "RefAriMean": _fmt(ref["mean"], digits=2) if ref else "TBD",
+        "RefAriMax": _fmt(ref["max"], digits=2) if ref else "TBD",
     }
 
     lines = [

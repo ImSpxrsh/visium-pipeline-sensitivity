@@ -34,7 +34,7 @@
 - [ ] One-page "Specification Space Definition" methods write-up
 
 ## Alex (intern) — Validation & Ground Truth
-- [ ] Compile expected tissue structure for the breast-cancer slide
+- [ ] Cross-check the reference anatomical annotation for the mouse-brain slide
 - [ ] Build `data/reference/annotation_reference.csv`
 - [ ] Hand-check S³ for 5 specs in a spreadsheet
 - [ ] Define operational thresholds for "flipping"/instability bands

@@ -1,8 +1,11 @@
 """
 Load and validate spatial transcriptomics datasets.
 
-Primary dataset: squidpy's Visium H&E demo (10x Genomics breast cancer),
-~2,688 spots x ~18,078 genes with an associated H&E image.
+Primary dataset: squidpy's Visium H&E demo, a 10x Genomics **mouse brain**
+coronal section (~2,688 spots x ~18,078 genes) with an associated H&E image.
+It ships with a reference anatomical annotation in ``adata.obs['cluster']``
+(Cortex, Hippocampus, Thalamus, Striatum, Fiber tract, ...), which we use as
+ground truth for validation.
 """
 
 import logging
@@ -23,7 +26,7 @@ def load_dataset(
     Load a public spatial transcriptomics dataset via squidpy.
 
     Args:
-        dataset_name: "visium_hne" (breast cancer, H&E) or
+        dataset_name: "visium_hne" (mouse brain, H&E) or
                       "visium_fluo" (mouse brain, fluorescence).
         verbose: Print progress.
 
@@ -37,7 +40,7 @@ def load_dataset(
 
     if dataset_name == "visium_hne":
         if verbose:
-            logger.info("Loading Visium H&E (breast cancer)...")
+            logger.info("Loading Visium H&E (mouse brain, coronal)...")
         adata = sq.datasets.visium_hne_adata()
         # The H&E image (~400 MB) is used only for figure overlays, not the
         # analysis. Fetch it best-effort so a slow/failed download never blocks

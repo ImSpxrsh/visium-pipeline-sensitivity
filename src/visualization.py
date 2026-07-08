@@ -440,6 +440,65 @@ def ed6_headline_instability(
 
 
 # ==============================================================================
+# Extended Data 7 -- validation against the reference anatomical annotation
+# ==============================================================================
+def ed7_reference_validation(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    output_path: Optional[Path] = None,
+    reference_key: str = "cluster",
+) -> None:
+    """
+    Validate multiverse output against the dataset's anatomical annotation.
+
+    Panel A: normalized agreement between reference regions (rows) and consensus
+    domains (cols). Panel B: mean per-spot S3 within each anatomical region,
+    showing which known structures are recovered robustly.
+    """
+    ref_adata = runs[0]["adata"]
+    if reference_key not in ref_adata.obs:
+        logger.warning("No reference annotation %r; skipping ED7", reference_key)
+        return
+
+    ref = ref_adata.obs[reference_key].astype(str).values
+    s3 = per_spot.set_index("spot_id").reindex(ref_adata.obs_names)
+    consensus = s3["consensus_cluster"].astype(int).values
+
+    # Contingency of reference region vs consensus domain, row-normalized.
+    ct = pd.crosstab(pd.Series(ref, name="anatomical region"),
+                     pd.Series(consensus, name="consensus domain"))
+    ct_norm = ct.div(ct.sum(axis=1), axis=0)
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 7), gridspec_kw={"width_ratios": [1.3, 1]})
+
+    im = axes[0].imshow(ct_norm.values, aspect="auto", cmap="magma", vmin=0, vmax=1)
+    axes[0].set_xticks(range(ct_norm.shape[1]))
+    axes[0].set_xticklabels(ct_norm.columns, fontsize=8)
+    axes[0].set_yticks(range(ct_norm.shape[0]))
+    axes[0].set_yticklabels(ct_norm.index, fontsize=9)
+    axes[0].set_xlabel("Consensus domain")
+    axes[0].set_ylabel("Reference anatomical region")
+    axes[0].set_title("A  Consensus domains recover known anatomy")
+    fig.colorbar(im, ax=axes[0], fraction=0.046, pad=0.04).set_label("fraction of region")
+
+    region_s3 = pd.DataFrame({"region": ref, "s3": s3["s3_score"].values})
+    agg = region_s3.groupby("region")["s3"].agg(["mean", "std", "count"]).sort_values("mean")
+    axes[1].barh(range(len(agg)), agg["mean"], xerr=agg["std"].fillna(0),
+                 color="#1B9E77", ecolor="#555555", capsize=2)
+    axes[1].set_yticks(range(len(agg)))
+    axes[1].set_yticklabels([f"{r} (n={int(c)})" for r, c in zip(agg.index, agg["count"])],
+                            fontsize=8)
+    axes[1].set_xlim(0, 1)
+    axes[1].set_xlabel("Mean S3")
+    axes[1].set_title("B  Stability by anatomical region")
+
+    fig.suptitle("Extended Data 7 | Validation against reference anatomy",
+                 fontsize=14, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    _save(fig, output_path)
+
+
+# ==============================================================================
 # Extended Data 9 -- interactive multiverse explorer (Plotly HTML)
 # ==============================================================================
 def generate_interactive_explorer(
@@ -529,6 +588,7 @@ def generate_all_figures(results_dir: Path, output_dir: Path, verbose: bool = Tr
     ed4_spec_space_table(runs, output_dir / "ed4_spec_space.png")
     ed5_per_feature_stability(per_feature, runs, output_dir / "ed5_svg_stability.png")
     ed6_headline_instability(runs, per_spot, output_dir / "ed6_headline_instability.png")
+    ed7_reference_validation(runs, per_spot, output_dir / "ed7_reference_validation.png")
     generate_interactive_explorer(runs, per_spot, output_dir / "ed9_explorer.html")
 
     if verbose:

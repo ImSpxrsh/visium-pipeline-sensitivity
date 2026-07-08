@@ -72,6 +72,10 @@ def main() -> None:
         scorer.compute_partition_concordance("leiden"),
         out_dir / "partition_concordance_ari.json",
     )
+    save_json(
+        scorer.concordance_with_reference("leiden", "cluster"),
+        out_dir / "reference_concordance_ari.json",
+    )
     save_json({"metadata": metadatas}, out_dir / "specification_curves.json")
     logger.info("Aggregates written to %s", out_dir)
 

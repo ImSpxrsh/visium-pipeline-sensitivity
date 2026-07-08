@@ -499,6 +499,63 @@ def ed7_reference_validation(
 
 
 # ==============================================================================
+# Extended Data 8 -- cross-dataset generalization
+# ==============================================================================
+def ed8_cross_dataset(
+    datasets: List[Dict[str, Any]],
+    output_path: Optional[Path] = None,
+) -> None:
+    """
+    Compare S3 across independent datasets to show the instability pattern
+    generalizes.
+
+    ``datasets`` is a list of {label, results_dir}. For each we load the per-spot
+    S3 table and the canonical run's geometry. Top row: S3 stability maps; bottom
+    row: overlaid S3 distributions and robust/fragile fractions per dataset.
+    """
+    import anndata as ad
+
+    loaded = []
+    for d in datasets:
+        rd = Path(d["results_dir"])
+        per_spot = pd.read_csv(rd / "aggregate" / "per_spot_stability.csv")
+        matches = sorted((rd / "runs").glob("spec_00_*/adata_clustered.h5ad"))
+        adata = ad.read_h5ad(matches[0]) if matches else None
+        loaded.append({"label": d["label"], "per_spot": per_spot, "adata": adata})
+
+    n = len(loaded)
+    fig = plt.figure(figsize=(5.5 * n, 10))
+    gs = gridspec.GridSpec(2, n, height_ratios=[1.6, 1], hspace=0.3, wspace=0.25)
+
+    for j, d in enumerate(loaded):
+        ax = fig.add_subplot(gs[0, j])
+        if d["adata"] is not None:
+            s3 = d["per_spot"].set_index("spot_id").reindex(d["adata"].obs_names)["s3_score"]
+            sc = _spatial_scatter(ax, d["adata"].obsm["spatial"], s3.values, categorical=False,
+                                  title=d["label"], cmap=S3_CMAP, vmin=0, vmax=1, s=8)
+            fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04).set_label("S3")
+
+    axd = fig.add_subplot(gs[1, :])
+    for j, d in enumerate(loaded):
+        vals = d["per_spot"]["s3_score"].values
+        robust = 100 * np.mean(vals >= 0.8)
+        median = np.median(vals)
+        axd.hist(vals, bins=30, histtype="step", lw=2,
+                 color=CLUSTER_COLORS[j],
+                 label=f"{d['label']} (median {median:.2f}, {robust:.0f}% robust)")
+    axd.axvline(0.8, color="#1A9850", ls="--", lw=1)
+    axd.axvline(0.5, color="#D73027", ls="--", lw=1)
+    axd.set_xlabel("Per-spot S3")
+    axd.set_ylabel("Spots")
+    axd.set_title("S3 distributions are conserved across datasets")
+    axd.legend(fontsize=9)
+
+    fig.suptitle("Extended Data 8 | Generalization across independent datasets",
+                 fontsize=14, fontweight="bold")
+    _save(fig, output_path)
+
+
+# ==============================================================================
 # Extended Data 9 -- interactive multiverse explorer (Plotly HTML)
 # ==============================================================================
 def generate_interactive_explorer(

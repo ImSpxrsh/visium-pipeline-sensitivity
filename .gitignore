@@ -30,8 +30,11 @@ data/**/tmp*
 
 # Results: keep large per-spec runs and logs out of git, but DO track the
 # small aggregate tables and publication figures (reproducible paper artifacts).
+# The pattern covers secondary-dataset namespaces too (results/<dataset>/runs).
 results/runs/
 results/logs/
+results/**/runs/
+results/**/logs/
 
 # Jupyter
 .ipynb_checkpoints/

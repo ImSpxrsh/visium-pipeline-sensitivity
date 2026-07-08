@@ -204,12 +204,52 @@ class StabilityScorer:
             )
         return result
 
+    def compute_partition_concordance(self, cluster_key: str = "leiden") -> Dict[str, Any]:
+        """
+        Label-invariant clustering agreement across specs via Adjusted Rand Index.
+
+        For every pair of specifications we compute the ARI between their spot
+        partitions (ARI needs no label alignment: 1.0 = identical partitions,
+        ~0.0 = chance agreement). Returns the mean/min/max over all pairs, a
+        standard and reference-free complement to the aligned per-spot S3.
+        """
+        from itertools import combinations
+
+        from sklearn.metrics import adjusted_rand_score
+
+        ref = self.results[0][1]
+        labels = [
+            adata.obs[cluster_key].values
+            for _, adata, _ in self.results
+            if cluster_key in adata.obs and adata.obs_names.equals(ref.obs_names)
+        ]
+        if len(labels) < 2:
+            return {}
+
+        aris = [adjusted_rand_score(a, b) for a, b in combinations(labels, 2)]
+        aris = np.asarray(aris)
+        result = {
+            "metric": "adjusted_rand_index",
+            "n_pairs": int(aris.size),
+            "mean": float(aris.mean()),
+            "std": float(aris.std()),
+            "min": float(aris.min()),
+            "max": float(aris.max()),
+        }
+        if self.verbose:
+            logger.info(
+                "Partition concordance (ARI): mean=%.3f over %d pairs (min=%.3f, max=%.3f)",
+                result["mean"], result["n_pairs"], result["min"], result["max"],
+            )
+        return result
+
     def summary_report(self) -> Dict[str, Any]:
-        """Bundle the three stability views into one dict."""
+        """Bundle the stability views into one dict."""
         return {
             "n_specs": len(self.results),
             "per_spot_stability": self.compute_per_spot_stability(),
             "per_feature_stability": self.compute_per_feature_stability(),
+            "partition_concordance": self.compute_partition_concordance(),
             "headline_instability": {
                 "n_clusters": self.compute_headline_instability("n_clusters_found"),
                 "runtime": self.compute_headline_instability("runtime_seconds"),

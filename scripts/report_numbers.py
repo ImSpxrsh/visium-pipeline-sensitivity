@@ -27,6 +27,8 @@ def main() -> None:
     per_feature = pd.read_csv(AGG / "per_feature_stability.csv")
     headline = json.loads((AGG / "headline_instability_n_clusters.json").read_text())
     specs = json.loads((AGG / "specification_curves.json").read_text())["metadata"]
+    ari_path = AGG / "partition_concordance_ari.json"
+    ari = json.loads(ari_path.read_text()) if ari_path.exists() else {}
 
     n_specs = len(specs)
     n_spots = len(per_spot)
@@ -44,6 +46,9 @@ def main() -> None:
         "SpotFragileFrac": _fmt((per_spot["s3_score"] < 0.5).mean(), pct=True),
         "GeneRobustFrac": _fmt((per_feature["s3_score"] > 0.8).mean(), pct=True),
         "GeneFragileFrac": _fmt((per_feature["s3_score"] < 0.5).mean(), pct=True),
+        "AriMean": _fmt(ari["mean"], digits=2) if ari else "TBD",
+        "AriMin": _fmt(ari["min"], digits=2) if ari else "TBD",
+        "AriMax": _fmt(ari["max"], digits=2) if ari else "TBD",
     }
 
     lines = [

@@ -79,6 +79,16 @@ def test_per_feature_stability_uses_fdr_column():
     assert df.loc["gene2", "s3_score"] == 0.0
 
 
+def test_partition_concordance_identical_and_disjoint():
+    # Identical partitions -> ARI 1.0; label permutation must not change it.
+    scorer = StabilityScorer(verbose=False)
+    scorer.add_result({}, _make_adata([0, 0, 1, 1]), {})
+    scorer.add_result({}, _make_adata([1, 1, 0, 0]), {})  # same partition, swapped names
+    res = scorer.compute_partition_concordance()
+    assert res["n_pairs"] == 1
+    assert abs(res["mean"] - 1.0) < 1e-9
+
+
 def test_headline_instability_stats():
     scorer = StabilityScorer(verbose=False)
     for n in (5, 7, 9):

@@ -112,6 +112,10 @@ def compute_aggregate_stability(
         scorer.compute_headline_instability("n_clusters_found"),
         output_dir / "headline_instability_n_clusters.json",
     )
+    save_json(
+        scorer.compute_partition_concordance(cluster_key="leiden"),
+        output_dir / "partition_concordance_ari.json",
+    )
     # Persist the per-spec metadata as a specification-curve table.
     save_json(
         {"metadata": [r["metadata"] for r in results]},

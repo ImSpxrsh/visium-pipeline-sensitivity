@@ -89,6 +89,17 @@ def test_partition_concordance_identical_and_disjoint():
     assert abs(res["mean"] - 1.0) < 1e-9
 
 
+def test_concordance_with_reference():
+    # A spec that perfectly matches the reference annotation -> ARI 1.0.
+    scorer = StabilityScorer(verbose=False)
+    a = _make_adata([0, 0, 1, 1])
+    a.obs["cluster"] = pd.Categorical(["X", "X", "Y", "Y"])
+    scorer.add_result({}, a, {})
+    res = scorer.concordance_with_reference(cluster_key="leiden", reference_key="cluster")
+    assert res["n_specs"] == 1
+    assert abs(res["mean"] - 1.0) < 1e-9
+
+
 def test_headline_instability_stats():
     scorer = StabilityScorer(verbose=False)
     for n in (5, 7, 9):

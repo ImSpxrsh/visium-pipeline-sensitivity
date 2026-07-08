@@ -24,7 +24,7 @@ jobs:
       - name: Install offline test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pandas scipy anndata pyyaml pytest
+          pip install numpy pandas scipy anndata pyyaml pytest scikit-learn matplotlib
 
       - name: Run offline test suite
         run: pytest -m "not network" -q

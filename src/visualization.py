@@ -357,29 +357,41 @@ def ed5_per_feature_stability(
     output_path: Optional[Path] = None,
     top_n: int = 20,
 ) -> None:
-    """Least-stable SVGs barplot + gene x spec SVG concordance heatmap."""
+    """Most-contested SVGs barplot + gene x spec SVG concordance heatmap.
+
+    Restricted to genes tested in every specification, so "instability" reflects
+    genuine significance flips rather than a gene being dropped by feature
+    selection. Genes are ranked by how close their call frequency is to 50%
+    (maximally contested); the SVG stability shown is that call frequency.
+    """
     fig, axes = plt.subplots(1, 2, figsize=(15, 8), gridspec_kw={"width_ratios": [1, 1.3]})
 
-    unstable = per_feature.nsmallest(top_n, "s3_score")
-    colors = ["#D73027" if v < 0.5 else "#FEE08B" if v < 0.8 else "#1A9850"
-              for v in unstable["s3_score"]]
-    axes[0].barh(range(len(unstable)), unstable["s3_score"], color=colors)
-    axes[0].set_yticks(range(len(unstable)))
-    axes[0].set_yticklabels(unstable["gene"], fontsize=8)
+    conc = svg_concordance_matrix(runs, common_only=True)
+    if conc.empty:
+        logger.warning("No genes tested in every spec; skipping ED5")
+        plt.close(fig)
+        return
+
+    gene_freq = conc.mean(axis=1)  # fraction of specs calling each gene an SVG
+    contested = (gene_freq - 0.5).abs().nsmallest(top_n).index
+    freq = gene_freq.loc[contested].sort_values()
+
+    colors = ["#D73027" if v < 0.5 else "#FEE08B" if v < 0.8 else "#1A9850" for v in freq]
+    axes[0].barh(range(len(freq)), freq.values, color=colors)
+    axes[0].set_yticks(range(len(freq)))
+    axes[0].set_yticklabels(freq.index, fontsize=8)
     axes[0].invert_yaxis()
     axes[0].set_xlim(0, 1)
-    axes[0].set_xlabel("SVG stability (S3)")
-    axes[0].set_title("A  Least stable SVG calls")
+    axes[0].axvline(0.5, color="#555555", ls="--", lw=1)
+    axes[0].set_xlabel("Fraction of specs calling gene an SVG")
+    axes[0].set_title("A  Most contested SVG calls")
 
-    conc = svg_concordance_matrix(runs, common_only=True)
-    genes = [g for g in unstable["gene"] if g in conc.index]
-    if genes:
-        sub = conc.loc[genes]
-        axes[1].imshow(sub.values, aspect="auto", cmap="binary", interpolation="nearest")
-        axes[1].set_yticks(range(len(sub)))
-        axes[1].set_yticklabels(sub.index, fontsize=8)
-        axes[1].set_xticks(range(sub.shape[1]))
-        axes[1].set_xticklabels(sub.columns, rotation=90, fontsize=6)
+    sub = conc.loc[freq.index]
+    axes[1].imshow(sub.values, aspect="auto", cmap="binary", interpolation="nearest")
+    axes[1].set_yticks(range(len(sub)))
+    axes[1].set_yticklabels(sub.index, fontsize=8)
+    axes[1].set_xticks(range(sub.shape[1]))
+    axes[1].set_xticklabels(sub.columns, rotation=90, fontsize=6)
     axes[1].set_title("B  SVG called (black) per specification")
 
     fig.suptitle("Extended Data 5 | Spatially variable gene calls are pipeline-contingent",

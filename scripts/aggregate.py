@@ -77,7 +77,26 @@ def main() -> None:
         out_dir / "reference_concordance_ari.json",
     )
     save_json({"metadata": metadatas}, out_dir / "specification_curves.json")
-    logger.info("Aggregates written to %s", out_dir)
+
+    # Supplementary Table 1: the specification space with outcomes.
+    rows = []
+    for m in metadatas:
+        s = m.get("spec", {})
+        rows.append({
+            "spec_name": m.get("spec_name", ""),
+            "normalization": s.get("normalization", ""),
+            "hvg_method": s.get("feature_selection", {}).get("method", ""),
+            "hvg_n": s.get("feature_selection", {}).get("n_genes", ""),
+            "pca_components": s.get("dimensionality_reduction", {}).get("n_components", ""),
+            "graph_type": s.get("neighborhood_graph", {}).get("type", ""),
+            "graph_k": s.get("neighborhood_graph", {}).get("k_or_radius", ""),
+            "clustering": s.get("clustering", {}).get("method", ""),
+            "resolution": s.get("clustering", {}).get("resolution", ""),
+            "n_domains": m.get("n_clusters_found", ""),
+            "runtime_s": round(m.get("runtime_seconds", 0) or 0, 1),
+        })
+    pd.DataFrame(rows).to_csv(out_dir / "supp_table1_spec_space.csv", index=False)
+    logger.info("Aggregates + supplementary table written to %s", out_dir)
 
 
 if __name__ == "__main__":

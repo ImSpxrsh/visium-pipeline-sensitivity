@@ -334,17 +334,20 @@ def ed4_spec_space_table(
         ])
     cols = ["#", "name", "norm", "HVG", "PCA", "graph", "clustering", "domains"]
 
-    fig, ax = plt.subplots(figsize=(13, 0.5 * len(rows) + 1.5))
+    fig, ax = plt.subplots(figsize=(13, 0.32 * len(rows) + 1.2))
     ax.axis("off")
-    tbl = ax.table(cellText=rows, colLabels=cols, loc="center", cellLoc="left")
+    # Give the name column extra room; keep the rest compact.
+    col_widths = [0.05, 0.20, 0.09, 0.13, 0.07, 0.13, 0.16, 0.09]
+    tbl = ax.table(cellText=rows, colLabels=cols, loc="upper center", cellLoc="left",
+                   colWidths=col_widths)
     tbl.auto_set_font_size(False)
     tbl.set_fontsize(8)
-    tbl.scale(1, 1.4)
+    tbl.scale(1, 1.25)
     for j in range(len(cols)):
         tbl[0, j].set_facecolor("#377EB8")
         tbl[0, j].set_text_props(color="white", fontweight="bold")
     ax.set_title("Extended Data 4 | Curated specification space",
-                 fontsize=13, fontweight="bold", pad=20)
+                 fontsize=13, fontweight="bold", pad=12)
     _save(fig, output_path)
 
 

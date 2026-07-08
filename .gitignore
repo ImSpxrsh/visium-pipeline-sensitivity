@@ -28,13 +28,10 @@ data/anndata/
 data/images/
 data/**/tmp*
 
-# Results (generated, not tracked)
+# Results: keep large per-spec runs and logs out of git, but DO track the
+# small aggregate tables and publication figures (reproducible paper artifacts).
 results/runs/
 results/logs/
-results/aggregate/*.csv
-results/aggregate/*.json
-results/figures/*.png
-results/figures/*.html
 
 # Jupyter
 .ipynb_checkpoints/

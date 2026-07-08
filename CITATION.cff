@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use MOSAIC, please cite the following."
+title: "MOSAIC: Specification-Curve Analysis of Spatial Transcriptomics Pipelines"
+abstract: >-
+  MOSAIC (Multiverse Of Spatial Analysis: Instability & Concordance) is a
+  specification-curve analysis framework that quantifies how biological
+  conclusions in spatial transcriptomics — spatial domains, spatially variable
+  genes, and cell-cell communication — depend on defensible analytical choices,
+  via a Spatial Stability Score (S3).
+authors:
+  - family-names: "Roy"
+    given-names: "Sparsh"
+    alias: "ImSpxrsh"
+repository-code: "https://github.com/ImSpxrsh/Spatial-Transcriptomics"
+keywords:
+  - spatial transcriptomics
+  - multiverse analysis
+  - specification curve
+  - reproducibility
+  - Visium
+license: MIT
+version: "0.1.0"
+date-released: "2026-07-08"

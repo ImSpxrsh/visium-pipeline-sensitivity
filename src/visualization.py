@@ -400,8 +400,10 @@ def ed6_headline_instability(
     from itertools import combinations
 
     n_clusters = np.array([r["metadata"].get("n_clusters_found", np.nan) for r in runs], float)
-    runtimes = np.array([r["metadata"].get("runtime_seconds", np.nan) for r in runs], float)
-    norms = [r["spec"].get("normalization", "?") for r in runs]
+    resolutions = np.array(
+        [r["spec"].get("clustering", {}).get("resolution", np.nan) for r in runs], float
+    )
+    methods = [r["spec"].get("clustering", {}).get("method", "?") for r in runs]
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -425,13 +427,19 @@ def ed6_headline_instability(
     axes[1].set_ylabel("Spec pairs")
     axes[1].set_title(f"B  Top-SVG list agreement\nmean Jaccard {np.mean(jac):.2f}")
 
-    # Runtime vs mean spec-consensus agreement is not stored per spec; use mean S3
-    # of the whole map as a constant reference line and plot runtime distribution.
-    palette = {n: CLUSTER_COLORS[i] for i, n in enumerate(sorted(set(norms)))}
-    axes[2].scatter(runtimes, n_clusters, c=[palette[n] for n in norms], s=60)
-    axes[2].set_xlabel("Runtime (s)")
+    # Clustering resolution is the dominant lever on domain count; show it split by
+    # algorithm. (Runtime is not shown: overnight machine-sleep makes the recorded
+    # wall-clock unreliable as a compute measure.)
+    method_colors = {"leiden": "#377EB8", "louvain": "#E41A1C"}
+    for meth in sorted(set(methods)):
+        idx = [i for i, m in enumerate(methods) if m == meth]
+        jitter = np.random.RandomState(1).normal(0, 0.01, len(idx))
+        axes[2].scatter(resolutions[idx] + jitter, n_clusters[idx],
+                        c=method_colors.get(meth, "#666666"), s=60, alpha=0.8, label=meth)
+    axes[2].set_xlabel("Clustering resolution")
     axes[2].set_ylabel("N domains")
-    axes[2].set_title("C  Runtime vs domain count\n(color = normalization)")
+    axes[2].set_title("C  Domain count vs resolution\n(color = algorithm)")
+    axes[2].legend(fontsize=9)
 
     fig.suptitle("Extended Data 6 | Instability in headline conclusions",
                  fontsize=14, fontweight="bold")

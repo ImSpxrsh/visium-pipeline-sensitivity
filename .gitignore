@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+
+# Environments
+venv/
+env/
+.venv/
+
+# squidpy / scanpy cache
+.cache/
+
+# Data (large, reproducible from code)
+data/raw/*.h5ad
+data/processed/*.h5ad
+
+# Results (generated, not tracked)
+results/runs/
+results/logs/
+results/aggregate/*.csv
+results/aggregate/*.json
+results/figures/*.png
+results/figures/*.html
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/

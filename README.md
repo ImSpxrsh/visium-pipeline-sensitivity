@@ -66,6 +66,35 @@ tests/          Unit tests
 
 See `src/stability.py` for exact definitions and the label-alignment caveat.
 
+## Results
+
+Sweeping 16 defensible pipelines over the 10x Visium mouse-brain coronal section
+(2,688 spots, 18,078 genes):
+
+| Metric | Value |
+| --- | --- |
+| Recovered spatial domains | 8–22 (mean 13.2 ± 3.9) |
+| Mean pairwise Adjusted Rand Index between pipelines | 0.68 (0.49–0.90) |
+| Spots with robust domain (S³ ≥ 0.8) | 57% |
+| Spots fragile (S³ < 0.5) | 4% |
+| Genes robustly spatially variable (S³ > 0.8) | 28% |
+| Agreement with reference anatomy (ARI) | 0.65 (up to 0.76) |
+
+**Stability tracks biology, not analysis.** Validated against the dataset's reference
+anatomical annotation, robust regions coincide with well-defined structures (thalamus
+S³ ≈ 0.98, hippocampus) and fragile regions with boundaries and the lateral ventricle
+(S³ ≈ 0.48).
+
+![Specification montage](results/figures/fig1_spec_montage.png)
+
+*Five defensible pipelines yield 8–18 domains from the same tissue; panel F is the
+per-spot S³ overlay.*
+
+![Stability summary](results/figures/fig3_stability_summary.png)
+
+The full figure set (main + extended data + an interactive Plotly explorer) is in
+`results/figures/`. The NeurIPS manuscript is in `paper/` (build with `make paper`).
+
 ## Reproducibility
 
 Every stochastic step is seeded with `random_state=42`. Each spec starts from raw
@@ -74,5 +103,6 @@ from global statistics computed before the sweep.
 
 ## Contributing
 
-Branch off `dev`, commit with simple present-tense messages (`add data loader`,
-`fix svg key`), push, and open a PR.
+Branch off `main`, commit with simple present-tense messages (`add data loader`,
+`fix svg key`), and open a PR. CI runs the offline test suite (Python 3.11/3.12)
+and `ruff` on every PR.

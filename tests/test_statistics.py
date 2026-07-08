@@ -63,8 +63,8 @@ def test_convergence_returns_increasing_sizes():
 
 
 def test_variance_decomposition_runs():
-    specs, runs = [], []
-    for i, res in enumerate([0.3, 0.5, 0.8, 1.2] * 3):
+    runs = []
+    for res in [0.3, 0.5, 0.8, 1.2] * 3:
         spec = {
             "normalization": "log1p",
             "feature_selection": {"method": "seurat", "n_genes": 3000},

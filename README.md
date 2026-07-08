@@ -45,17 +45,26 @@ Run tests with `pytest`. Tests that touch the network (data loading) are marked
 src/            Core library
   data_loader.py    Load + validate the Visium dataset
   pipeline.py       Parametric analysis pipeline (one spec -> results)
-  stability.py      S³ computation across the multiverse
-  visualization.py  Spec curves, stability maps, instability plots
+  stability.py      S³ + ARI (Hungarian label alignment) across the multiverse
+  statistics.py     Permutation test, variance decomposition, bootstrap, confound,
+                    convergence (+ their figures)
+  downstream.py     Downstream-ML impact: region classification across pipelines
+  tissue_imaging.py Real H&E histology, boundary insets, marker-gene maps
+  visualization.py  Montage, spec-curve matrix, stability maps, extended data
   utils.py          Config/logging/IO helpers
 scripts/        Executable entry points
-  main.py                 Orchestrate the full sweep
+  main.py                 Orchestrate the sweep (--dataset for other tissues)
+  aggregate.py            Recompute aggregates from saved runs
+  report_numbers.py       Populate paper macros from results
+  generate_figures.py     Core figures
+  generate_tissue.py      Histology figures
+  generate_cross_dataset.py  Cross-dataset generalization (ED8)
   test_reproducibility.py Determinism check
-  generate_figures.py     Final figures
-configs/        multiverse_spec.yaml — the specification space
-data/           raw / processed / reference
-results/        runs / aggregate / figures / logs  (generated, gitignored)
-tests/          Unit tests
+configs/        multiverse_spec.yaml — 30-spec specification space
+data/           datasets_manifest.md + caches
+paper/          bioRxiv-style manuscript (main.tex, sections.tex) -> make paper
+results/        runs / aggregate / figures / logs  (large runs gitignored)
+tests/          Unit tests (27 offline)
 ```
 
 ## The Spatial Stability Score (S³)
@@ -87,7 +96,20 @@ Sweeping 30 defensible pipelines over the 10x Visium mouse-brain coronal section
 **Stability tracks biology, not analysis.** Validated against the dataset's reference
 anatomical annotation, robust regions coincide with well-defined structures (thalamus,
 hippocampus, cortical layers) while fragile regions fall at boundaries and the lateral
-ventricle.
+ventricle. Additional analyses:
+
+- **Variance decomposition:** clustering **resolution explains 80%** of the domain-count
+  variance — standardize it first.
+- **Confound check:** per-spot S³ vs sequencing depth Pearson **r = −0.09** — not a
+  low-quality-spot artifact.
+- **Permutation test:** 6/15 anatomical regions stable beyond chance (p < 0.05).
+- **Downstream ML:** region-classification accuracy swings **5 percentage points**
+  (0.89→0.94) from pipeline choice alone.
+- **Generalization:** an independent second mouse-brain section (fluorescence Visium)
+  reproduces the pattern (mean S³ 0.81, pairwise ARI 0.67).
+
+The full manuscript (bioRxiv format, ~13 pages, 15 figures) is in [`paper/`](paper/)
+with formal complexity analysis, a systems-architecture diagram, and the S³ math.
 
 ![Specification montage](results/figures/fig1_spec_montage.png)
 

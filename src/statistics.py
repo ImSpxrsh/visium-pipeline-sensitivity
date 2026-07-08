@@ -113,8 +113,15 @@ def variance_decomposition(runs: List[Dict[str, Any]]) -> pd.DataFrame:
             "pca": s.get("dimensionality_reduction", {}).get("n_components", np.nan),
         })
     df = pd.DataFrame(rows).dropna()
-    formula = ("n_domains ~ C(normalization) + C(hvg_method) + hvg_n + resolution "
-               "+ C(clustering) + k + pca")
+    # Only include predictors that actually vary; a constant term has zero degrees
+    # of freedom and breaks the Type-II ANOVA.
+    categorical = ["normalization", "hvg_method", "clustering"]
+    numeric = ["hvg_n", "resolution", "k", "pca"]
+    terms = [f"C({c})" for c in categorical if df[c].nunique() > 1]
+    terms += [n for n in numeric if df[n].nunique() > 1]
+    if not terms:
+        return pd.DataFrame(columns=["term", "variance_fraction"])
+    formula = "n_domains ~ " + " + ".join(terms)
     model = ols(formula, data=df).fit()
     anova = sm.stats.anova_lm(model, typ=2)
     ss = anova["sum_sq"]

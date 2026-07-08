@@ -1,0 +1,15 @@
+{
+  "confound_umi": {
+    "pearson_r": -0.09099701629119931,
+    "pearson_p": 2.2962173442183007e-06,
+    "spearman_r": -0.1716868412836807,
+    "spearman_p": 3.1380058115282693e-19,
+    "n_spots": 2688
+  },
+  "variance_top_axis": {
+    "term": "resolution",
+    "variance_fraction": 0.8011558808422848
+  },
+  "regions_stable_p05": 6,
+  "n_regions": 15
+}

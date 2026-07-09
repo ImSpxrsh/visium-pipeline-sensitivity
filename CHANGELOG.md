@@ -3,6 +3,12 @@
 ## Year 2 (ISEF) — in progress
 - Add Year-2 planning + tracking docs (`CLAUDE.md`, `ISEF_MOSAIC_YEAR2_PLAN.md`, `PROGRESS.md`).
   Goal: extend MOSAIC to human tumor/disease tissue across platforms and test H1/H2/H3.
+- **H1** stakes-stratified S³ (boundary vs interior, permutation null). Mouse-brain baseline:
+  boundary 0.71 vs interior 0.85, gap 0.13, p<0.001. Added to manuscript (Fig `13_stakes`).
+- **Human tumor loader**: `--dataset breast_cancer` / `glioblastoma` via public 10x Visium.
+- `prepare_data` records `total_counts` (exact depth) for the confound check on new datasets.
+- **Downstream calibration**: Brier/ECE per spec; Brier ~doubles across pipelines (0.089→0.159).
+- Tooling: `scripts/analyze_dataset.py` runs the stats suite on any dataset's sweep.
 
 ## Year 1 (foundation) — complete
 - Parametric spatial-transcriptomics pipeline (normalize → HVG → PCA → graph → Leiden/Louvain →

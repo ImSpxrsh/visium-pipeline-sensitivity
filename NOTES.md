@@ -125,3 +125,25 @@ on hypothesis status.
   determinism and the full test suite verified intact throughout. Nothing here is being called a
   breakthrough. What's real: a working, reproducible pipeline extension to tumor tissue with one
   statistically grounded positive result and one honest null, both defensible under review.
+
+## Cycle 6 — 2026-07-09 (this instance: Adharv's machine)
+
+- **Found a real manuscript build bug while checking sync.** `paper/sections.tex` (Fig
+  `fig:stakes`, line 424) already references `13_stakes_stratified.png`, but that file does not
+  exist in `results/figures/` (the primary/mouse-brain figure set) — it only exists under
+  `results/breast_cancer/figures/` from tonight's tumor work. If anyone tried `make paper` right
+  now it would fail on a missing graphic. `paper/numbers.tex`'s `\StakesGap{0.13}` /
+  `\StakesP{<0.001}` macros are also still mouse-brain-only — tonight's tumor H1/H2 numbers and
+  the depth-confound resolution (cycle 5) aren't reflected in the manuscript at all yet.
+- **Why this needs a full sweep, not just a script run:** `results/runs/` (per-spec sweep
+  outputs) is intentionally gitignored - large, reproducible from code - so this machine's fresh
+  clone only has the *committed aggregate summaries*, not the underlying per-spec adata the
+  figure/stats regeneration needs. Kicked off a full `scripts/main.py --dataset visium_hne`
+  sweep (30 specs) in the background to regenerate it locally; will run
+  `scripts/analyze_dataset.py --dataset visium_hne` once it completes to produce the missing
+  figure and (as a side effect) get the new `stakes_stratified_s3_depth_controlled` stat
+  computed on the primary Year-1 dataset too, for full consistency with the tumor-side check.
+- **Not claiming this as new science** — mouse-brain H1 is Year-1, already established; this
+  cycle is repo hygiene (fixing a broken build artifact) plus consistency, not a new result.
+  Will follow up with updating `paper/numbers.tex`'s macros to include the tumor H1/H2 numbers
+  once the mouse-brain regeneration confirms nothing regressed.

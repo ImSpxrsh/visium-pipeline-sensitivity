@@ -287,6 +287,11 @@ is thus far more consequential than any other step.
 regardless of pipeline (\GeneRobustFrac{} with $S^3 > 0.8$) from those whose SVG status flips
 with the analysis (\GeneFragileFrac{} with $S^3 < 0.5$; Figure~\ref{fig:genes}). Restricting
 to genes tested in every specification, individual SVG calls still churn substantially.
+Concretely (Figure~\ref{fig:fragility}), the most contested gene sits on the FDR knife-edge:
+it is declared a significant spatially variable gene in most---but not all---defensible
+pipelines, so a study reporting it (or its absence) from a single pipeline would be equally
+``correct'' either way. A per-gene $S^3$ flags exactly this contingency, which is the concrete
+form of fragility-aware reporting we advocate.
 
 \paragraph{Generalization.} The pattern is not specific to one sample. The full sweep on the
 independent fluorescence section yields a per-spot $S^3$ distribution with a comparable robust
@@ -454,6 +459,15 @@ public Squidpy mirrors.
   \caption{(A) Least stable SVG calls ranked by call frequency among commonly-tested genes.
   (B) Gene $\times$ specification concordance (black = called).}
   \label{fig:genes}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{14_fragility_report.png}
+  \caption{Fragility-aware reporting. The most contested gene's FDR-adjusted Moran's I
+  p-value across all pipelines; many defensible pipelines sit at the $p=0.05$ threshold, so
+  its ``significant SVG'' status flips with the analysis. A per-gene $S^3$ makes this explicit.}
+  \label{fig:fragility}
 \end{figure}
 
 \begin{figure}[t]

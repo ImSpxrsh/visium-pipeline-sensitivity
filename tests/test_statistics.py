@@ -147,9 +147,11 @@ def test_stakes_test_from_arrays_detects_and_depth_controls():
     boundary[:60] = True
     s3 = np.where(boundary, 0.5, 0.9) + rng.normal(0, 0.02, n)
     depth = rng.uniform(1000, 5000, n)  # depth unrelated to the boundary
-    res = stakes_test_from_arrays(s3, boundary, depth=depth, n_perm=200)
+    res = stakes_test_from_arrays(s3, boundary, depth=depth, n_perm=200, n_boot=200)
     assert res["gap"] > 0 and res["p_value"] < 0.05
     assert res["p_value_depth_controlled"] < 0.05
+    assert res["gap_ci95_low"] > 0  # CI excludes zero: a real, non-noise gap
+    assert res["gap_ci95_low"] <= res["gap"] <= res["gap_ci95_high"]
 
 
 def test_variance_decomposition_runs():

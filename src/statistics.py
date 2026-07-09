@@ -379,6 +379,7 @@ def stakes_test_from_arrays(
     depth: Optional[np.ndarray] = None,
     n_bins: int = 10,
     n_perm: int = 1000,
+    n_boot: int = 1000,
     seed: int = 42,
 ) -> Dict[str, Any]:
     """
@@ -389,6 +390,11 @@ def stakes_test_from_arrays(
     If ``depth`` is given, also runs a depth-stratified block-permutation null
     (shuffle the boundary label only within depth deciles) so the result is not a
     sequencing-depth artifact.
+
+    Also reports a 95% bootstrap CI on the gap (resample spots with replacement,
+    recompute boundary/other means). The permutation null answers "is this gap
+    bigger than chance"; the CI answers "how big is it, with what uncertainty" -
+    CLAUDE.md asks every positive claim ship with both, not just a p-value.
     """
     s3 = np.asarray(s3, float)
     boundary = np.asarray(boundary, bool)
@@ -407,6 +413,19 @@ def stakes_test_from_arrays(
         "gap": obs_gap, "p_value": float((ge + 1) / (n_perm + 1)),
         "n_boundary": n_b, "n_other": int((~boundary).sum()),
     }
+
+    boot_gaps = []
+    n = len(s3)
+    for _ in range(n_boot):
+        idx = rng.randint(0, n, n)
+        bb = boundary[idx]
+        if bb.all() or (~bb).all():
+            continue  # degenerate resample; skip
+        boot_gaps.append(s3[idx][~bb].mean() - s3[idx][bb].mean())
+    boot_gaps = np.array(boot_gaps)
+    result["gap_ci95_low"] = float(np.percentile(boot_gaps, 2.5))
+    result["gap_ci95_high"] = float(np.percentile(boot_gaps, 97.5))
+    result["n_boot_used"] = int(len(boot_gaps))
 
     if depth is not None:
         depth = np.asarray(depth, float)

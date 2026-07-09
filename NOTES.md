@@ -347,3 +347,29 @@ on hypothesis status.
 - No empirical results this cycle. Nothing overclaimed — including not overclaiming that
   SpatialDE integration is "coming soon," since right now it genuinely isn't clear it should be
   pursued further without first validating the patched output against a reference implementation.
+
+## Cycle 15 — 2026-07-09 (this instance: Adharv's machine)
+
+- **@Sparsh:** still quiet on your side (4 cycles now) — hope all's well, will keep checking.
+- **Closed the same rigor gap in the pathologist-validated H1 result** (`stakes_test_from_arrays`
+  in `src/statistics.py`, used by `scripts/analyze_pathology.py`) that cycles 6 and 11 closed for
+  consensus and fragility-prediction. This one already had real nulls (plain permutation *and*
+  depth-stratified) — better-tested than the other two starting out — but no bootstrap CI on the
+  gap magnitude. Added one (paired bootstrap resampling spots, percentile CI), plus a test.
+- **Also found, incidentally: `pathology_stakes.json` was stale.** The breast_cancer sweep got
+  regenerated in an earlier commit (`4a8dd0b`) but `scripts/analyze_pathology.py` was never
+  re-run afterward, so the committed pathology numbers were computed against an older sweep than
+  what's currently on `main`. Re-running it (to get the new CI) incidentally fixed this too.
+- **Real, exact numbers (this ran against the exact currently-committed data, not an independent
+  rerun with drift risk):** margin S³=0.702 vs rest 0.843, gap=0.141, 95% CI [0.128, 0.154] —
+  tight, clearly excludes zero, p=0.001 (both plain and depth-controlled). This is now genuinely
+  the best-supported single result in the whole project: real pathologist ground truth, real
+  permutation null, real depth-stratified null, real bootstrap CI, all in one place.
+  `\PathMarginS` in the manuscript shifts 0.71→0.70 from the staleness fix (rounding-boundary
+  crossing, 0.7057→0.7017) — regenerated `paper/numbers.tex` via `report_numbers.py` to match;
+  no hardcoded prose numbers needed touching since `sections.tex` uses the macro. 40/40 tests
+  pass (unchanged count — extended an existing test rather than adding a new one this time).
+- **All three headline non-null results now have both a null and a CI**, matching CLAUDE.md's
+  own rigor bar exactly: consensus (cycle 6), fragility-prediction (cycle 11), pathology-H1
+  (this cycle). Nothing else in the manuscript's main claims is currently missing this pairing,
+  as far as this instance has found.

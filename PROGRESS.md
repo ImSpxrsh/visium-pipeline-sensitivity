@@ -10,9 +10,9 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 ## Year 2 backlog
 | # | Task | Hypothesis | Status |
 |---|---|---|---|
-| 1 | Human tumor Visium loads + sweep runs unchanged | H1/H2/H3 | loader wired; sweep pending |
-| 2 | SVG-method axis (+SpatialDE, +nnSVG) | H2 | not started |
-| 3 | QC/filtering axis | — | not started (needs intersection-safe S³) |
+| 1 | Human tumor Visium loads + sweep runs unchanged | H1/H2/H3 | **fixed 6 spec failures; full sweep re-running** |
+| 2 | SVG-method axis (+Geary's C; SpatialDE/nnSVG later) | H2 | **Geary's C done** |
+| 3 | QC/filtering axis | — | minimal shared gene QC for raw 10x (not a per-spec axis yet) |
 | 4 | Stakes-stratified S³ (boundary/interior/healthy) | H1 | **done (mouse-brain baseline)** |
 
 ## Findings so far (Year 2)

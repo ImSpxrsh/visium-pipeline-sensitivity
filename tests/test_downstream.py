@@ -4,7 +4,7 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.downstream import downstream_region_classification, summarize
+from src.downstream import _brier_ece, downstream_region_classification, summarize
 
 
 def _make_run(seed, n=60, d=5):
@@ -28,6 +28,18 @@ def test_downstream_runs_and_scores_high():
     assert df["accuracy"].between(0, 1).all()
     # separable clusters -> high accuracy
     assert df["accuracy"].min() > 0.8
+
+
+def test_brier_ece_perfect_and_worst():
+    classes = np.array(["A", "B"])
+    y = np.array(["A", "B", "A", "B"])
+    perfect = np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 0.0], [0.0, 1.0]])
+    brier, ece = _brier_ece(y, perfect, classes)
+    assert brier < 1e-9 and ece < 1e-9
+    # confidently wrong -> Brier = 2.0 per sample
+    wrong = np.array([[0.0, 1.0], [1.0, 0.0], [0.0, 1.0], [1.0, 0.0]])
+    brier_w, ece_w = _brier_ece(y, wrong, classes)
+    assert abs(brier_w - 2.0) < 1e-9 and abs(ece_w - 1.0) < 1e-9
 
 
 def test_summarize_keys():

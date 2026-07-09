@@ -19,6 +19,26 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+def _brier_ece(y_true, proba, classes, n_bins: int = 10):
+    """Multiclass Brier score and expected calibration error from CV probabilities."""
+    idx = {c: k for k, c in enumerate(classes)}
+    onehot = np.zeros_like(proba)
+    for i, yt in enumerate(y_true):
+        onehot[i, idx[yt]] = 1.0
+    brier = float(np.mean(np.sum((proba - onehot) ** 2, axis=1)))
+
+    conf = proba.max(axis=1)
+    pred = classes[proba.argmax(axis=1)]
+    correct = (pred == y_true).astype(float)
+    bins = np.linspace(0, 1, n_bins + 1)
+    ece = 0.0
+    for lo, hi in zip(bins[:-1], bins[1:]):
+        m = (conf > lo) & (conf <= hi)
+        if m.any():
+            ece += (m.mean()) * abs(correct[m].mean() - conf[m].mean())
+    return brier, float(ece)
+
+
 def downstream_region_classification(
     runs: List[Dict[str, Any]],
     reference_key: str = "cluster",
@@ -28,11 +48,12 @@ def downstream_region_classification(
     """
     Cross-validated region classification from each spec's PCA embedding.
 
-    Returns a row per specification with mean CV accuracy, macro-F1, the embedding
-    dimensionality, and the spec's domain count.
+    Returns a row per specification with mean CV accuracy, macro-F1, and calibration
+    (Brier score and expected calibration error) computed from cross-validated
+    predicted probabilities.
     """
     from sklearn.linear_model import LogisticRegression
-    from sklearn.model_selection import StratifiedKFold, cross_validate
+    from sklearn.model_selection import StratifiedKFold, cross_val_predict, cross_validate
     from sklearn.preprocessing import StandardScaler
 
     rows = []
@@ -48,6 +69,9 @@ def downstream_region_classification(
         cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
         scores = cross_validate(clf, x, y, cv=cv,
                                 scoring=("accuracy", "f1_macro"), n_jobs=1)
+        proba = cross_val_predict(clf, x, y, cv=cv, method="predict_proba", n_jobs=1)
+        classes = np.unique(y)
+        brier, ece = _brier_ece(y, proba, classes)
         rows.append({
             "spec_name": r["metadata"].get("spec_name", r.get("name", "")),
             "resolution": r["spec"].get("clustering", {}).get("resolution", np.nan),
@@ -56,6 +80,8 @@ def downstream_region_classification(
             "accuracy": float(scores["test_accuracy"].mean()),
             "accuracy_std": float(scores["test_accuracy"].std()),
             "f1_macro": float(scores["test_f1_macro"].mean()),
+            "brier": brier,
+            "ece": ece,
         })
     df = pd.DataFrame(rows).sort_values("accuracy", ascending=False).reset_index(drop=True)
     if len(df):
@@ -72,7 +98,7 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
     """Headline numbers for the downstream experiment."""
     if df.empty:
         return {}
-    return {
+    out = {
         "n_specs": int(len(df)),
         "accuracy_min": float(df["accuracy"].min()),
         "accuracy_max": float(df["accuracy"].max()),
@@ -80,6 +106,16 @@ def summarize(df: pd.DataFrame) -> Dict[str, Any]:
         "f1_min": float(df["f1_macro"].min()),
         "f1_max": float(df["f1_macro"].max()),
     }
+    if "brier" in df.columns:
+        out.update({
+            "brier_min": float(df["brier"].min()),
+            "brier_max": float(df["brier"].max()),
+            "brier_range": float(df["brier"].max() - df["brier"].min()),
+            "ece_min": float(df["ece"].min()),
+            "ece_max": float(df["ece"].max()),
+            "ece_range": float(df["ece"].max() - df["ece"].min()),
+        })
+    return out
 
 
 def plot_downstream(df: pd.DataFrame, output_path: Optional[Path] = None) -> None:
@@ -100,12 +136,21 @@ def plot_downstream(df: pd.DataFrame, output_path: Optional[Path] = None) -> Non
     axes[0].set_title(f"A  Downstream accuracy varies {rng:.1f} pp across pipelines",
                       fontsize=12, fontweight="bold")
 
-    axes[1].scatter(df["resolution"], df["accuracy"], c="#984EA3", s=50)
-    axes[1].set_xlabel("Clustering resolution")
-    axes[1].set_ylabel("Accuracy")
-    axes[1].set_title("B  Accuracy vs upstream resolution", fontsize=12, fontweight="bold")
+    if "ece" in df.columns:
+        de = df.sort_values("ece").reset_index(drop=True)
+        axes[1].bar(range(len(de)), de["ece"], color="#E6550D")
+        axes[1].set_xlabel("Specification (sorted by ECE)")
+        axes[1].set_ylabel("Expected calibration error")
+        rng_e = de["ece"].max() - de["ece"].min()
+        axes[1].set_title(f"B  Calibration (ECE) varies {rng_e:.3f} across pipelines",
+                          fontsize=12, fontweight="bold")
+    else:
+        axes[1].scatter(df["resolution"], df["accuracy"], c="#984EA3", s=50)
+        axes[1].set_xlabel("Clustering resolution")
+        axes[1].set_ylabel("Accuracy")
+        axes[1].set_title("B  Accuracy vs upstream resolution", fontsize=12, fontweight="bold")
 
-    fig.suptitle("Pipeline choice propagates into downstream model performance",
+    fig.suptitle("Pipeline choice propagates into downstream accuracy and calibration",
                  fontsize=13, fontweight="bold")
     if output_path is not None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)

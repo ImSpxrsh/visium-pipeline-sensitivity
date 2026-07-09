@@ -300,10 +300,13 @@ pipeline-dependent. To quantify the consequence, we trained a cross-validated lo
 classifier to predict anatomical region from each specification's PCA embedding
 (Figure~\ref{fig:downstream}). Accuracy ranges from \DownstreamAccMin{} to \DownstreamAccMax{}
 across the multiverse---a \DownstreamRangePP{}~percentage-point swing attributable solely to
-upstream analytical choices, with no change to the model or its hyperparameters. A researcher
-who fixes a single pipeline therefore inherits an unquantified, pipeline-dependent bias in
-downstream performance; reporting the $S^3$ of the features and domains a model is trained on
-makes that dependence explicit.
+upstream analytical choices, with no change to the model or its hyperparameters. The effect is sharper for
+\emph{calibration} than for accuracy: the multiclass Brier score of the same classifier ranges
+from \BrierMin{} to \BrierMax{} across pipelines---nearly a two-fold swing in how well the
+model's predicted probabilities are calibrated---driven entirely by upstream analytical
+choices. A researcher who fixes a single pipeline therefore inherits an unquantified,
+pipeline-dependent bias in downstream performance and calibration; reporting the $S^3$ of the
+features and domains a model is trained on makes that dependence explicit.
 
 \begin{figure}[t]
   \centering

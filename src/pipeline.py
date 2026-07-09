@@ -251,19 +251,29 @@ class SpatialPipeline:
         if self.verbose:
             logger.info("SVG detection: %s", method)
 
-        if method != "morans_i":
+        # SVG method is a first-class analytical axis. Both statistics come from
+        # squidpy's spatial_autocorr (same seeded permutation null and BH FDR), so
+        # they are directly comparable across specs. Default is Moran's I (Year-1).
+        modes = {"morans_i": ("moran", "moranI"), "gearys_c": ("geary", "gearyC")}
+        if method not in modes:
             raise ValueError(f"Unknown SVG method: {method!r}")
+        mode, uns_key = modes[method]
 
         # spatial_autocorr needs a spatial graph; the master prompt omitted this,
         # which would raise a KeyError on adata.obsp["spatial_connectivities"].
         sq.gr.spatial_neighbors(self.adata)
-        sq.gr.spatial_autocorr(self.adata, mode="moran", n_perms=100, n_jobs=1, seed=self.random_state)
+        sq.gr.spatial_autocorr(self.adata, mode=mode, n_perms=100, n_jobs=1,
+                               seed=self.random_state)
 
-        # squidpy writes Moran's I results to adata.uns["moranI"] (not "morans_i").
-        svg_df = self.adata.uns["moranI"].sort_values("I", ascending=False)
+        # Geary's C is inverted (low = positive autocorrelation); sort so the most
+        # spatially structured genes are first for both methods.
+        stat_col = "I" if method == "morans_i" else "C"
+        ascending = (method == "gearys_c")
+        svg_df = self.adata.uns[uns_key].sort_values(stat_col, ascending=ascending)
         self.adata.uns["svg_results"] = svg_df
         if self.verbose:
-            logger.info("Computed Moran's I for %d genes", len(svg_df))
+            logger.info("Computed %s for %d genes", method, len(svg_df))
+        self.metadata["svg_method"] = method
         self.metadata["n_svg_genes_tested"] = int(len(svg_df))
 
     def _cell_cell_communication(self) -> None:

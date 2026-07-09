@@ -6,4 +6,4 @@
 *.fls
 *.fdb_latexmk
 *.synctex.gz
-main.pdf
+# main.pdf is intentionally tracked here (compiled deliverable), unlike paper/.

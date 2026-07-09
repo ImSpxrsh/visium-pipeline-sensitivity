@@ -108,15 +108,6 @@ class SpatialPipeline:
         if "counts" in self.adata.layers:
             self.adata.X = self.adata.layers["counts"].copy()
 
-        # Drop genes with zero counts across every spot. They carry no signal,
-        # and on sparser tissue (e.g. tumor Visium, unlike the curated
-        # mouse-brain demo which has none) enough of them tie at mean==0 to
-        # break the percentile-based binning inside scanpy's seurat/cell_ranger
-        # HVG flavors (duplicate or infinite bin edges). Deterministic from
-        # raw counts alone, applied identically across specs, and a no-op
-        # wherever no all-zero genes exist.
-        sc.pp.filter_genes(self.adata, min_counts=1)
-
         if norm == "log1p":
             sc.pp.normalize_total(self.adata, target_sum=1e4)
             sc.pp.log1p(self.adata)

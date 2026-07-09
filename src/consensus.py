@@ -114,6 +114,52 @@ def evaluate_consensus_recovery(
     return result
 
 
+def s3_predicts_consensus_error(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    reference_key: str = "cluster",
+    k: Optional[int] = None,
+    linkage: str = "average",
+    cluster_key: str = "leiden",
+) -> Dict[str, Any]:
+    """
+    Does per-spot S3 flag where the consensus is wrong? (uncertainty quantification)
+
+    Builds the consensus, maps each consensus domain to its majority reference
+    region, and asks whether S3 separates correctly- from incorrectly-assigned
+    spots (ROC AUC). A high AUC means S3 is a usable, ground-truth-free confidence
+    signal for the consensus output.
+    """
+    from scipy.stats import mannwhitneyu
+    from sklearn.metrics import roc_auc_score
+
+    ref = _reference(runs, reference_key)
+    k = k or len(set(ref))
+    names = runs[0]["adata"].obs_names
+    s3 = per_spot.set_index("spot_id").reindex(names)["s3_score"].values
+
+    lab = consensus_labels(co_association_matrix(runs, cluster_key), k, linkage)
+    pred = np.empty(len(lab), dtype=object)
+    for cl in set(lab):
+        m = lab == cl
+        pred[m] = pd.Series(ref[m]).mode()[0]
+    correct = (pred == ref)
+
+    mask = np.isfinite(s3)
+    auc = float(roc_auc_score(correct[mask], s3[mask]))
+    _, p = mannwhitneyu(s3[correct & mask], s3[~correct & mask], alternative="greater")
+    result = {
+        "consensus_accuracy": float(correct.mean()),
+        "mean_s3_correct": float(s3[correct & mask].mean()),
+        "mean_s3_incorrect": float(s3[~correct & mask].mean()),
+        "auc_s3_predicts_correct": auc,
+        "mannwhitney_p": float(p),
+    }
+    logger.info("S3 predicts consensus correctness: AUC=%.3f (correct S3=%.3f vs %.3f, p=%.1e)",
+                auc, result["mean_s3_correct"], result["mean_s3_incorrect"], p)
+    return result
+
+
 def plot_consensus_recovery(result: Dict[str, Any], output_path: Optional[Path] = None) -> None:
     """Consensus ARI vs k against the single-pipeline distribution."""
     import matplotlib
@@ -156,6 +202,8 @@ def main() -> None:
     result = evaluate_consensus_recovery(runs)
     agg = project / "results" / "aggregate"
     result["table"].to_csv(agg / "consensus_recovery.csv", index=False)
+    per_spot = pd.read_csv(agg / "per_spot_stability.csv")
+    result["uncertainty"] = s3_predicts_consensus_error(runs, per_spot)
     save_json({k: v for k, v in result.items() if k != "table"},
               agg / "consensus_recovery_summary.json")
     plot_consensus_recovery(result, project / "results" / "figures" / "15_consensus_recovery.png")

@@ -90,6 +90,10 @@ def main() -> None:
         macros["SingleBestARI"] = _fmt(c.get("single_max", 0), digits=2)
         macros["SingleWorstARI"] = _fmt(c.get("single_min", 0), digits=2)
         macros["ConsensusBeatsMedianPct"] = _fmt(c.get("beats_median_frac", 0), pct=True)
+        unc = c.get("uncertainty", {})
+        if unc:
+            macros["ConsensusUncAUC"] = _fmt(unc.get("auc_s3_predicts_correct", 0), digits=2)
+            macros["ConsensusAcc"] = _fmt(unc.get("consensus_accuracy", 0), pct=True)
 
     # Second dataset: human breast-cancer tumor (H1/H2 on higher-stakes tissue).
     tumor_path = PROJECT / "results" / "breast_cancer" / "aggregate" / "statistics_summary.json"

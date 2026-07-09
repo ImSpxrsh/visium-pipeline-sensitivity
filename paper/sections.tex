@@ -374,7 +374,12 @@ without the very ground truth they are trying to recover, yet the consensus atta
 best-pipeline-or-better accuracy using only the multiverse itself---and inherits a per-spot
 uncertainty ($S^3$) for free. The multiverse is thus not merely a warning that a result is
 fragile; it is a route to a more accurate, uncertainty-quantified estimate than any single
-defensible choice.
+defensible choice. Moreover the per-spot $S^3$ is a usable confidence signal on the consensus
+itself: where the consensus disagrees with the reference anatomy, $S^3$ is significantly lower
+(mean $0.69$ vs $0.81$), and $S^3$ alone predicts which consensus assignments are
+correct at ROC AUC \ConsensusUncAUC{} (the consensus is correct on \ConsensusAcc{} of spots).
+A researcher can therefore flag the least trustworthy consensus assignments without any ground
+truth.
 
 \begin{figure}[t]
   \centering

@@ -6,5 +6,12 @@
   "consensus_best_ari": 0.7748615608096024,
   "consensus_at_ref_k": 0.7743791982998908,
   "beats_all_singles_frac": 0.2777777777777778,
-  "beats_median_frac": 0.9444444444444444
+  "beats_median_frac": 0.9444444444444444,
+  "uncertainty": {
+    "consensus_accuracy": 0.8541666666666666,
+    "mean_s3_correct": 0.8070993031358885,
+    "mean_s3_incorrect": 0.6893707482993198,
+    "auc_s3_predicts_correct": 0.7179744720187727,
+    "mannwhitney_p": 4.734445280626248e-44
+  }
 }

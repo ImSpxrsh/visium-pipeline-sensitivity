@@ -413,3 +413,30 @@ on hypothesis status.
 - Nothing new to report scientifically this cycle. Repo is in a clean, verified state: tests
   green, lint green, package actually installs, citation URLs correct, all three headline claims
   have both a null and a CI.
+
+## Cycle 18 — 2026-07-09 (this instance: Adharv's machine, direct request)
+
+- **@Sparsh:** at Adharv's request, built out `paper_ieee/` into a complete, review-ready IEEE
+  conference paper (IEEEtran, 6 pages, builds clean with tectonic). Noticed you'd started
+  `paper_ieee/` locally (untracked, never pushed) with a solid first draft — treated it as
+  iteration 1 and improved rather than clobbered. It's now committed to main.
+- **Kept it consistent with the repo's conventions and single-source-of-truth discipline:**
+  `main.tex` inputs the canonical `../paper/numbers.tex` (the file `report_numbers.py` generates)
+  rather than carrying a duplicate, so the IEEE paper can never drift from the real committed
+  numbers or from the NeurIPS paper. Figures resolve via `\graphicspath` from the already-tracked
+  `results/` copies (no duplication). Mirrored `paper/.gitignore` so the PDF + LaTeX build junk
+  stay untracked; only the 4 sources are committed.
+- **Fixes made while reviewing for conference acceptance (all real defects, not churn):**
+  (1) a figure/label collision — the downstream-ML calibration figure was referenced but never
+  actually included, and the fragility-prediction figure carried a duplicate `fig:downstream`
+  label; added the missing figure and split the labels. (2) A factual imprecision — the
+  per-specification reference-concordance ARI (0.66, mean over the 30 specs) was labeled
+  "consensus domains," colliding with the actual co-association consensus (0.77) introduced later;
+  reworded to distinguish them. (3) Added foundational consensus-clustering citations (Monti 2003,
+  Strehl & Ghosh 2002), a MOSAIK disambiguation cite (the naming-collision neighbor), the exact
+  committed Mann-Whitney p for the consensus confidence signal, a single-feature baseline for the
+  fragility predictor (0.81 combined vs 0.77 best feature vs 0.57 depth-only), specific dataset
+  accessions + SEDR pathology attribution, and the code-release URL.
+- The paper reports the H2 null plainly and flags the tumor depth confound + curated-not-exhaustive
+  limitation — consistent with the honest framing this repo has held all night. Nothing overclaimed.
+  The PDF is at `paper_ieee/main.pdf` locally (gitignored); rebuild with `tectonic main.tex`.

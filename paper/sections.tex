@@ -261,7 +261,12 @@ instability at region boundaries and ventricular/low-signal areas while region i
 stable: \SpotStableFrac{} of spots are robust ($S^3 \ge 0.8$) and \SpotFragileFrac{} fragile
 ($S^3 < 0.5$). Magnified real-tissue insets confirm that fragile zones coincide with
 morphological transitions (Figure~\ref{fig:insets}), and canonical marker genes recover the
-expected neuroanatomy (Figure~\ref{fig:markers}).
+expected neuroanatomy (Figure~\ref{fig:markers}). Stratifying spots into domain
+\emph{boundaries} and \emph{interiors} makes this quantitative: mean $S^3$ at boundaries is
+\BoundaryS{} versus \InteriorS{} in interiors, a gap of \StakesGap{} that a label-shuffle
+permutation null rejects as chance ($p\,\StakesP{}$; Figure~\ref{fig:stakes}). Analytical
+fragility concentrates precisely at the biological transitions where a domain assignment is
+most consequential.
 
 \paragraph{Stability tracks biology, not analysis.} Consensus domains recover known anatomy,
 with each specification agreeing with the reference annotation at mean ARI \RefAriMean{} (up
@@ -404,6 +409,16 @@ public Squidpy mirrors.
   \caption{Validation against reference anatomy. (A) Row-normalized agreement between
   anatomical regions and consensus domains. (B) Mean per-spot $S^3$ per region.}
   \label{fig:refval}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{13_stakes_stratified.png}
+  \caption{Fragility concentrates where stakes are highest. (A) Spots split into
+  consensus-domain boundaries (red) and interiors (grey). (B) Boundary spots are
+  significantly more fragile (lower $S^3$) than interiors (permutation null). Where
+  pathologist annotations are unavailable this uses a data-driven boundary proxy.}
+  \label{fig:stakes}
 \end{figure}
 
 \begin{figure}[t]

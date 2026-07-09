@@ -22,6 +22,22 @@ annotation, which MOSAIC uses as ground truth for the S³-vs-anatomy validation.
   imaging modality (fluorescence vs H&E), testing that the instability pattern is not
   specific to a single slide or staining protocol.
 
+## Independent annotations (ground truth)
+
+- **Breast-cancer pathologist annotations** (`data/annotations/brca1_metadata.tsv`): per-spot
+  board-certified pathologist labels for `V1_Breast_Cancer_Block_A_Section_1` (Invasive /
+  Tumor in-situ / Surrounding-tumor margin / Healthy), from the SEDR study
+  (`github.com/JinmiaoChenLab/SEDR_analyses`, `data/BRCA1/metadata.tsv`). 3,798 spots, 100%
+  barcode match. Used as *independent* ground truth for H1 (fragility peaks at the tumor
+  margin) — not a computational annotation, so it removes the circularity concern.
+
+## Controlled-access datasets to pursue with a mentor (forms)
+
+- **HTAN** (Human Tumor Atlas Network): Xenium/CosMx/Visium HD + pathology; controlled Level 1-2
+  via dbGaP `phs002371` (open Level 3-4 via Synapse). Needs an institutional Signing Official + PI.
+- **EGA** tumor Visium: HER2+ breast `EGAD00001011061`, melanoma `EGAD00001010921`, prostate
+  `EGAD00001007921` — each via its Data Access Committee form.
+
 ## Candidate additional datasets (future work)
 
 These strengthen external validity but require manual download and/or format wrangling

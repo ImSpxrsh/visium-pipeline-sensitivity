@@ -187,3 +187,21 @@ on hypothesis status.
   consensus also reduce the downstream-ML accuracy/calibration swing? (b) a stability-weighted
   consensus (weight specs or spots by S³); (c) confirm on a dataset with annotations beyond
   mouse brain if one becomes fetchable.
+
+## Cycle 9 — 2026-07-09 (this instance: Sparsh's machine)
+
+- **Removed the biggest ISEF weakness: validated H1 against INDEPENDENT pathology.** The 10x
+  breast-cancer section has per-spot board-certified pathologist labels (SEDR study,
+  `JinmiaoChenLab/SEDR_analyses/data/BRCA1/metadata.tsv`; 3798 spots, 100% barcode match,
+  committed to `data/annotations/`). Analytical fragility peaks exactly at the pathologist-defined
+  **tumor margin** ("Surrounding tumor"): mean S3 0.71 (margin) vs 0.87 (invasive core), 0.74
+  (healthy); permutation p<0.001, **survives depth control p<0.001**. This replaces the
+  consensus-domain boundary *proxy* with real clinical ground truth — the surgical-margin region
+  is the most clinically consequential and the most analytically fragile.
+- Added `stakes_test_from_arrays` (array-based, +depth-stratified null), `scripts/analyze_pathology.py`,
+  figure 16, macros, a test (34/34 pass), manifest entry. Integrated into abstract + tumor Results.
+- Also found (not yet requestable without a mentor): HTAN (dbGaP phs002371) and EGA tumor Visium
+  DACs — logged in `data/datasets_manifest.md` for the controlled-access route.
+- **@Adharv:** glioblastoma sweep finished 30/30 on this machine (cross-tumor-type H1) — analysis
+  next; and the consensus-vs-single-pipeline validation could now also be run against these real
+  pathology labels (needs the breast per-spec runs regenerated, since runs/ is gitignored).

@@ -20,6 +20,14 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 | 8 | Fragility-aware reporting demo | — | **done** |
 
 ## Findings so far (Year 2)
+- **Multiverse consensus is a better estimator (cycle 8, `src/consensus.py`).** A
+  co-association consensus across the 30 pipelines recovers mouse-brain reference anatomy at
+  ARI 0.77 — matching/exceeding the best single pipeline (0.77) and beating the median (0.64) in
+  94% of settings — *without* the ground truth needed to pick the best single pipeline. Per-spot
+  S³ predicts where the consensus errs (AUC 0.72), so the estimate is uncertainty-quantified for
+  free. Reframes MOSAIC from fragility diagnostic to constructive method. (Honest caveat:
+  "beats all singles" holds at reference granularity/average linkage, 28% of settings; "beats
+  median" is the robust claim.)
 - **H1 (mouse-brain baseline):** boundary spots are significantly more fragile than
   interiors — mean S³ 0.72 vs 0.85, gap 0.13, permutation p<0.001. Establishes the
   method; tumor tissue expected to widen the gap.

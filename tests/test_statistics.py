@@ -138,6 +138,20 @@ def test_fragility_report_picks_contested_gene():
     assert int(df["significant"].sum()) == 2
 
 
+def test_stakes_test_from_arrays_detects_and_depth_controls():
+    from src.statistics import stakes_test_from_arrays
+
+    rng = np.random.RandomState(0)
+    n = 200
+    boundary = np.zeros(n, bool)
+    boundary[:60] = True
+    s3 = np.where(boundary, 0.5, 0.9) + rng.normal(0, 0.02, n)
+    depth = rng.uniform(1000, 5000, n)  # depth unrelated to the boundary
+    res = stakes_test_from_arrays(s3, boundary, depth=depth, n_perm=200)
+    assert res["gap"] > 0 and res["p_value"] < 0.05
+    assert res["p_value_depth_controlled"] < 0.05
+
+
 def test_variance_decomposition_runs():
     runs = []
     for res in [0.3, 0.5, 0.8, 1.2] * 3:

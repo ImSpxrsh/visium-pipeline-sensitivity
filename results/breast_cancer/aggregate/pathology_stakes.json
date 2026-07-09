@@ -1,0 +1,16 @@
+{
+  "boundary_mean_s3": 0.7057108140947752,
+  "other_mean_s3": 0.8417815126050421,
+  "gap": 0.13607069851026687,
+  "p_value": 0.000999000999000999,
+  "n_boundary": 823,
+  "n_other": 2975,
+  "p_value_depth_controlled": 0.000999000999000999,
+  "margin_mean_s3": 0.7057108140947752,
+  "per_category_mean_s3": {
+    "Healthy": 0.7380068728522337,
+    "Invasive": 0.8675886951292844,
+    "Surrounding tumor": 0.7057108140947752,
+    "Tumor": 0.85074566706973
+  }
+}

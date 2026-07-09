@@ -373,6 +373,58 @@ def stakes_stratified_s3_depth_controlled(
     return result
 
 
+def stakes_test_from_arrays(
+    s3: np.ndarray,
+    boundary: np.ndarray,
+    depth: Optional[np.ndarray] = None,
+    n_bins: int = 10,
+    n_perm: int = 1000,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Test whether ``boundary`` spots are more fragile (lower S3) than the rest,
+    directly from arrays (so it works with externally-provided labels such as
+    pathologist annotations, not just the consensus proxy).
+
+    If ``depth`` is given, also runs a depth-stratified block-permutation null
+    (shuffle the boundary label only within depth deciles) so the result is not a
+    sequencing-depth artifact.
+    """
+    s3 = np.asarray(s3, float)
+    boundary = np.asarray(boundary, bool)
+    b_mean, o_mean = float(s3[boundary].mean()), float(s3[~boundary].mean())
+    obs_gap = o_mean - b_mean
+    rng = np.random.RandomState(seed)
+    n_b = int(boundary.sum())
+
+    ge = 0
+    for _ in range(n_perm):
+        perm = rng.permutation(len(s3)) < n_b
+        if (s3[~perm].mean() - s3[perm].mean()) >= obs_gap:
+            ge += 1
+    result = {
+        "boundary_mean_s3": b_mean, "other_mean_s3": o_mean,
+        "gap": obs_gap, "p_value": float((ge + 1) / (n_perm + 1)),
+        "n_boundary": n_b, "n_other": int((~boundary).sum()),
+    }
+
+    if depth is not None:
+        depth = np.asarray(depth, float)
+        bins = pd.qcut(depth, q=n_bins, labels=False, duplicates="drop")
+        ge_d = 0
+        for _ in range(n_perm):
+            perm = np.zeros(len(s3), bool)
+            for b in np.unique(bins):
+                idx = np.where(bins == b)[0]
+                k = int(boundary[idx].sum())
+                if k:
+                    perm[rng.choice(idx, k, replace=False)] = True
+            if (s3[~perm].mean() - s3[perm].mean()) >= obs_gap:
+                ge_d += 1
+        result["p_value_depth_controlled"] = float((ge_d + 1) / (n_perm + 1))
+    return result
+
+
 def fragility_report(runs: List[Dict[str, Any]], alpha: float = 0.05):
     """
     A concrete 'headline that flips' demo (the fragility-aware reporting story).

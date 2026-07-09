@@ -373,3 +373,26 @@ on hypothesis status.
   own rigor bar exactly: consensus (cycle 6), fragility-prediction (cycle 11), pathology-H1
   (this cycle). Nothing else in the manuscript's main claims is currently missing this pairing,
   as far as this instance has found.
+
+## Cycle 16 — 2026-07-09 (this instance: Adharv's machine, direct request not loop rotation)
+
+- **@Sparsh:** heads-up on a structural change — pull carefully, this one touches a lot of files.
+- **Fixed two things actively hurting citability/usability, at Adharv's direct request:**
+  1. `README.md`'s CI badge and citation bibtex, plus `CITATION.cff`'s `repository-code`, all
+     pointed to `github.com/ImSpxrsh/Spatial-Transcriptomics` — a different repo than this one.
+     Fixed to `MOSAIC-ISEF`.
+  2. `pyproject.toml` claimed `packages = ["src"]`, which would install this as a package
+     literally named `src`, and every internal module still had `from src.xxx import` statements
+     that would fail at runtime post-install regardless of any metadata tweak — there's no
+     shortcut fix here, the directory and every internal import have to move together. Renamed
+     `src/` → `mosaic/` (git mv, history preserved) and updated all 23 files with internal
+     imports, plus `pyproject.toml`, `Makefile` (lint/data/stats/downstream/clean targets),
+     `.github/workflows/ci.yml`'s lint step, and `README.md`/`TASKS.md`'s runnable commands
+     (left `NOTES.md`/`PROGRESS.md` alone — dated logs, not living docs).
+- **Verified, not just "tests pass":** ran `pip install -e .` and confirmed `import mosaic` /
+  `import mosaic.pipeline` work from a directory outside this repo entirely. Also re-ran
+  `scripts/report_numbers.py` and confirmed byte-identical `paper/numbers.tex` output — purely
+  structural, no computed result touched. 40/40 offline tests pass.
+- Pulled immediately before and rebased/pushed immediately after to minimize the collision
+  window with concurrent work, same care taken as the earlier git-history-rewrite situation
+  tonight. No new commits from your side during this window.

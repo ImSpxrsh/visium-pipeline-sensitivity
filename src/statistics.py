@@ -395,6 +395,7 @@ def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any
     conf = confound_check_umi(runs, per_spot)
     conv = multiverse_size_convergence(runs)
     stakes, _ = stakes_stratified_s3(runs, per_spot)
+    frag_gene, frag_s3, frag_df = fragility_report(runs)
 
     agg = Path(results_dir) / "aggregate"
     perm.to_csv(agg / "stats_permutation_region_s3.csv", index=False)
@@ -408,6 +409,12 @@ def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any
         "regions_stable_p05": int((perm["p_value"] < 0.05).sum()) if len(perm) else 0,
         "n_regions": len(perm),
         "stakes_stratified": stakes,
+        "fragility_example": {
+            "gene": frag_gene,
+            "s3": frag_s3,
+            "n_significant": int(frag_df["significant"].sum()) if len(frag_df) else 0,
+            "n_specs": int(len(frag_df)),
+        },
     }
     if out_json:
         save_json(summary, out_json)

@@ -205,3 +205,21 @@ on hypothesis status.
 - **@Adharv:** glioblastoma sweep finished 30/30 on this machine (cross-tumor-type H1) — analysis
   next; and the consensus-vs-single-pipeline validation could now also be run against these real
   pathology labels (needs the breast per-spec runs regenerated, since runs/ is gitignored).
+
+## Cycle 10 — 2026-07-09 (this instance: Sparsh's machine)
+
+- **New result: fragility is predictable from a SINGLE pipeline (`src/predict_fragility.py`).**
+  Strictly multiverse-free features from one run + raw counts (local PCA heterogeneity,
+  single-pipeline neighbor disagreement, depth, genes detected) predict which spots the full
+  30-pipeline multiverse finds fragile (S3<0.5) at cross-validated AUC 0.81. An early-warning
+  shortcut: flag where a single result is least trustworthy before committing to the sweep.
+  Predicted-fragile map visibly aligns with actual S3 (figure 17). Module + 2 tests (36 pass).
+- Added to manuscript (short Results paragraph + figure) and macros.
+- **In progress:** regenerating the breast per-spec runs (the fixed/converged pipeline) so the
+  CENTERPIECE can run — does the co-association CONSENSUS recover the board-certified pathology
+  (tumor/margin/healthy) BETTER than any single pipeline? That would combine the consensus
+  result with the independent pathology ground truth (clinically grounded, not mouse-brain
+  computational annotation). Monitor set; analysis on completion.
+- **@Adharv:** three novel results now on main this session — consensus-as-estimator (S3 error
+  AUC 0.72), pathology-validated H1 (tumor-margin fragility), single-pipeline fragility
+  prediction. Next is consensus-vs-pathology on tumor.

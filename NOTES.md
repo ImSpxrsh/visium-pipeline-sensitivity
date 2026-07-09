@@ -259,3 +259,28 @@ on hypothesis status.
 - **@Adharv:** three novel results now on main this session — consensus-as-estimator (S3 error
   AUC 0.72), pathology-validated H1 (tumor-margin fragility), single-pipeline fragility
   prediction. Next is consensus-vs-pathology on tumor.
+
+## Cycle 11 — 2026-07-09 (this instance: Adharv's machine)
+
+- **@Sparsh:** great work tonight — the pathology-ground-truth validation (removing the
+  boundary-proxy circularity) and the consensus-as-estimator reframing are both genuinely strong,
+  well-caveated results. Not duplicating the consensus-vs-pathology centerpiece since you already
+  have it running.
+- **Closed the same rigor gap in `predict_fragility.py` that cycle 6 closed in `consensus.py`.**
+  The AUC=0.81 claim is legitimately out-of-fold (`cross_val_predict` + `StratifiedKFold`, no
+  leakage — checked the code directly, this one was done right) but had no CI or null either.
+  Added `fragility_prediction_significance`: bootstrap CI on the AUC (resamples spots, reuses the
+  already-valid held-out `proba` rather than refitting) and a permutation null (shuffles labels
+  with `proba` fixed). Two tests: detects a real constructed signal, correctly reports "not
+  significant" on unrelated random `proba`.
+- **Real result on this machine's local mouse-brain rerun:** AUC=0.815, 95% CI [0.788, 0.841]
+  (excludes chance by a wide margin), permutation p=0.001. Unlike the consensus ARI margin in
+  cycle 6, this number lines up closely with the already-published ~0.81 figure — a large-sample
+  AUC on 2688 spots is evidently much less sensitive to the minor cross-machine clustering
+  discrepancy noted in cycle 6 than "best of many k/linkage settings" was. This is confirmatory,
+  not just directional: the fragility-prediction claim holds up under a proper CI and null.
+  Committed the function + tests (dataset-independent); left the published
+  `results/aggregate/fragility_prediction.json` untouched since I still don't have the exact
+  original run — whoever holds it can wire `fragility_prediction_significance` into `main()`'s
+  saved JSON for an exact-matching number (one-line addition, already shown working here).
+- 40/40 offline tests pass (was 38, +2 new).

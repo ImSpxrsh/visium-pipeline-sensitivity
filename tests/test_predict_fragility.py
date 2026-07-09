@@ -4,7 +4,11 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.predict_fragility import predict_fragility, single_pipeline_features
+from src.predict_fragility import (
+    fragility_prediction_significance,
+    predict_fragility,
+    single_pipeline_features,
+)
 
 
 def _make_run(n=120, d=5):
@@ -42,3 +46,29 @@ def test_predict_fragility_learns_boundary():
     res = predict_fragility([run], per_spot, n_splits=3)
     assert 0.0 <= res["auc_combined"] <= 1.0
     assert res["per_feature_auc"]["neighbor_disagreement"] >= 0.5
+
+
+def test_significance_detects_real_signal():
+    rng = np.random.RandomState(1)
+    n = 300
+    fragile = np.zeros(n, dtype=int)
+    fragile[:90] = 1
+    rng.shuffle(fragile)
+    # proba strongly, but not perfectly, separates the two classes
+    proba = np.where(fragile == 1, rng.uniform(0.6, 1.0, n), rng.uniform(0.0, 0.4, n))
+    res = fragility_prediction_significance(fragile, proba, n_boot=200, n_perm=200, seed=1)
+    assert res["auc_observed"] > 0.9
+    assert res["ci95_low"] > 0.5  # CI excludes chance-level AUC
+    assert res["permutation_p_value"] < 0.05
+
+
+def test_significance_null_when_uninformative():
+    rng = np.random.RandomState(2)
+    n = 300
+    fragile = np.zeros(n, dtype=int)
+    fragile[:90] = 1
+    rng.shuffle(fragile)
+    proba = rng.uniform(0, 1, n)  # unrelated to fragile
+    res = fragility_prediction_significance(fragile, proba, n_boot=200, n_perm=200, seed=2)
+    assert 0.35 < res["auc_observed"] < 0.65  # near chance
+    assert res["permutation_p_value"] > 0.1  # not significant

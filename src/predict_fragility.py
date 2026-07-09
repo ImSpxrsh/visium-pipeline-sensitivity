@@ -85,6 +85,59 @@ def predict_fragility(
     return result
 
 
+def fragility_prediction_significance(
+    fragile: np.ndarray,
+    proba: np.ndarray,
+    n_boot: int = 1000,
+    n_perm: int = 1000,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Bootstrap CI and permutation null for the fragility-prediction AUC.
+
+    ``predict_fragility`` already returns a genuine out-of-fold AUC (no
+    leakage, via ``cross_val_predict``) but no uncertainty bound or null -
+    CLAUDE.md requires every positive claim ship with both. Bootstraps spots
+    for the CI (does not refit the classifier - ``proba`` is already valid
+    held-out predictions, so only the *evaluation* is resampled) and permutes
+    the fragile/not-fragile labels with ``proba`` held fixed for the null,
+    matching what AUC would look like if the features carried no real signal.
+    """
+    from sklearn.metrics import roc_auc_score
+
+    rng = np.random.RandomState(seed)
+    n = len(fragile)
+    observed = float(roc_auc_score(fragile, proba))
+
+    boot = []
+    for _ in range(n_boot):
+        idx = rng.randint(0, n, n)
+        if len(np.unique(fragile[idx])) < 2:
+            continue  # degenerate resample (no positives or no negatives); skip
+        boot.append(roc_auc_score(fragile[idx], proba[idx]))
+    boot = np.array(boot)
+
+    perm = np.array([
+        roc_auc_score(rng.permutation(fragile), proba) for _ in range(n_perm)
+    ])
+    p_value = float((np.sum(perm >= observed) + 1) / (n_perm + 1))
+
+    result = {
+        "auc_observed": observed,
+        "ci95_low": float(np.percentile(boot, 2.5)),
+        "ci95_high": float(np.percentile(boot, 97.5)),
+        "n_boot_used": int(len(boot)),
+        "permutation_p_value": p_value,
+        "n_perm": n_perm,
+    }
+    logger.info(
+        "Fragility-prediction AUC significance: observed=%.3f, 95%% CI [%.3f, %.3f], "
+        "permutation p=%.4f",
+        observed, result["ci95_low"], result["ci95_high"], p_value,
+    )
+    return result
+
+
 def plot_predicted_vs_actual(result: Dict[str, Any], output_path: Optional[Path] = None) -> None:
     """Predicted P(fragile) map beside the actual multiverse S3 map."""
     import matplotlib
@@ -124,8 +177,13 @@ def main() -> None:
     runs = load_runs(project / "results")
     per_spot = pd.read_csv(project / "results" / "aggregate" / "per_spot_stability.csv")
     result = predict_fragility(runs, per_spot)
-    save_json({k: v for k, v in result.items() if k not in ("proba", "s3", "adata")},
-              project / "results" / "aggregate" / "fragility_prediction.json")
+    fragile = (result["s3"] < 0.5).astype(int)
+    significance = fragility_prediction_significance(fragile, result["proba"])
+    save_json(
+        {**{k: v for k, v in result.items() if k not in ("proba", "s3", "adata")},
+         "significance": significance},
+        project / "results" / "aggregate" / "fragility_prediction.json",
+    )
     plot_predicted_vs_actual(result, project / "results" / "figures" / "17_fragility_prediction.png")
 
 

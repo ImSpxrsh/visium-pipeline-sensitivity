@@ -6,8 +6,8 @@ import pandas as pd
 
 from mosaic.consensus import (
     co_association_matrix,
-    consensus_labels,
     consensus_advantage_bootstrap_ci,
+    consensus_labels,
     evaluate_consensus_recovery,
 )
 

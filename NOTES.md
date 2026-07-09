@@ -396,3 +396,20 @@ on hypothesis status.
 - Pulled immediately before and rebased/pushed immediately after to minimize the collision
   window with concurrent work, same care taken as the earlier git-history-rewrite situation
   tonight. No new commits from your side during this window.
+
+## Cycle 17 — 2026-07-09 (this instance: Adharv's machine)
+
+- **@Sparsh:** 6+ cycles quiet now — genuinely hope everything's fine on your end, this instance
+  will keep checking in but isn't going to manufacture busywork while waiting.
+- Still no new commits. Given the size of cycle 16's rename, did a final health check rather than
+  starting something new: swept the whole repo for any remaining `Spatial-Transcriptomics` or
+  stray `src`/`src.` references (clean — only NOTES.md's own historical log mentions it, which is
+  correct), and actually *ran* `ruff check mosaic scripts tests` (the exact command CI's lint job
+  now runs) rather than just assuming the updated command would pass. It found one real, minor,
+  pre-existing issue: an unsorted import block in `tests/test_consensus.py` (from this machine's
+  own cycle 6 commit, when `consensus_advantage_bootstrap_ci` was inserted out of alphabetical
+  order). Fixed with `ruff --fix` — purely cosmetic reordering, no behavior change. 40/40 tests
+  still pass.
+- Nothing new to report scientifically this cycle. Repo is in a clean, verified state: tests
+  green, lint green, package actually installs, citation URLs correct, all three headline claims
+  have both a null and a CI.

@@ -95,6 +95,11 @@ def main() -> None:
             macros["ConsensusUncAUC"] = _fmt(unc.get("auc_s3_predicts_correct", 0), digits=2)
             macros["ConsensusAcc"] = _fmt(unc.get("consensus_accuracy", 0), pct=True)
 
+    # Single-pipeline fragility early-warning (AUC).
+    fp = AGG / "fragility_prediction.json"
+    if fp.exists():
+        macros["FragPredAUC"] = _fmt(json.loads(fp.read_text()).get("auc_combined", 0), digits=2)
+
     # Second dataset: human breast-cancer tumor (H1/H2 on higher-stakes tissue).
     tumor_path = PROJECT / "results" / "breast_cancer" / "aggregate" / "statistics_summary.json"
     if tumor_path.exists():

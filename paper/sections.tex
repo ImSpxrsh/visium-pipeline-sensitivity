@@ -437,6 +437,25 @@ features and domains a model is trained on makes that dependence explicit.
   \label{fig:downstream}
 \end{figure}
 
+\paragraph{Fragility is predictable before running the multiverse.} The full sweep is not
+always affordable. Yet the fragile spots can be flagged from a \emph{single} pipeline: using
+only multiverse-free features from one run and the raw counts---local transcriptomic
+heterogeneity, single-pipeline neighbor disagreement, sequencing depth, and genes
+detected---a cross-validated classifier predicts which spots the full 30-pipeline multiverse
+will find fragile ($S^3<0.5$) at ROC AUC \FragPredAUC{} (Figure~\ref{fig:fragpred}). A
+researcher can therefore identify where a single result is least trustworthy, and decide
+whether the multiverse is worth running, up front.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.9\linewidth]{17_fragility_prediction.png}
+  \caption{Predicting fragility from one pipeline. (A) Predicted probability that a spot is
+  fragile, from a single run's local features (AUC \FragPredAUC{}). (B) The actual per-spot
+  $S^3$ from the full multiverse; the predicted-fragile bands align with the truly fragile
+  regions.}
+  \label{fig:fragpred}
+\end{figure}
+
 \section{Practical recommendations}
 For researchers who cannot run a full multiverse, the variance decomposition
 (Figure~\ref{fig:variance}) gives a concrete priority order. First, \emph{fix and report the

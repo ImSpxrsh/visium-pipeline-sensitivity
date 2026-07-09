@@ -108,8 +108,31 @@ ventricle. Additional analyses:
 - **Generalization:** an independent second mouse-brain section (fluorescence Visium)
   reproduces the pattern (mean S³ 0.81, pairwise ARI 0.67).
 
-The full manuscript (bioRxiv format, ~13 pages, 15 figures) is in [`paper/`](paper/)
-with formal complexity analysis, a systems-architecture diagram, and the S³ math.
+### Year 2 — where the stakes are highest (human tumor tissue)
+
+Extending the framework to a human breast-cancer section (invasive ductal carcinoma,
+3,798 spots) and testing three hypotheses:
+
+- **H1 — fragility tracks stakes (supported).** Analytical fragility concentrates at
+  domain boundaries: mean S³ **0.73 at boundaries vs 0.87 in interiors** (gap 0.15,
+  permutation *p* < 0.001), *larger* than the mouse-brain gap (0.13). Tumor tissue adds a
+  real sequencing-depth confound (S³–depth *r* = 0.45 vs −0.09 in brain), but the gap
+  **survives a depth-stratified permutation null** (*p* < 0.001) — it is not just an
+  artifact of low-coverage spots.
+- **H2 — dominant axis shifts (honest null).** The variance-dominating choice stays
+  **clustering resolution** (72% on tumor vs ~80% on brain) — it did *not* move to SVG
+  method or normalization. Reported as a null, not spun.
+- **Downstream calibration.** Across pipelines a region classifier's **Brier score nearly
+  doubles** (0.089→0.159) while accuracy moves 5 pp — pipeline choice degrades a model's
+  *calibration* more than its accuracy.
+- **Second SVG method** (Geary's C) and a **fragility-aware reporting demo** (a headline
+  gene whose SVG significance flips across defensible pipelines) are included.
+
+See [`ISEF_MOSAIC_YEAR2_PLAN.md`](ISEF_MOSAIC_YEAR2_PLAN.md), [`PROGRESS.md`](PROGRESS.md),
+and [`NOTES.md`](NOTES.md) for hypotheses, status, and the honest run log.
+
+The full manuscript (bioRxiv format, ~14 pages) is in [`paper/`](paper/) with formal
+complexity analysis, a systems-architecture diagram, and the S³ math.
 
 ![Specification montage](results/figures/fig1_spec_montage.png)
 
@@ -119,7 +142,7 @@ per-spot S³ overlay.*
 ![Stability summary](results/figures/fig3_stability_summary.png)
 
 The full figure set (main + extended data + an interactive Plotly explorer) is in
-`results/figures/`. The NeurIPS manuscript is in `paper/` (build with `make paper`).
+`results/figures/`. Build the manuscript with `make paper`.
 
 ## Reproducibility
 

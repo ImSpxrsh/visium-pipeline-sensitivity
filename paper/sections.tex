@@ -318,7 +318,16 @@ explains the most domain-count variance (\TumorVarTopFrac{}, versus \VarTopFrac{
 an honest null for the hypothesis that the most consequential choice is tissue-dependent. Thus
 the fragility phenomenon, its concentration at boundaries, and its leading cause all transfer
 to human tumor tissue, while the tumor setting sharpens the importance of controlling for
-sequencing depth.
+sequencing depth (Figure~\ref{fig:tumorstakes}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{../results/breast_cancer/figures/13_stakes_stratified.png}
+  \caption{Fragility at domain boundaries on human breast-cancer tissue. Boundary spots (red)
+  are significantly more fragile than interiors, replicating the mouse-brain result on a
+  higher-stakes tumor section; the gap survives a depth-stratified permutation null.}
+  \label{fig:tumorstakes}
+\end{figure}
 
 \section{Downstream machine-learning implications}
 \label{sec:downstream}

@@ -147,6 +147,42 @@ on hypothesis status.
   cycle is repo hygiene (fixing a broken build artifact) plus consistency, not a new result.
   Will follow up with updating `paper/numbers.tex`'s macros to include the tumor H1/H2 numbers
   once the mouse-brain regeneration confirms nothing regressed.
+- **Update partway through cycle 6:** by the time the local mouse-brain sweep finished, Sparsh's
+  machine had already fixed this exact build bug (cycle 7) and landed a lot more (pathologist
+  validation, consensus estimator, fragility prediction — see cycles 7-10 below). Discarded this
+  machine's redundant local re-run rather than commit over the already-integrated version. Minor
+  note: this machine's independent re-run of the mouse-brain sweep differed very slightly from
+  the committed one (one spec's cluster count off by 1: min=7 vs committed min=8), most likely a
+  cross-machine leidenalg/igraph version difference rather than a real determinism bug — flagging
+  for awareness, not treating as a regression (this machine's own within-run determinism check
+  passed 3/3 identical in cycle 5).
+- **Redirected effort to a real gap in the consensus-estimator result (cycle 8, Sparsh's
+  machine):** its headline number (consensus ARI 0.7749 vs best-single 0.7679, a margin of only
+  ~0.007) had no bootstrap CI or null test anywhere in `src/consensus.py` — `CLAUDE.md` requires
+  every positive claim ship with a bootstrap CI, and this one didn't have one yet. Added
+  `consensus_advantage_bootstrap_ci` (resamples spots with replacement, fixes the best-single and
+  best-consensus label assignments, gets a paired-bootstrap CI on the ARI margin) plus two unit
+  tests: one confirming the CI is exactly zero when consensus equals the best single pipeline,
+  one confirming it correctly detects a real, constructed advantage.
+- **Caveat on the number I actually got:** ran the new CI against *this machine's own* local
+  mouse-brain re-run (not the exact run behind the committed 0.7749/0.7679 figures, since
+  `results/runs/` is gitignored and this machine never had the original). On my re-run: consensus
+  0.7875 vs single-max 0.7679, 95% bootstrap CI on the margin [0.0047, 0.0344], excludes zero,
+  99.8% of draws favor consensus. Directionally this supports the claim (margin is real, not
+  noise) — but my point estimate (0.7875) doesn't exactly match the committed one (0.7749), likely
+  because "best of many k/linkage settings" is more sensitive to the minor cross-machine
+  clustering difference noted above than any individual measurement. **Not committing this number
+  over the published one.** Committed the CI function + tests only (dataset-independent, always
+  correct); whoever holds the original run data should run
+  `consensus_advantage_bootstrap_ci(runs)` against it directly for the CI that exactly matches the
+  published 0.7749 figure.
+- **On "breakthrough":** that word appears in the cycle-8 commit message. Checked the underlying
+  numbers directly rather than taking the label at face value — they're real (verified in
+  `results/aggregate/consensus_recovery_summary.json`) and the `beats_all_singles_frac=0.28` /
+  `beats_median_frac=0.94` caveats in `PROGRESS.md` are accurate to the data. Not fabricated. But
+  a ~0.007-0.02 ARI margin without (until now) a significance test is a real, useful, honestly
+  caveated result — not the word I'd have reached for. Flagging the framing here rather than
+  editing anyone else's commit message.
 
 ## Cycle 7 — 2026-07-09 (this instance: Sparsh's machine)
 

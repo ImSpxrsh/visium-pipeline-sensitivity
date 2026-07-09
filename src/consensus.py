@@ -114,6 +114,85 @@ def evaluate_consensus_recovery(
     return result
 
 
+def consensus_advantage_bootstrap_ci(
+    runs: List[Dict[str, Any]],
+    reference_key: str = "cluster",
+    k_values: Optional[Sequence[int]] = None,
+    linkages: Sequence[str] = ("average", "complete"),
+    cluster_key: str = "leiden",
+    n_boot: int = 1000,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Bootstrap CI on the ARI margin between the best consensus and the best single
+    pipeline, resampling spots with replacement.
+
+    ``evaluate_consensus_recovery`` reports point estimates only. On mouse-brain,
+    the margin (consensus_best_ari - single_max) is small (~0.007 ARI) - plausibly
+    within resampling noise on ~2700 spots, plausibly not. CLAUDE.md requires every
+    positive claim ship with a bootstrap CI; this fills that gap for the
+    consensus-estimator result rather than reporting the point estimates alone.
+
+    Fixes the best-single and best-consensus label assignments (as already
+    identified from the full dataset) and resamples the reference/predicted label
+    pairs to quantify sampling variability in the ARI difference - the standard
+    paired bootstrap for comparing two fixed partitions' agreement with a
+    reference, not a re-derivation of the consensus itself under resampling
+    (which would require re-running agglomerative clustering per draw and answers
+    a different, much more expensive question).
+    """
+    from sklearn.metrics import adjusted_rand_score
+
+    ref = _reference(runs, reference_key)
+    n_ref = len(set(ref))
+    if k_values is None:
+        k_values = list(range(max(2, n_ref - 5), n_ref + 4))
+
+    singles = [
+        (np.array(r["adata"].obs[cluster_key].astype(str).tolist()), None) for r in runs
+    ]
+    for i, (labels, _) in enumerate(singles):
+        singles[i] = (labels, float(adjusted_rand_score(ref, labels)))
+    best_single_labels, single_max = max(singles, key=lambda t: t[1])
+
+    coassoc = co_association_matrix(runs, cluster_key)
+    best_ari, best_consensus_labels = -1.0, None
+    for linkage in linkages:
+        for k in k_values:
+            lab = consensus_labels(coassoc, k, linkage)
+            ari = float(adjusted_rand_score(ref, lab))
+            if ari > best_ari:
+                best_ari, best_consensus_labels = ari, lab
+
+    rng = np.random.RandomState(seed)
+    n = len(ref)
+    diffs = np.empty(n_boot)
+    for b in range(n_boot):
+        idx = rng.randint(0, n, n)
+        diffs[b] = (
+            adjusted_rand_score(ref[idx], best_consensus_labels[idx])
+            - adjusted_rand_score(ref[idx], best_single_labels[idx])
+        )
+
+    result = {
+        "single_max": single_max,
+        "consensus_best_ari": best_ari,
+        "observed_diff": best_ari - single_max,
+        "bootstrap_mean_diff": float(diffs.mean()),
+        "ci95_low": float(np.percentile(diffs, 2.5)),
+        "ci95_high": float(np.percentile(diffs, 97.5)),
+        "frac_bootstrap_positive": float((diffs > 0).mean()),
+        "n_boot": n_boot,
+    }
+    logger.info(
+        "Consensus advantage bootstrap: observed diff=%.4f, 95%% CI [%.4f, %.4f], "
+        "%.0f%% of bootstrap draws favor consensus",
+        result["observed_diff"], result["ci95_low"], result["ci95_high"],
+        100 * result["frac_bootstrap_positive"],
+    )
+    return result
+
+
 def s3_predicts_consensus_error(
     runs: List[Dict[str, Any]],
     per_spot: pd.DataFrame,
@@ -204,6 +283,7 @@ def main() -> None:
     result["table"].to_csv(agg / "consensus_recovery.csv", index=False)
     per_spot = pd.read_csv(agg / "per_spot_stability.csv")
     result["uncertainty"] = s3_predicts_consensus_error(runs, per_spot)
+    result["advantage_bootstrap_ci"] = consensus_advantage_bootstrap_ci(runs)
     save_json({k: v for k, v in result.items() if k != "table"},
               agg / "consensus_recovery_summary.json")
     plot_consensus_recovery(result, project / "results" / "figures" / "15_consensus_recovery.png")

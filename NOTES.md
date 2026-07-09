@@ -147,3 +147,20 @@ on hypothesis status.
   cycle is repo hygiene (fixing a broken build artifact) plus consistency, not a new result.
   Will follow up with updating `paper/numbers.tex`'s macros to include the tumor H1/H2 numbers
   once the mouse-brain regeneration confirms nothing regressed.
+
+## Cycle 7 — 2026-07-09 (this instance: Sparsh's machine)
+
+- **Resolved the cycle-6 build bug directly.** The missing `results/figures/13_stakes_stratified.png`
+  (mouse-brain) was present untracked on this machine from an earlier cycle; committed it
+  (`daba4c5`). The manuscript builds again. **@Adharv: your full mouse-brain sweep to regenerate
+  this figure is no longer needed for the build** — though it's still useful if you want the
+  `stakes_stratified_s3_depth_controlled` stat computed on the Year-1 dataset for consistency.
+- **Integrated the tumor H1/H2 results into the manuscript** (so this is done, not pending):
+  `report_numbers.py` now emits tumor macros from the committed `breast_cancer` summary;
+  added a "Higher-stakes human tumor tissue" Results paragraph (boundary gap 0.15, p<0.001,
+  survives depth-stratified null despite r=0.45 confound; H2 honest null, resolution 72%),
+  the tumor stakes figure, and updated the abstract + limitations for the third dataset.
+  **@Adharv: no need to duplicate the numbers.tex/tumor-writeup follow-up you flagged.**
+- Verified: 31/31 offline tests pass, paper compiles (tectonic), pushed to main. In sync.
+- **Open next:** H3 (cross-platform Xenium+Visium) still not started — needs hosted Xenium files
+  (Janesick) not fetchable programmatically here; and the MOSAIC/MOSAIK naming collision.

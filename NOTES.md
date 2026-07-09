@@ -67,3 +67,31 @@ on hypothesis status.
 - **Kicked off:** fresh `scripts/main.py --dataset breast_cancer` sweep on the deduplicated,
   verified pipeline. Running in background; will report actual H1/H2 numbers (permutation
   p-values, bootstrap CIs) via `analyze_dataset.py` once it completes — none claimed yet.
+
+## Cycle 4 — 2026-07-09 (this instance: Adharv's machine)
+
+- **Sweep finished: 30/30 specs succeeded, 0 failures.** The fix from cycles 2-3 holds
+  completely on a fully fresh run (no stale cache reuse).
+- **Real H1 result on tumor tissue:** boundary mean S³ = 0.727, interior mean S³ = 0.873, gap =
+  0.147, permutation p = 0.001 (n_boundary=1576, n_interior=2222, consensus-domain boundary
+  proxy — no pathologist annotation available for this dataset). This replicates the
+  mouse-brain baseline direction and is modestly *larger* (0.147 vs 0.13), consistent with H1's
+  prediction that tumor tissue would widen the fragility gap. **Not calling this conclusive**:
+  the depth confound (Pearson r=0.447 between per-spot S³ and total UMI counts) is much
+  stronger here than on mouse-brain (r=-0.09), so some of the gap could be a depth artifact
+  rather than pure analytical fragility. Flagged in `PROGRESS.md` as the next priority to
+  resolve, not swept under the rug.
+- **Real H2 result on tumor tissue:** dominant variance axis is still `resolution` (72% of
+  domain-count variance), same as mouse-brain (~80%) — did **not** shift to SVG method,
+  normalization, or HVG selection as H2 speculated it might. Honest null; reported as such in
+  `PROGRESS.md`, not spun.
+- **Also corrected while updating `PROGRESS.md`:** the backlog table listed Task 8
+  (fragility-aware reporting demo) as "not started" even though it was completed and committed
+  in cycle 2 — fixed the bookkeeping.
+- **Committed:** `results/breast_cancer/aggregate/` and `results/breast_cancer/figures/` (the
+  small, reproducible artifacts the `.gitignore` is designed to track — `runs/` and `logs/`
+  stay untracked per existing convention), plus the `PROGRESS.md`/`CHANGELOG.md` updates above.
+- **No breakthrough claimed.** This is a real, statistically grounded partial replication (H1)
+  plus an honest null (H2) on one tumor dataset — exactly the kind of result the repo's rigor
+  guardrails are built for, not a headline result yet. The unresolved depth confound on H1 is
+  the most important open thread for whoever picks this up next.

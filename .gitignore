@@ -26,6 +26,7 @@ data/raw/*.h5ad
 data/processed/*.h5ad
 data/anndata/
 data/images/
+data/visium/
 data/**/tmp*
 
 # Results: keep large per-spec runs and logs out of git, but DO track the

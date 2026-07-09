@@ -58,8 +58,19 @@ def load_dataset(
         # Public 10x Visium (human tumor/disease). Raw filtered_feature_bc_matrix;
         # the pipeline re-derives normalization from counts, preserving Year-1
         # invariants. The tissue image is embedded in adata.uns['spatial'].
+        import scanpy as sc
+
         adata = sq.datasets.visium(sample_id)
         adata.var_names_make_unique()
+        # Minimal, shared, leakage-free gene QC: raw tumor matrices carry tens of
+        # thousands of all-/near-zero genes that break quantile-binned HVG methods
+        # (cell_ranger) and dispersion binning. Applied identically to every spec,
+        # so it is preprocessing, not a per-spec choice. (Mouse-brain demos ship
+        # pre-filtered and never reach this branch, so Year-1 numbers are unchanged.)
+        n_before = adata.n_vars
+        sc.pp.filter_genes(adata, min_cells=10)
+        if verbose:
+            logger.info("Gene QC: %d -> %d genes (min_cells=10)", n_before, adata.n_vars)
         image = None
     else:
         raise ValueError(

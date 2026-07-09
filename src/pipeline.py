@@ -139,7 +139,22 @@ class SpatialPipeline:
         # "seurat"/"cell_ranger" flavors expect log-like data. Guard against the
         # degenerate case where n_top_genes exceeds the available gene count.
         n_top = min(n_genes, self.adata.n_vars)
-        sc.pp.highly_variable_genes(self.adata, n_top_genes=n_top, flavor=flavor)
+        try:
+            sc.pp.highly_variable_genes(self.adata, n_top_genes=n_top, flavor=flavor)
+        except ValueError as e:
+            # Non-log normalizations (e.g. total-count) on high-dynamic-range tumor
+            # data overflow the flavor's internal expm1/dispersion binning. Retry on
+            # a clipped copy so extreme values stay finite; transfer only the HVG
+            # flags back. This fallback fires only when the standard path fails, so
+            # well-behaved datasets (and Year-1 results) are untouched.
+            if "infinity" not in str(e) and "unique" not in str(e):
+                raise
+            logger.warning("HVG binning failed (%s); retrying on clipped values", str(e)[:60])
+            tmp = self.adata.copy()
+            x = tmp.X.toarray() if hasattr(tmp.X, "toarray") else np.asarray(tmp.X)
+            tmp.X = np.clip(x, 0, 50.0)
+            sc.pp.highly_variable_genes(tmp, n_top_genes=n_top, flavor=flavor)
+            self.adata.var["highly_variable"] = tmp.var["highly_variable"].values
 
         self.adata = self.adata[:, self.adata.var["highly_variable"]].copy()
         if self.verbose:

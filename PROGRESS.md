@@ -27,7 +27,24 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
   S³ predicts where the consensus errs (AUC 0.72), so the estimate is uncertainty-quantified for
   free. Reframes MOSAIC from fragility diagnostic to constructive method. (Honest caveat:
   "beats all singles" holds at reference granularity/average linkage, 28% of settings; "beats
-  median" is the robust claim.)
+  median" is the robust claim.) **Rigor follow-up (cycle 6):** the ARI margin had no bootstrap CI
+  — added `consensus_advantage_bootstrap_ci`; on an independent rerun the margin's 95% CI
+  excludes zero (real effect, not noise), though the exact published point estimate needs
+  re-running against the original run data for a matching number.
+- **H1 validated against independent pathology, not just a proxy (cycle 9,
+  `scripts/analyze_pathology.py`).** Board-certified pathologist labels (SEDR study,
+  `data/annotations/`, 100% barcode match to the breast-cancer section) replace the
+  consensus-domain boundary proxy used everywhere else. Fragility peaks exactly at the
+  pathologist-defined **tumor margin** ("Surrounding tumor"): mean S³ 0.71 (margin) vs 0.87
+  (invasive core) vs 0.74 (healthy), permutation p<0.001, survives depth control p<0.001. Removes
+  the biggest remaining circularity concern in the tumor H1 result.
+- **Fragility is predictable from a single pipeline, before running the multiverse (cycle 10,
+  `src/predict_fragility.py`).** Multiverse-free features (local PCA heterogeneity,
+  single-pipeline neighbor disagreement, depth, genes detected) predict which spots the full
+  30-spec sweep will find fragile, cross-validated AUC 0.81 (genuine out-of-fold, no leakage).
+  **Rigor follow-up (cycle 11):** had no CI/null either — added
+  `fragility_prediction_significance`; independent rerun gives AUC 0.815, 95% CI [0.788, 0.841],
+  permutation p=0.001 — closely matches the published figure, confirmatory not just directional.
 - **H1 (mouse-brain baseline):** boundary spots are significantly more fragile than
   interiors — mean S³ 0.72 vs 0.85, gap 0.13, permutation p<0.001. Establishes the
   method; tumor tissue expected to widen the gap.
@@ -62,6 +79,14 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 ## Next
 - H3 (cross-platform Xenium+Visium S³) and the SVG-method axis expansion (SpatialDE/nnSVG)
   remain not started — no other item is currently blocking them.
+- **In progress (cycle 10+):** the centerpiece combining cycles 8+9 — does the co-association
+  consensus recover the board-certified pathology labels (tumor/margin/healthy) better than any
+  single pipeline? Needs the breast per-spec runs regenerated on the converged pipeline first.
+- Naming collision (MOSAIC vs MOSAIK) — verified real, recommendation above, needs a human
+  decision on disambiguate-vs-rename.
+- Exact-matching bootstrap CIs for the consensus ARI margin and (already-done) fragility AUC
+  should ideally be re-run against whichever machine holds the original committed run data, since
+  `results/runs/` isn't in git and independent re-runs show minor cross-machine numeric drift.
 
 ## Open assumptions / decisions
 - **Datasets:** environment fetches only programmatic, no-registration data. Human tumor via
@@ -69,7 +94,18 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 - **H1 annotations:** where pathologist labels are unavailable, use a *consensus-domain boundary*
   proxy for "boundary", clearly labeled as a proxy (not ground truth).
 - **nnSVG** is R-only; gate behind availability (ask before adding an R dependency).
-- **Naming:** MOSAIC vs MOSAIK (2025 arXiv) collision to resolve before the fair — not yet actioned.
+- **Naming — verified, not yet actioned (2026-07-09):** the collision is real. MOSAIK
+  ("Multi-Origin Spatial Transcriptomics Analysis and Integration Kit," Baptista et al.,
+  arXiv:2505.11384, May 2025, JOSS-reviewed, github.com/anthbapt/MOSAIK) is a published,
+  actively-reviewed tool in the same subfield (spatial transcriptomics). Different purpose —
+  MOSAIK integrates CosMx/Xenium imaging + transcript data into one object (re-segmentation, cell
+  typing, domain ID, cell-cell communication); MOSAIC is a spec-curve fragility/consensus
+  framework — but the name similarity is a real risk for literature search, citation, and judge
+  confusion at the fair. **Recommendation (not actioned — needs a human call, not a unilateral
+  rename):** either (a) keep MOSAIC but add an explicit disambiguating footnote/related-work
+  citation to MOSAIK in the manuscript's intro or related-work section, or (b) rename before the
+  fair if (a) feels insufficient. A full rename touches the paper title, abstract, repo name,
+  README, and citation macros — bigger than a single cycle should decide unilaterally.
 
 ## Invariants held
 Year-1 numbers unchanged; new axes are config-driven and backward-compatible (default = Year-1

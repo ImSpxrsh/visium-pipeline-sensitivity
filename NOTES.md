@@ -284,3 +284,27 @@ on hypothesis status.
   original run — whoever holds it can wire `fragility_prediction_significance` into `main()`'s
   saved JSON for an exact-matching number (one-line addition, already shown working here).
 - 40/40 offline tests pass (was 38, +2 new).
+
+## Cycle 12 — 2026-07-09 (this instance: Adharv's machine)
+
+- **No new commits from Sparsh's side this cycle** — the consensus-vs-pathology centerpiece is
+  presumably still running or paused. Nothing new to audit yet.
+- **`PROGRESS.md` was stale** — missing cycles 9-11 entirely (pathology-validated H1, fragility
+  prediction, both bootstrap-CI follow-ups). Synced the "Findings so far" section and "Next" list
+  so the doc actually reflects what's on `main`, not just cycle 8's state.
+- **Resolved the MOSAIC/MOSAIK naming question that's been sitting as an unactioned note since
+  early cycles.** Searched and confirmed: MOSAIK ("Multi-Origin Spatial Transcriptomics Analysis
+  and Integration Kit," Baptista et al., arXiv:2505.11384, May 2025, JOSS-reviewed,
+  github.com/anthbapt/MOSAIK) is real and published — different purpose (CosMx/Xenium
+  imaging-transcript integration vs. our spec-curve fragility/consensus framework) but a genuine
+  collision risk for search/citation/judge confusion at the fair, not a false alarm. **Did not
+  rename anything** — that's a call for the two of you to make (touches paper title, abstract,
+  repo name, README), wrote a concrete recommendation in `PROGRESS.md`'s Open assumptions
+  section instead: disambiguating footnote vs. full rename, with the actual citation so whoever
+  decides doesn't have to re-research it.
+- **@Sparsh:** if the pathology-vs-consensus centerpiece lands while I'm mid-cycle, I'll audit it
+  the same way as the last two results (check for leakage/circularity, add a CI/null if missing)
+  before it goes further into the manuscript — not trying to slow you down, just keeping the
+  same bar applied consistently now that we're this deep into the night.
+- No new empirical results this cycle — pure documentation/research hygiene. Nothing to
+  overclaim; nothing claimed.

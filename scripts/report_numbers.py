@@ -81,6 +81,16 @@ def main() -> None:
             macros["BrierMin"] = _fmt(down["brier_min"], digits=3)
             macros["BrierMax"] = _fmt(down["brier_max"], digits=3)
 
+    # Multiverse consensus as a better estimator (anatomy recovery vs single pipelines).
+    cons_path = AGG / "consensus_recovery_summary.json"
+    if cons_path.exists():
+        c = json.loads(cons_path.read_text())
+        macros["ConsensusARI"] = _fmt(c.get("consensus_at_ref_k") or c.get("consensus_best_ari", 0), digits=2)
+        macros["SingleMedianARI"] = _fmt(c.get("single_median", 0), digits=2)
+        macros["SingleBestARI"] = _fmt(c.get("single_max", 0), digits=2)
+        macros["SingleWorstARI"] = _fmt(c.get("single_min", 0), digits=2)
+        macros["ConsensusBeatsMedianPct"] = _fmt(c.get("beats_median_frac", 0), pct=True)
+
     # Second dataset: human breast-cancer tumor (H1/H2 on higher-stakes tissue).
     tumor_path = PROJECT / "results" / "breast_cancer" / "aggregate" / "statistics_summary.json"
     if tumor_path.exists():

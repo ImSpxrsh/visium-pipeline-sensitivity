@@ -42,7 +42,10 @@ decomposition that identifies the single most consequential choice, a demonstrat
 fragility concentrates at biological boundaries (and survives a depth-stratified control on
 tumor tissue), and a demonstration that instability
 propagates into downstream machine-learning performance (\S\ref{sec:results}--%
-\S\ref{sec:downstream}).
+\S\ref{sec:downstream}). (iv) A constructive result: a co-association \emph{consensus} across
+the multiverse recovers reference anatomy at least as well as the best single pipeline and
+better than the typical one, turning MOSAIC from a diagnostic into a ground-truth-free,
+uncertainty-quantified estimator (\S\ref{sec:consensus}).
 
 \section{Related work}
 \citet{steegen2016increasing} formalized the multiverse and \citet{simonsohn2020specification}
@@ -353,6 +356,34 @@ sequencing depth (Figure~\ref{fig:tumorstakes}).
   are significantly more fragile than interiors, replicating the mouse-brain result on a
   higher-stakes tumor section; the gap survives a depth-stratified permutation null.}
   \label{fig:tumorstakes}
+\end{figure}
+
+\section{The multiverse consensus is a better estimator}
+\label{sec:consensus}
+So far $S^3$ has served as a diagnostic. But the multiverse also yields a constructive
+output. We build a \emph{co-association} matrix---the fraction of specifications that place
+each pair of spots in the same aligned cluster---and re-cluster it into consensus domains.
+Evaluated against the reference anatomy, this consensus recovers known structure better than
+the typical single pipeline and, at the reference granularity, better than \emph{every}
+individual pipeline (Figure~\ref{fig:consensus}). Single pipelines recover anatomy at ARI
+\SingleWorstARI{}--\SingleBestARI{} (median \SingleMedianARI{}); the consensus reaches
+\ConsensusARI{}, matching or exceeding the best single pipeline, and it beats the median
+pipeline in \ConsensusBeatsMedianPct{} of consensus granularity/linkage settings. This is the
+practical payoff of the multiverse: a researcher cannot identify the best single pipeline
+without the very ground truth they are trying to recover, yet the consensus attains
+best-pipeline-or-better accuracy using only the multiverse itself---and inherits a per-spot
+uncertainty ($S^3$) for free. The multiverse is thus not merely a warning that a result is
+fragile; it is a route to a more accurate, uncertainty-quantified estimate than any single
+defensible choice.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{15_consensus_recovery.png}
+  \caption{Consensus anatomy recovery versus the single-pipeline distribution. The
+  co-association consensus (green/blue) meets or beats the best single pipeline (dotted) near
+  the reference granularity and beats the median pipeline (dashed) almost everywhere---without
+  using the ground truth needed to pick the best single pipeline.}
+  \label{fig:consensus}
 \end{figure}
 
 \section{Downstream machine-learning implications}

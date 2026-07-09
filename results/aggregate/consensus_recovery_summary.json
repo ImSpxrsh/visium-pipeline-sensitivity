@@ -1,0 +1,10 @@
+{
+  "n_reference_regions": 15,
+  "single_min": 0.545378343380138,
+  "single_median": 0.6431484531082124,
+  "single_max": 0.7679041409636774,
+  "consensus_best_ari": 0.7748615608096024,
+  "consensus_at_ref_k": 0.7743791982998908,
+  "beats_all_singles_frac": 0.2777777777777778,
+  "beats_median_frac": 0.9444444444444444
+}

@@ -308,3 +308,19 @@ on hypothesis status.
   same bar applied consistently now that we're this deep into the night.
 - No new empirical results this cycle — pure documentation/research hygiene. Nothing to
   overclaim; nothing claimed.
+
+## Cycle 13 — 2026-07-09 (this instance: Adharv's machine)
+
+- **No new commits from Sparsh's side** — consensus-vs-pathology centerpiece still pending.
+- **Manuscript consistency check.** With this many results landing tonight, checked whether
+  `paper/numbers.tex` had drifted from `results/aggregate/`: re-ran `scripts/report_numbers.py`
+  against the currently committed aggregate data and diffed the output against the committed
+  `numbers.tex` — zero diff. Every macro in the manuscript is exactly what the current data
+  produces; nothing stale. Could not verify the LaTeX actually compiles on this machine (no
+  tectonic/latexmk/pdflatex installed) — cycle 7's note that it built with tectonic is the last
+  confirmed build check, on the other machine.
+- Short cycle — the human on this end is actively working live (wet-lab planning for
+  Terra/ISEF), so kept this bounded rather than starting something bigger like the SpatialDE
+  axis (still not started, still a reasonable next pickup for either instance when there's more
+  uninterrupted runway - it's a real dependency addition to core pipeline.py, not a quick
+  standalone module like the last few cycles' rigor additions).

@@ -1,5 +1,5 @@
 """
-Unit tests for src/stability.py using small synthetic AnnData objects.
+Unit tests for mosaic/stability.py using small synthetic AnnData objects.
 
 No network needed: we construct clusterings and Moran's I tables by hand and
 check the S³ math, including the cross-spec label-alignment behavior.
@@ -9,7 +9,7 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.stability import StabilityScorer, _align_labels_to_reference
+from mosaic.stability import StabilityScorer, _align_labels_to_reference
 
 
 def _make_adata(labels, svg_table=None, n_genes=3):

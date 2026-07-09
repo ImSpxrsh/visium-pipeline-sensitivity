@@ -1,5 +1,5 @@
 """
-Tests for the data-preparation helpers in src/visualization.py.
+Tests for the data-preparation helpers in mosaic/visualization.py.
 
 These exercise the SVG-concordance logic (no figure rendering needed). The
 module uses a headless Agg backend, so importing it is safe in CI.
@@ -8,7 +8,7 @@ module uses a headless Agg backend, so importing it is safe in CI.
 import numpy as np
 import pandas as pd
 
-from src.visualization import _significant, svg_concordance_matrix
+from mosaic.visualization import _significant, svg_concordance_matrix
 
 
 def _run(name, svg_df):

@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.visualization import generate_all_figures  # noqa: E402
+from mosaic.visualization import generate_all_figures  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

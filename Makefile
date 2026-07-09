@@ -33,10 +33,10 @@ test-all:
 	$(PY) -m pytest -q
 
 lint:
-	.venv/bin/ruff check src scripts tests
+	.venv/bin/ruff check mosaic scripts tests
 
 data:
-	PYTHONPATH=. $(PY) -m src.data_loader
+	PYTHONPATH=. $(PY) -m mosaic.data_loader
 
 sweep:
 	PYTHONPATH=. $(PY) scripts/main.py
@@ -45,10 +45,10 @@ figures:
 	PYTHONPATH=. $(PY) scripts/generate_figures.py
 
 stats:
-	PYTHONPATH=. $(PY) -m src.statistics
+	PYTHONPATH=. $(PY) -m mosaic.statistics
 
 downstream:
-	PYTHONPATH=. $(PY) -m src.downstream
+	PYTHONPATH=. $(PY) -m mosaic.downstream
 
 tissue:
 	PYTHONPATH=. $(PY) scripts/generate_tissue.py
@@ -71,4 +71,4 @@ paper:
 	cd paper && (latexmk -pdf main.tex || tectonic main.tex)
 
 clean:
-	rm -rf results/runs/* results/logs/* __pycache__ src/__pycache__ tests/__pycache__ .pytest_cache
+	rm -rf results/runs/* results/logs/* __pycache__ mosaic/__pycache__ tests/__pycache__ .pytest_cache

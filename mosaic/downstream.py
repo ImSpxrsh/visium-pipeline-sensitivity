@@ -160,8 +160,8 @@ def plot_downstream(df: pd.DataFrame, output_path: Optional[Path] = None) -> Non
 
 
 def main() -> None:
-    from src.utils import save_json
-    from src.visualization import load_runs
+    from mosaic.utils import save_json
+    from mosaic.visualization import load_runs
 
     logging.basicConfig(level=logging.INFO)
     project = Path(__file__).resolve().parent.parent

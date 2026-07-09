@@ -312,7 +312,7 @@ def run_pipeline(
 
 def main() -> None:
     """Run one spec end-to-end as a smoke test."""
-    from src.data_loader import load_dataset, prepare_data
+    from mosaic.data_loader import load_dataset, prepare_data
 
     logging.basicConfig(level=logging.INFO)
     adata, _ = load_dataset("visium_hne", verbose=True)

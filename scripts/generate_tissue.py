@@ -13,8 +13,8 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.data_loader import load_dataset, prepare_data  # noqa: E402
-from src.tissue_imaging import (  # noqa: E402
+from mosaic.data_loader import load_dataset, prepare_data  # noqa: E402
+from mosaic.tissue_imaging import (  # noqa: E402
     plot_marker_gene_expression,
     plot_raw_histology,
     plot_zoomed_inset,

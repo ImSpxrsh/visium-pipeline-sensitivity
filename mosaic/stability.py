@@ -297,8 +297,8 @@ class StabilityScorer:
 
 def main() -> None:
     """Run two specs and compute stability between them as a smoke test."""
-    from src.data_loader import load_dataset, prepare_data
-    from src.pipeline import run_pipeline
+    from mosaic.data_loader import load_dataset, prepare_data
+    from mosaic.pipeline import run_pipeline
 
     logging.basicConfig(level=logging.INFO)
     adata, _ = load_dataset("visium_hne", verbose=True)

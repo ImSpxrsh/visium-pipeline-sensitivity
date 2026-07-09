@@ -21,10 +21,10 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Smoke-test the data loader (auto-downloads the Visium demo, ~300 MB)
-python -m src.data_loader
+python -m mosaic.data_loader
 
 # 3. Run a single pipeline spec
-python -m src.pipeline
+python -m mosaic.pipeline
 
 # 4. Verify determinism (same seed -> identical clusters)
 python scripts/test_reproducibility.py
@@ -42,7 +42,7 @@ Run tests with `pytest`. Tests that touch the network (data loading) are marked
 ## Project Structure
 
 ```
-src/            Core library
+mosaic/         Core library
   data_loader.py    Load + validate the Visium dataset
   pipeline.py       Parametric analysis pipeline (one spec -> results)
   stability.py      S³ + ARI (Hungarian label alignment) across the multiverse
@@ -77,7 +77,7 @@ tests/          Unit tests (27 offline)
 - **Headline instability** — spread (mean, std, range) of a summary metric such as the
   number of clusters across the multiverse.
 
-See `src/stability.py` for exact definitions and the label-alignment caveat.
+See `mosaic/stability.py` for exact definitions and the label-alignment caveat.
 
 ## Results
 

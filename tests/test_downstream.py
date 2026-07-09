@@ -1,10 +1,10 @@
-"""Tests for src/downstream.py on a small synthetic sweep (no network)."""
+"""Tests for mosaic/downstream.py on a small synthetic sweep (no network)."""
 
 import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.downstream import _brier_ece, downstream_region_classification, summarize
+from mosaic.downstream import _brier_ece, downstream_region_classification, summarize
 
 
 def _make_run(seed, n=60, d=5):

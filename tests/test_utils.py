@@ -1,6 +1,6 @@
-"""Unit tests for src/utils.py (no network required)."""
+"""Unit tests for mosaic/utils.py (no network required)."""
 
-from src.utils import dict_to_hash, expand_grid, filter_specs_by_count
+from mosaic.utils import dict_to_hash, expand_grid, filter_specs_by_count
 
 
 def test_dict_to_hash_is_deterministic_and_order_independent():

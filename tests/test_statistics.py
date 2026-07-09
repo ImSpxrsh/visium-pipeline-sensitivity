@@ -1,12 +1,12 @@
 """
-Unit tests for src/statistics.py on small synthetic sweeps (no network).
+Unit tests for mosaic/statistics.py on small synthetic sweeps (no network).
 """
 
 import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.statistics import (
+from mosaic.statistics import (
     _s3_from_matrix,
     build_aligned_matrix,
     confound_check_umi,
@@ -116,7 +116,7 @@ def test_stakes_depth_controlled_flags_pure_depth_artifact():
 
 
 def test_fragility_report_picks_contested_gene():
-    from src.statistics import fragility_report
+    from mosaic.statistics import fragility_report
 
     # gene "flip" tested in all specs, significant in 2 of 4 (freq 0.5); gene
     # "robust" always significant (freq 1.0) -> flip is the most contested.
@@ -139,7 +139,7 @@ def test_fragility_report_picks_contested_gene():
 
 
 def test_stakes_test_from_arrays_detects_and_depth_controls():
-    from src.statistics import stakes_test_from_arrays
+    from mosaic.statistics import stakes_test_from_arrays
 
     rng = np.random.RandomState(0)
     n = 200

@@ -6,7 +6,7 @@
 - [x] Repo structure + dependencies
 - [x] `data_loader.py`: load + validate Visium H&E demo
 - [x] `utils.py`: config, logging, IO, grid expansion
-- [ ] Smoke-test loader against real download (`python -m src.data_loader`)
+- [ ] Smoke-test loader against real download (`python -m mosaic.data_loader`)
 
 ### Phase 2 — Core pipeline
 - [x] `pipeline.py`: parametric pipeline (norm -> HVG -> PCA -> graph -> cluster -> SVG)

@@ -169,8 +169,8 @@ def plot_predicted_vs_actual(result: Dict[str, Any], output_path: Optional[Path]
 
 
 def main() -> None:
-    from src.utils import save_json
-    from src.visualization import load_runs
+    from mosaic.utils import save_json
+    from mosaic.visualization import load_runs
 
     logging.basicConfig(level=logging.INFO)
     project = Path(__file__).resolve().parent.parent

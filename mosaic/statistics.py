@@ -25,7 +25,7 @@ def build_aligned_matrix(runs: List[Dict[str, Any]], cluster_key: str = "leiden"
     Return (aligned_labels[n_spots, n_specs], obs_names) using the first run as
     the reference, matching the per-spot S3 definition.
     """
-    from src.stability import _align_labels_to_reference
+    from mosaic.stability import _align_labels_to_reference
 
     ref = runs[0]["adata"]
     cols = []
@@ -452,7 +452,7 @@ def fragility_report(runs: List[Dict[str, Any]], alpha: float = 0.05):
     frequency nearest 50%) and trace its FDR-adjusted Moran's I p-value across all
     specifications. Returns (gene, s3, DataFrame[spec_name, pval, significant]).
     """
-    from src.visualization import _significant, svg_concordance_matrix
+    from mosaic.visualization import _significant, svg_concordance_matrix
 
     conc = svg_concordance_matrix(runs, common_only=True)
     if conc.empty:
@@ -524,7 +524,7 @@ def cross_dataset_region_summary(datasets: List[Dict[str, Any]]) -> pd.DataFrame
 
 
 def _load_runs_and_spot(results_dir: Path) -> Tuple[list, pd.DataFrame]:
-    from src.visualization import load_runs
+    from mosaic.visualization import load_runs
 
     per_spot = pd.read_csv(Path(results_dir) / "aggregate" / "per_spot_stability.csv")
     return load_runs(results_dir), per_spot
@@ -532,7 +532,7 @@ def _load_runs_and_spot(results_dir: Path) -> Tuple[list, pd.DataFrame]:
 
 def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any]:
     """Run every statistical analysis on one dataset and return a summary dict."""
-    from src.utils import save_json
+    from mosaic.utils import save_json
 
     runs, per_spot = _load_runs_and_spot(results_dir)
     perm = permutation_test_region_s3(runs, per_spot)

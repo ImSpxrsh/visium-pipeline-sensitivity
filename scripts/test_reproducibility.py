@@ -13,8 +13,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.data_loader import load_dataset, prepare_data  # noqa: E402
-from src.pipeline import run_pipeline  # noqa: E402
+from mosaic.data_loader import load_dataset, prepare_data  # noqa: E402
+from mosaic.pipeline import run_pipeline  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

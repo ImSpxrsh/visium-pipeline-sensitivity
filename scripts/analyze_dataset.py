@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.statistics import generate_stats_figures, run_all  # noqa: E402
+from mosaic.statistics import generate_stats_figures, run_all  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

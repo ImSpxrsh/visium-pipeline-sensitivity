@@ -1,5 +1,5 @@
 """
-Unit tests for src/data_loader.py.
+Unit tests for mosaic/data_loader.py.
 
 The load tests are marked ``network`` because they download the Visium demo.
 Run only the offline tests with:  pytest -m "not network"
@@ -9,7 +9,7 @@ import anndata as ad
 import numpy as np
 import pytest
 
-from src.data_loader import prepare_data, validate_dataset
+from mosaic.data_loader import prepare_data, validate_dataset
 
 
 def _tiny_adata():
@@ -39,7 +39,7 @@ def test_prepare_makes_unique_names_and_stores_counts():
 
 @pytest.mark.network
 def test_load_visium_hne():
-    from src.data_loader import load_dataset
+    from mosaic.data_loader import load_dataset
 
     adata, image = load_dataset("visium_hne", verbose=False)
     assert adata.n_obs > 0 and adata.n_vars > 0

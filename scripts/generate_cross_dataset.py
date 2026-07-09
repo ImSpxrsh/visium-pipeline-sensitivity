@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.visualization import ed8_cross_dataset  # noqa: E402
+from mosaic.visualization import ed8_cross_dataset  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

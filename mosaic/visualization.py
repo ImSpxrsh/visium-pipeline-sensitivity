@@ -199,7 +199,7 @@ def figure2_spec_curve_matrix(
     top_genes: int = 25,
 ) -> None:
     """Cluster count, spec-consensus agreement, and SVG concordance across specs."""
-    from src.stability import _align_labels_to_reference
+    from mosaic.stability import _align_labels_to_reference
 
     order = sorted(range(len(runs)), key=lambda i: runs[i]["metadata"].get("n_clusters_found", 0))
     runs_ord = [runs[i] for i in order]

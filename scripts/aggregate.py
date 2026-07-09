@@ -17,8 +17,8 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.stability import StabilityScorer  # noqa: E402
-from src.utils import load_json, save_json  # noqa: E402
+from mosaic.stability import StabilityScorer  # noqa: E402
+from mosaic.utils import load_json, save_json  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,10 @@
-"""Test src/predict_fragility.py on a synthetic single pipeline (no network)."""
+"""Test mosaic/predict_fragility.py on a synthetic single pipeline (no network)."""
 
 import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.predict_fragility import (
+from mosaic.predict_fragility import (
     fragility_prediction_significance,
     predict_fragility,
     single_pipeline_features,

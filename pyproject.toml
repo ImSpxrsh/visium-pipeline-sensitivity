@@ -26,7 +26,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["src"]
+packages = ["mosaic"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

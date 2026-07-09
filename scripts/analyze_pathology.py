@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from src.statistics import stakes_test_from_arrays  # noqa: E402
-from src.utils import save_json  # noqa: E402
+from mosaic.statistics import stakes_test_from_arrays  # noqa: E402
+from mosaic.utils import save_json  # noqa: E402
 
 logger = logging.getLogger(__name__)
 PROJECT = Path(__file__).resolve().parent.parent

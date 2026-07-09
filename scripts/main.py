@@ -16,10 +16,10 @@ from typing import Any, Dict, List
 # Allow "python scripts/main.py" from the project root.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.data_loader import load_dataset, prepare_data  # noqa: E402
-from src.pipeline import run_pipeline  # noqa: E402
-from src.stability import StabilityScorer  # noqa: E402
-from src.utils import dict_to_hash, load_yaml, save_json, setup_logging  # noqa: E402
+from mosaic.data_loader import load_dataset, prepare_data  # noqa: E402
+from mosaic.pipeline import run_pipeline  # noqa: E402
+from mosaic.stability import StabilityScorer  # noqa: E402
+from mosaic.utils import dict_to_hash, load_yaml, save_json, setup_logging  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

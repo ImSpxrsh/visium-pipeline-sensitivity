@@ -1,5 +1,5 @@
 """
-Determinism test for src/pipeline.py.
+Determinism test for mosaic/pipeline.py.
 
 Marked ``network`` (downloads the Visium demo) and slow. Run with:
     pytest -m network
@@ -20,8 +20,8 @@ SPEC = {
 
 @pytest.mark.network
 def test_pipeline_determinism():
-    from src.data_loader import load_dataset, prepare_data
-    from src.pipeline import run_pipeline
+    from mosaic.data_loader import load_dataset, prepare_data
+    from mosaic.pipeline import run_pipeline
 
     adata, _ = load_dataset("visium_hne", verbose=False)
     adata = prepare_data(adata, verbose=False)

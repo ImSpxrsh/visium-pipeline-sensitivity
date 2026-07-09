@@ -1,10 +1,10 @@
-"""Tests for src/consensus.py on a small synthetic multiverse (no network)."""
+"""Tests for mosaic/consensus.py on a small synthetic multiverse (no network)."""
 
 import anndata as ad
 import numpy as np
 import pandas as pd
 
-from src.consensus import (
+from mosaic.consensus import (
     co_association_matrix,
     consensus_labels,
     consensus_advantage_bootstrap_ci,

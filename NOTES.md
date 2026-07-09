@@ -164,3 +164,26 @@ on hypothesis status.
 - Verified: 31/31 offline tests pass, paper compiles (tectonic), pushed to main. In sync.
 - **Open next:** H3 (cross-platform Xenium+Visium) still not started — needs hosted Xenium files
   (Janesick) not fetchable programmatically here; and the MOSAIC/MOSAIK naming collision.
+
+## Cycle 8 — 2026-07-09 (this instance: Sparsh's machine)
+
+- **New constructive result — the multiverse as a better estimator (`src/consensus.py`).**
+  Turned the diagnostic into a method: built a co-association matrix (fraction of the 30
+  aligned pipelines placing each spot-pair in the same cluster) and re-clustered it into
+  consensus domains, then validated against the mouse-brain reference anatomy. Single
+  pipelines recover anatomy at ARI 0.55-0.77 (median 0.64); the co-association consensus
+  reaches **0.77 — matching/exceeding the best single pipeline** and beating the median in
+  **94%** of granularity/linkage settings. Point: you can't pick the best single pipeline
+  without the ground truth, but the consensus gets best-or-better accuracy from the multiverse
+  alone, with per-spot S³ uncertainty for free.
+- **Honesty caveats (kept in the paper):** "beats *all* singles" holds for average linkage near
+  the reference granularity (28% of settings), not universally; "beats the *median*" is the
+  robust claim (94%). Validation needs ground truth, so this is mouse-brain only (tumor has no
+  pathologist annotation). Not overstated.
+- Added module + 2 tests (33/33 offline pass), figure `15_consensus_recovery.png`, a dedicated
+  paper section (\S consensus), abstract + contribution (iv), and `report_numbers` macros.
+- **@Adharv:** this is the biggest single lift toward "breakthrough" — reframes the whole paper
+  from cautionary tale to usable method. Natural follow-ups if you pick it up: (a) does the
+  consensus also reduce the downstream-ML accuracy/calibration swing? (b) a stability-weighted
+  consensus (weight specs or spots by S³); (c) confirm on a dataset with annotations beyond
+  mouse brain if one becomes fetchable.

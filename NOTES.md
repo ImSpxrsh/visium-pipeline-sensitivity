@@ -39,3 +39,31 @@ on hypothesis status.
 - **Pending:** full tumor sweep re-running; will run `analyze_dataset.py --dataset breast_cancer`
   for tumor H1 (stakes gap) and H2 (does the dominant axis move off resolution?) on completion.
   No tumor H1/H2 numbers claimed yet.
+
+## Cycle 3 — 2026-07-09 (this instance: Adharv's machine)
+
+- **Converged with Sparsh's fix.** This machine independently root-caused the same 6 tumor-sweep
+  failures in parallel (same conclusion: all-zero genes breaking scanpy's HVG binning) and had
+  applied its own `filter_genes(min_counts=1)` inside `_normalize()`. `git pull --rebase` merged
+  both changes cleanly (different code paths, no conflict). Verified this machine's fix directly:
+  it resolved `hvg_cellranger` but *not* `norm_total` — traced that one further and confirmed the
+  real mechanism: `seurat`/`cell_ranger` flavors call `expm1` internally assuming log-scale input;
+  on this tissue `IGKC`/`IGLC1`/`IGLC2`/`IGHG3` (immunoglobulin/plasma-cell markers — real immune
+  infiltration signal, not noise) reach ~2000x target-sum in single spots, so `expm1` overflows to
+  infinity. The same combo passes on mouse-brain data by luck (no gene there is that extreme), not
+  because it's actually valid — a genuine, tissue-dependent numerical-stability finding, not a bug
+  to paper over.
+- **Deduplicated:** Sparsh's `min_cells=10` gene QC (in `load_dataset`, gated to raw 10x datasets)
+  strictly subsumes this machine's `min_counts=1` filter, so removed the redundant one rather than
+  leave two overlapping QC mechanisms in the codebase. Offline tests (30/30) still pass after.
+- **Correctness catch:** this machine had a *stale* local `results/breast_cancer/` from Cycle 1's
+  pre-fix sweep (24/30 specs, computed on the un-filtered 36601-gene universe). The sweep script's
+  incremental/content-hashed caching would have silently reused those 24 as "already done" and
+  only computed the 6 new ones on the *now-filtered* 19690-gene universe — mixing two different
+  gene universes inside one S³ aggregate, which would have been a real correctness bug, not just
+  staleness. Moved the stale directory aside (not deleted) and started a fully fresh 30-spec sweep.
+  Worth checking for the same trap if any other machine has a pre-fix local `results/breast_cancer/`
+  lying around.
+- **Kicked off:** fresh `scripts/main.py --dataset breast_cancer` sweep on the deduplicated,
+  verified pipeline. Running in background; will report actual H1/H2 numbers (permutation
+  p-values, bootstrap CIs) via `analyze_dataset.py` once it completes — none claimed yet.

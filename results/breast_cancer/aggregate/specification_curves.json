@@ -27,7 +27,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 240.97517895698547,
+      "runtime_seconds": 155.82279801368713,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -68,7 +68,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 185.52726888656616,
+      "runtime_seconds": 100.92208218574524,
       "normalization_used": "log1p",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -109,7 +109,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 457.50416898727417,
+      "runtime_seconds": 223.600417137146,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -150,7 +150,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 296.3296949863434,
+      "runtime_seconds": 134.40217399597168,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -191,7 +191,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 274.79087114334106,
+      "runtime_seconds": 136.50154399871826,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -232,7 +232,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 274.07815194129944,
+      "runtime_seconds": 142.05406188964844,
       "normalization_used": "total",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -273,7 +273,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 298.51375699043274,
+      "runtime_seconds": 145.7068591117859,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -314,7 +314,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 273.2371759414673,
+      "runtime_seconds": 142.511470079422,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -355,7 +355,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 278.0427448749542,
+      "runtime_seconds": 146.1553361415863,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -396,7 +396,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 291.46098709106445,
+      "runtime_seconds": 133.29049611091614,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -437,7 +437,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 280.98361706733704,
+      "runtime_seconds": 136.90593600273132,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -478,7 +478,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 319.07985162734985,
+      "runtime_seconds": 135.94034218788147,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -519,7 +519,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 313.32422399520874,
+      "runtime_seconds": 135.95952320098877,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -560,7 +560,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 287.4560430049896,
+      "runtime_seconds": 140.4028389453888,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -601,7 +601,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 188.47919702529907,
+      "runtime_seconds": 93.27257180213928,
       "normalization_used": "sqrt",
       "n_hvgs": 2000,
       "n_pca_components": 50,
@@ -642,7 +642,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 469.11734104156494,
+      "runtime_seconds": 225.57308912277222,
       "normalization_used": "total",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -683,7 +683,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 276.218713760376,
+      "runtime_seconds": 134.17004799842834,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -724,7 +724,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 259.8682460784912,
+      "runtime_seconds": 132.4470636844635,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -765,7 +765,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 261.1051723957062,
+      "runtime_seconds": 128.3678891658783,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -806,7 +806,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 282.9396059513092,
+      "runtime_seconds": 129.10858392715454,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -847,7 +847,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 247.85547399520874,
+      "runtime_seconds": 127.51656699180603,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -888,7 +888,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 240.78820776939392,
+      "runtime_seconds": 131.5337381362915,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -929,7 +929,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 414.08317375183105,
+      "runtime_seconds": 229.24008584022522,
       "normalization_used": "sqrt",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -970,7 +970,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 184.7864067554474,
+      "runtime_seconds": 92.08000898361206,
       "normalization_used": "total",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -1011,7 +1011,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 173.88185000419617,
+      "runtime_seconds": 87.31622695922852,
       "normalization_used": "log1p",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -1052,7 +1052,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 405.4355797767639,
+      "runtime_seconds": 216.44397807121277,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 50,
@@ -1093,7 +1093,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 255.80389189720154,
+      "runtime_seconds": 128.90894412994385,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -1134,7 +1134,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 261.1509819030762,
+      "runtime_seconds": 128.86760306358337,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -1175,7 +1175,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 254.7823178768158,
+      "runtime_seconds": 133.46595883369446,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -1216,7 +1216,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 528.6672070026398,
+      "runtime_seconds": 226.81412410736084,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 30,

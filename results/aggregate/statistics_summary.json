@@ -11,5 +11,14 @@
     "variance_fraction": 0.8011558808422848
   },
   "regions_stable_p05": 6,
-  "n_regions": 15
+  "n_regions": 15,
+  "stakes_stratified": {
+    "strata": "consensus_boundary_proxy",
+    "boundary_mean_s3": 0.7149152542372882,
+    "interior_mean_s3": 0.8486295313881521,
+    "gap_interior_minus_boundary": 0.13371427715086392,
+    "p_value": 0.000999000999000999,
+    "n_boundary": 1180,
+    "n_interior": 1508
+  }
 }

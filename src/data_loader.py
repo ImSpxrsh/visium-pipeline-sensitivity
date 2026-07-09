@@ -154,6 +154,16 @@ def prepare_data(
     # Preserve raw counts; each spec re-derives X from this layer.
     adata.layers["counts"] = adata.X.copy() if hasattr(adata.X, "copy") else adata.X
 
+    # Record total UMI depth per spot (over the full gene set, before any HVG
+    # subsetting) so the depth-confound check is exact on datasets that do not
+    # ship it. obs-only; does not affect any downstream analytical step.
+    if "total_counts" not in adata.obs:
+        import numpy as _np
+
+        adata.obs["total_counts"] = _np.asarray(
+            adata.layers["counts"].sum(axis=1)
+        ).ravel()
+
     if output_dir is not None:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)

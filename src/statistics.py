@@ -182,10 +182,15 @@ def confound_check_umi(runs: List[Dict[str, Any]], per_spot: pd.DataFrame,
     from scipy.stats import pearsonr, spearmanr
 
     ref = runs[0]["adata"]
-    if count_key not in ref.obs:
-        return {}
     s3 = per_spot.set_index("spot_id").reindex(ref.obs_names)["s3_score"].values
-    counts = ref.obs[count_key].values.astype(float)
+    if count_key in ref.obs:
+        counts = ref.obs[count_key].values.astype(float)
+    elif "counts" in ref.layers:
+        c = ref.layers["counts"]
+        counts = np.asarray(c.sum(axis=1)).ravel().astype(float)
+    else:
+        c = ref.X
+        counts = np.asarray(c.sum(axis=1)).ravel().astype(float)
     mask = np.isfinite(s3) & np.isfinite(counts)
     pear = pearsonr(s3[mask], counts[mask])
     spear = spearmanr(s3[mask], counts[mask])

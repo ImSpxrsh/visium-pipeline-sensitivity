@@ -94,8 +94,10 @@ step is seeded ($\texttt{random\_state}=42$), and each pipeline re-derives its n
 matrix from the stored raw counts so no information leaks between specifications. Leiden uses
 the \texttt{leidenalg} backend; Louvain is driven through igraph's resolution-aware
 multi-level optimization so the resolution axis is comparable across algorithms.
-Spatially-variable-gene detection builds a spatial neighbor graph and computes Moran's $I$
-with a permutation null, retaining Benjamini--Hochberg FDR-adjusted significance.
+Spatially-variable-gene detection builds a spatial neighbor graph and computes a spatial
+autocorrelation statistic---Moran's $I$ or, as a second interchangeable method, Geary's
+$C$---with a matched seeded permutation null and Benjamini--Hochberg FDR-adjusted
+significance, so the SVG-test choice is itself a comparable analytical axis.
 
 \subsection{The Spatial Stability Score}
 \label{sec:s3}

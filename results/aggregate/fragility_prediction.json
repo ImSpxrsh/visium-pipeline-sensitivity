@@ -1,0 +1,11 @@
+{
+  "auc_combined": 0.8148389681687209,
+  "per_feature_auc": {
+    "local_heterogeneity": 0.7392972226484579,
+    "neighbor_disagreement": 0.769726896606596,
+    "depth": 0.5680840423053097,
+    "n_genes": 0.5743951716024756
+  },
+  "n_fragile": 294,
+  "n_spots": 2688
+}

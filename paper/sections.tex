@@ -245,7 +245,11 @@ $\Ngenes{}$ genes) and, for generalization, an independently prepared fluorescen
 cortical layers, hippocampus, thalamus, striatum, fiber tracts, ventricle, and more) used as
 ground truth. All \Nspecs{} specifications are seeded; determinism is verified by re-running a
 fixed specification and confirming identical spot-level labels. Runtime is roughly one minute
-per specification on a single Apple-silicon CPU.
+per specification on a single Apple-silicon CPU. To test whether fragility is worse where the
+biological stakes are higher, we additionally run the full multiverse on a public 10x Visium
+human breast-cancer section (invasive ductal carcinoma; 3{,}798 spots), applying only minimal
+shared gene quality control (dropping genes detected in fewer than ten spots) so that every
+specification sees the same gene universe.
 
 \section{Results}
 \label{sec:results}
@@ -298,6 +302,24 @@ independent fluorescence section yields a per-spot $S^3$ distribution with a com
 core and fragile tail and a similar mean pairwise ARI (Figure~\ref{fig:cross}); the $S^3$
 distributions of the two sections are essentially conserved.
 
+\paragraph{Higher-stakes human tumor tissue.} Running the multiverse on a human breast-cancer
+section reproduces the core findings on clinically consequential tissue. Boundary fragility
+persists and is modestly larger than in brain: mean $S^3$ is \TumorBoundaryS{} at
+consensus-domain boundaries versus \TumorInteriorS{} in interiors (gap \TumorGap{}, permutation
+$p\,\TumorStakesP{}$), compared with a \StakesGap{} gap in brain. Tumor tissue does, however,
+introduce a genuine technical confound absent in brain: per-spot $S^3$ correlates with
+sequencing depth ($r=\TumorConfoundR{}$, versus $\ConfoundR{}$ in brain), and boundary spots are
+systematically shallower. We therefore test the gap with a depth-stratified block-permutation
+null---binning spots by depth decile and shuffling the boundary/interior label only within each
+bin, so the null preserves each group's depth distribution. The gap survives
+($p\,\TumorDepthP{}$), so it is not merely an artifact of low-coverage spots. Finally, the
+dominant analytical axis does \emph{not} change with tissue type: clustering resolution still
+explains the most domain-count variance (\TumorVarTopFrac{}, versus \VarTopFrac{} in brain),
+an honest null for the hypothesis that the most consequential choice is tissue-dependent. Thus
+the fragility phenomenon, its concentration at boundaries, and its leading cause all transfer
+to human tumor tissue, while the tumor setting sharpens the importance of controlling for
+sequencing depth.
+
 \section{Downstream machine-learning implications}
 \label{sec:downstream}
 Instability is not merely descriptive: the representation a model consumes is itself
@@ -340,9 +362,13 @@ conclusions are robust and which are contingent, and provides a spatially resolv
 where to place trust. The agreement between per-spot $S^3$ and reference anatomy, together with
 the near-zero depth correlation, indicates $S^3$ measures biological rather than merely
 analytical uncertainty. Limitations include the use of a curated (not exhaustive) set of
-specifications; two mouse-brain Visium sections (a broader survey across species, disease
-states, and sub-cellular-resolution platforms such as Xenium remains important future work);
-and a single SVG test. The framework accommodates additional axes, datasets, and tests without
+specifications; three Visium sections spanning two mouse-brain samples and one human tumor (a
+broader survey across further tissues, patients, and sub-cellular-resolution platforms such as
+Xenium remains important future work); and reliance on a consensus-domain boundary proxy where
+pathologist annotations are unavailable. On the tumor section the $S^3$--depth correlation is
+substantial, and although a depth-stratified null shows the boundary gap survives, we do not
+claim a full multivariate deconfounding. The framework accommodates additional axes, datasets,
+tests (it already supports Moran's~$I$ and Geary's~$C$), and stratifications without
 modification.
 
 \paragraph{Toward agentic multiverse navigation.} The curated \Nspecs{}-specification set is a

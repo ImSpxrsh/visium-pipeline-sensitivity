@@ -84,9 +84,12 @@ single choice (clustering \VarTopAxis{}), yielding a concrete standardization pr
 Crucially, per-spot $S^3$ is essentially uncorrelated with sequencing depth
 ($r=\ConfoundR{}$) and tracks reference anatomy (ARI \RefAriMean{}), so it measures
 biological rather than technical uncertainty; a label-permutation null confirms
-\RegionsStable{}/\NregionsTotal{} regions are stable beyond chance. Finally, we show the
-instability propagates downstream: a region classifier's accuracy swings
-\DownstreamRangePP{}~percentage points across pipelines. We provide formal complexity
+\RegionsStable{}/\NregionsTotal{} regions are stable beyond chance, and fragility concentrates
+at domain boundaries (gap \StakesGap{}, $p\,\StakesP{}$). These findings transfer to a human
+breast-cancer section, where the boundary gap is modestly larger (\TumorGap{}) and survives a
+depth-stratified control despite a strong depth confound. Finally, the instability propagates
+downstream: a region classifier's accuracy swings \DownstreamRangePP{}~percentage points, and
+its calibration (Brier score) nearly doubles, across pipelines. We provide formal complexity
 analysis, a reproducible software architecture, and open code.\par}
 \vspace{5pt}\hrule
 

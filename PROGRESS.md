@@ -11,7 +11,7 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 | # | Task | Hypothesis | Status |
 |---|---|---|---|
 | 1 | Human tumor Visium loads + sweep runs unchanged | H1/H2/H3 | **done — 30/30 specs succeed** |
-| 2 | SVG-method axis (+Geary's C; SpatialDE/nnSVG later) | H2 | **Geary's C done** |
+| 2 | SVG-method axis (+Geary's C; SpatialDE/nnSVG later) | H2 | **Geary's C done; SpatialDE investigated, blocked (see below)** |
 | 3 | QC/filtering axis | — | minimal shared gene QC for raw 10x (not a per-spec axis yet) |
 | 4 | Stakes-stratified S³ (boundary/interior/healthy) | H1 | **done (mouse-brain + tumor)** |
 | 5 | Per-dataset Type-II ANOVA (does dominant axis move?) | H2 | **done — null: axis unchanged** |
@@ -94,6 +94,28 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 - **H1 annotations:** where pathologist labels are unavailable, use a *consensus-domain boundary*
   proxy for "boundary", clearly labeled as a proxy (not ground truth).
 - **nnSVG** is R-only; gate behind availability (ask before adding an R dependency).
+- **SpatialDE (Python `spatialde` 1.1.3, PyPI) — investigated 2026-07-09, not integrated.**
+  `_significant()` in `src/visualization.py` already generically accepts any FDR-corrected
+  p-value column, so architecturally a new SVG method just needs to produce one — no downstream
+  changes needed. But the package itself is unmaintained against the current scientific Python
+  stack: (1) `from scipy.misc import derivative` — removed in SciPy 1.12+, this repo runs 1.18
+  (worked around with a ~10-line shim reimplementing the classic central-difference formula,
+  verified correct for the n=1/n=2 cases the library actually calls); (2) a second, unrelated
+  break in `get_l_limits` doing multi-dimensional indexing on a pandas Series (worked around by
+  passing coordinates as a raw ndarray instead of a DataFrame); (3) a third break in
+  `SpatialDE.util.qvalue` calling `.ravel()` on a pandas Series (not patched — stopped here).
+  More importantly: even with (1) and (2) patched, `SpatialDE.run()` threw `RuntimeWarning:
+  divide by zero encountered in log` and `invalid value encountered in scalar divide` during
+  the actual per-gene model fit — real numerical-instability warnings, not cosmetic ones. That
+  raises genuine doubt about whether patched-through q-values would be trustworthy even with
+  break (3) also fixed. Checked GitHub (Teichlab/SpatialDE) for a maintained fork first — none
+  found; open compatibility issues on the upstream repo go back to at least 2024. Uninstalled
+  the exploratory package rather than leave a broken/unused dependency around. **Not recommending
+  this be forced through** — three cascading compatibility breaks plus a live numerical-stability
+  red flag is a sign to properly validate against a reference implementation (e.g. compare
+  patched-SpatialDE q-values on a small known case to published SpatialDE results, or try the R
+  Bioconductor `spatialDE` version via reticulate) before trusting any SVG calls it produces, not
+  a single-cycle task. nnSVG (R-only) may honestly be the more tractable path if R access exists.
 - **Naming — verified, not yet actioned (2026-07-09):** the collision is real. MOSAIK
   ("Multi-Origin Spatial Transcriptomics Analysis and Integration Kit," Baptista et al.,
   arXiv:2505.11384, May 2025, JOSS-reviewed, github.com/anthbapt/MOSAIK) is a published,

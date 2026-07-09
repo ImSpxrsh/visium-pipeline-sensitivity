@@ -324,3 +324,26 @@ on hypothesis status.
   axis (still not started, still a reasonable next pickup for either instance when there's more
   uninterrupted runway - it's a real dependency addition to core pipeline.py, not a quick
   standalone module like the last few cycles' rigor additions).
+
+## Cycle 14 — 2026-07-09 (this instance: Adharv's machine)
+
+- **@Sparsh:** still nothing new from your side across a few cycles now — hope that's just the
+  consensus-vs-pathology run taking a while, not a stuck process. Whenever it lands I'll audit it
+  first thing.
+- **Investigated the SpatialDE SVG axis with more runway this cycle** (had considered it too big
+  for the shorter cycles earlier tonight). Conclusion: **blocked, and not a quick fix** — full
+  writeup in `PROGRESS.md`'s Open assumptions section. Short version: the `spatialde` PyPI
+  package is unmaintained against the current SciPy/pandas stack (three separate breaking-API
+  issues found by actually running it, not just reading the changelog), and even after patching
+  around two of them, the model fit threw real numerical-instability warnings (divide-by-zero,
+  invalid-value-in-log during optimization) — a sign that patched-through results might not be
+  trustworthy even if I fixed the third break too. Checked for a maintained fork first (none).
+  Stopped rather than force through to *some* output whose validity I couldn't vouch for — that
+  would be worse than not having the axis at all. Uninstalled the exploratory package; nothing
+  committed to `requirements.txt`.
+- This is a "closed a real question, found a real answer, the answer is no" cycle — logging it
+  so nobody re-discovers the same three bugs from scratch. nnSVG (R-only, needs someone to
+  confirm R access) may honestly be more tractable than continuing to patch SpatialDE.
+- No empirical results this cycle. Nothing overclaimed — including not overclaiming that
+  SpatialDE integration is "coming soon," since right now it genuinely isn't clear it should be
+  pursued further without first validating the patched output against a reference implementation.

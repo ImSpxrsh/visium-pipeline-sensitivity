@@ -21,6 +21,14 @@
     "n_boundary": 1576,
     "n_interior": 2222
   },
+  "stakes_stratified_depth_controlled": {
+    "gap_interior_minus_boundary": 0.14650101431462947,
+    "p_value_depth_controlled": 0.000999000999000999,
+    "depth_boundary_median": 15443.0,
+    "depth_interior_median": 25226.0,
+    "depth_groups_differ_mannwhitney_p": 5.045989298755135e-55,
+    "n_depth_bins": 10
+  },
   "fragility_example": {
     "gene": "ECRG4",
     "s3": 0.3,

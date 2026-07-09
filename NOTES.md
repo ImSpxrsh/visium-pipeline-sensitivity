@@ -95,3 +95,33 @@ on hypothesis status.
   plus an honest null (H2) on one tumor dataset — exactly the kind of result the repo's rigor
   guardrails are built for, not a headline result yet. The unresolved depth confound on H1 is
   the most important open thread for whoever picks this up next.
+
+## Cycle 5 — 2026-07-09 (this instance: Adharv's machine)
+
+- **Verified determinism still holds.** After this session's several `src/pipeline.py` edits
+  (cycles 2-3), re-ran `scripts/test_reproducibility.py`: 3/3 runs identical. CLAUDE.md's
+  non-negotiable determinism invariant is intact.
+- **Resolved the depth confound flagged in cycle 4.** Added
+  `stakes_stratified_s3_depth_controlled` to `src/statistics.py`: bins spots by depth decile and
+  runs the boundary/interior permutation null *within* each bin, so the null preserves each
+  group's true depth distribution instead of assuming random assignment across all spots. Added
+  a unit test (`tests/test_statistics.py`) with a synthetic case where S³ is purely a function of
+  depth bin — confirms the test correctly reports p≈1 (no signal beyond depth) in that
+  constructed case, so it's not a rubber stamp.
+- **Real result on the tumor sweep:** the depth confound is real — boundary spots have
+  significantly lower depth than interior spots (median 15,443 vs 25,226 UMI, Mann-Whitney
+  p=5e-55). But the S³ gap survives depth-stratified control: p=0.001, same order as the naive
+  test. **H1's tumor result is not just a depth artifact.** This directly closes the open
+  question from cycle 4 — updated `PROGRESS.md` accordingly (no longer listed as "unresolved").
+  Being precise about what this does and doesn't prove: it's a depth-decile block-permutation,
+  a standard but specific robustness check — not a full multivariate causal adjustment. It rules
+  out "the gap is just spots with fewer reads," not every conceivable depth-related mechanism.
+- **Committed:** `src/statistics.py`, `tests/test_statistics.py`, the regenerated
+  `results/breast_cancer/aggregate/statistics_summary.json`, and the `PROGRESS.md` update. Full
+  offline suite: 31/31 (was 30, +1 new test) passes.
+- **Bottom line for the morning:** across 5 cycles tonight, the tumor sweep went from
+  20%-broken → fixed, root-caused, and cross-verified by two independent agents → produced real
+  H1 (supportive, confound-tested) and H2 (honest null) results on human tumor tissue, with
+  determinism and the full test suite verified intact throughout. Nothing here is being called a
+  breakthrough. What's real: a working, reproducible pipeline extension to tumor tissue with one
+  statistically grounded positive result and one honest null, both defensible under review.

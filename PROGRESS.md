@@ -27,12 +27,18 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
   S³ = 0.873, gap = 0.147, permutation p = 0.001 (3798 spots, consensus-domain boundary proxy —
   no pathologist annotation for this dataset, so labeled as a proxy per the Open assumptions
   below). The gap is directionally consistent with, and modestly larger than, the mouse-brain
-  baseline (0.147 vs 0.13) — supports H1 on a second, higher-stakes tissue. **Caveat, not yet
-  resolved:** the depth-confound check here is r=0.447 (S³ vs total UMI counts per spot), far
-  higher than mouse-brain's r=-0.09. Some of the boundary/interior gap could be
-  driven by depth differences between margin and interior spots rather than analytical
-  fragility alone. Treat the tumor H1 result as supportive, not conclusive, until this is
-  checked (e.g. depth-matched resampling or partialling out total_counts).
+  baseline (0.147 vs 0.13) — supports H1 on a second, higher-stakes tissue.
+- **H1 depth confound — checked, gap survives (2026-07-09):** the confound is real: boundary
+  spots have significantly lower sequencing depth than interior spots (median 15,443 vs 25,226
+  UMI, Mann-Whitney p=5e-55; overall S³-vs-depth r=0.447, far above mouse-brain's r=-0.09). Added
+  a depth-stratified block-permutation null (`stakes_stratified_s3_depth_controlled` in
+  `src/statistics.py`) that bins spots by depth decile and shuffles the boundary/interior label
+  only *within* each bin, so the null preserves each group's true depth distribution — directly
+  testing whether the gap is just a depth artifact. It isn't: p=0.001, same order as the naive
+  test. This is a specific, standard robustness check, not a full multivariate adjustment, so it
+  doesn't rule out every possible depth-related mechanism — but it directly answers the concern
+  raised after cycle 4. Upgrading the tumor H1 result from "supportive, unresolved caveat" to
+  "supportive, confound directly tested and survived."
 - **H2 (breast tumor, real result — 2026-07-09):** dominant variance axis is still
   **resolution** (72% of variance), same as mouse-brain (~80%) — the axis did **not** shift to
   SVG method, normalization, or HVG selection as H2 speculated. This is an honest null for the
@@ -46,10 +52,8 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
   accuracy moves 5 pp — pipeline choice affects calibration more than accuracy.
 
 ## Next
-- **Resolve the depth confound** on the tumor H1 result before treating it as a clean
-  replication (see caveat above) — this is the next priority, not a new dataset or axis.
 - H3 (cross-platform Xenium+Visium S³) and the SVG-method axis expansion (SpatialDE/nnSVG)
-  remain not started.
+  remain not started — no other item is currently blocking them.
 
 ## Open assumptions / decisions
 - **Datasets:** environment fetches only programmatic, no-registration data. Human tumor via

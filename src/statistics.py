@@ -298,6 +298,81 @@ def stakes_stratified_s3(
     return result, boundary
 
 
+def stakes_stratified_s3_depth_controlled(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    boundary: np.ndarray,
+    count_key: str = "total_counts",
+    n_bins: int = 10,
+    n_perm: int = 1000,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Re-test H1's boundary/interior S3 gap with sequencing depth controlled for.
+
+    ``stakes_stratified_s3``'s permutation null draws a random boundary-sized
+    subset from *all* spots, which only controls for group size - not for depth.
+    If boundary and interior spots differ systematically in total UMI counts (as
+    they do on the tumor dataset; see ``confound_check_umi``), that null can
+    overstate significance: a real gap could partly reflect depth, not analytical
+    fragility. This block-permutation null instead bins spots into ``n_bins``
+    depth quantiles and shuffles the boundary/interior label only *within* each
+    bin, so every permutation preserves the true depth distribution of each
+    group. If the gap survives here, it isn't just a depth artifact.
+
+    Requires ``boundary`` (the boolean mask ``stakes_stratified_s3`` already
+    computed) so the two tests are directly comparable on the same partition.
+    """
+    ref = runs[0]["adata"]
+    ps = per_spot.set_index("spot_id").reindex(ref.obs_names)
+    s3 = ps["s3_score"].values
+    if count_key in ref.obs:
+        depth = ref.obs[count_key].values.astype(float)
+    else:
+        depth = np.asarray(ref.layers["counts"].sum(axis=1)).ravel().astype(float)
+
+    # Diagnostic: do the two groups actually differ in depth?
+    from scipy.stats import mannwhitneyu
+
+    depth_b, depth_i = depth[boundary], depth[~boundary]
+    mw = mannwhitneyu(depth_b, depth_i, alternative="two-sided")
+
+    b_mean, i_mean = float(s3[boundary].mean()), float(s3[~boundary].mean())
+    obs_gap = i_mean - b_mean
+
+    bins = pd.qcut(depth, q=min(n_bins, len(np.unique(depth))), labels=False, duplicates="drop")
+    rng = np.random.RandomState(seed)
+    ge = 0
+    for _ in range(n_perm):
+        perm_boundary = np.zeros(len(s3), dtype=bool)
+        for b in np.unique(bins):
+            idx = np.flatnonzero(bins == b)
+            n_b_in_bin = int(boundary[idx].sum())
+            if n_b_in_bin:
+                chosen = rng.choice(idx, n_b_in_bin, replace=False)
+                perm_boundary[chosen] = True
+        gap = s3[~perm_boundary].mean() - s3[perm_boundary].mean()
+        if gap >= obs_gap:
+            ge += 1
+    p = (ge + 1) / (n_perm + 1)
+
+    result = {
+        "gap_interior_minus_boundary": obs_gap,
+        "p_value_depth_controlled": float(p),
+        "depth_boundary_median": float(np.median(depth_b)),
+        "depth_interior_median": float(np.median(depth_i)),
+        "depth_groups_differ_mannwhitney_p": float(mw.pvalue),
+        "n_depth_bins": int(len(np.unique(bins))),
+    }
+    logger.info(
+        "Depth-controlled stakes test: gap=%.3f p=%.4f (naive vs depth-controlled comparison; "
+        "boundary/interior depth medians %.0f vs %.0f, Mann-Whitney p=%.2e)",
+        obs_gap, p, result["depth_boundary_median"], result["depth_interior_median"],
+        mw.pvalue,
+    )
+    return result
+
+
 def fragility_report(runs: List[Dict[str, Any]], alpha: float = 0.05):
     """
     A concrete 'headline that flips' demo (the fragility-aware reporting story).
@@ -394,7 +469,8 @@ def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any
     boot = bootstrap_ci_region_s3(runs)
     conf = confound_check_umi(runs, per_spot)
     conv = multiverse_size_convergence(runs)
-    stakes, _ = stakes_stratified_s3(runs, per_spot)
+    stakes, boundary = stakes_stratified_s3(runs, per_spot)
+    stakes_depth = stakes_stratified_s3_depth_controlled(runs, per_spot, boundary)
     frag_gene, frag_s3, frag_df = fragility_report(runs)
 
     agg = Path(results_dir) / "aggregate"
@@ -409,6 +485,7 @@ def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any
         "regions_stable_p05": int((perm["p_value"] < 0.05).sum()) if len(perm) else 0,
         "n_regions": len(perm),
         "stakes_stratified": stakes,
+        "stakes_stratified_depth_controlled": stakes_depth,
         "fragility_example": {
             "gene": frag_gene,
             "s3": frag_s3,

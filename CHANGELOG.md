@@ -7,8 +7,9 @@
   Year-1 mouse-brain numbers unchanged.
 - **H1 on tumor tissue**: boundary mean S³ 0.727 vs interior 0.873, gap 0.147, p=0.001 (3798
   spots) — replicates and modestly widens the mouse-brain gap (0.13), supporting H1. Depth
-  confound (r=0.447) is notably higher than mouse-brain (r=-0.09) and not yet resolved — treat
-  as supportive, not conclusive.
+  confound (r=0.447) is notably higher than mouse-brain (r=-0.09); a depth-stratified
+  block-permutation test (`stakes_stratified_s3_depth_controlled`) confirms the gap survives
+  depth control (p=0.001) — not just spots with fewer reads.
 - **H2 on tumor tissue**: dominant variance axis stays resolution (72%, vs ~80% mouse-brain) —
   honest null for "the dominant axis shifts with tissue type."
 - Add Year-2 planning + tracking docs (`CLAUDE.md`, `ISEF_MOSAIC_YEAR2_PLAN.md`, `PROGRESS.md`).

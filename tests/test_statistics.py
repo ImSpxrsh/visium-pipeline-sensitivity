@@ -12,6 +12,7 @@ from src.statistics import (
     confound_check_umi,
     multiverse_size_convergence,
     stakes_stratified_s3,
+    stakes_stratified_s3_depth_controlled,
     variance_decomposition,
 )
 
@@ -80,6 +81,38 @@ def test_stakes_stratified_detects_fragile_boundary():
     assert res["boundary_mean_s3"] < res["interior_mean_s3"]
     assert res["gap_interior_minus_boundary"] > 0
     assert res["p_value"] < 0.1
+
+
+def test_stakes_depth_controlled_flags_pure_depth_artifact():
+    # 4 depth bins of 5 spots each, cleanly separated so pd.qcut recovers them
+    # exactly. S3 is constant *within* each bin (depth fully determines S3), and
+    # "boundary" is over-represented in the low-depth bins (counts [5,4,1,0] of
+    # 5 per bin) so there's a real observed gap - but since S3 doesn't vary
+    # *within* a bin, any depth-stratified permutation that preserves those
+    # per-bin boundary counts reproduces the exact same group means every time.
+    # The "fragility" is entirely a depth artifact, and the test should say so
+    # (p close to 1), unlike a naive full-shuffle null which would see this
+    # large a gap as significant.
+    n = 20
+    a = ad.AnnData(np.ones((n, 3)))
+    a.obs_names = [f"s{i}" for i in range(n)]
+    depth = np.concatenate([np.full(5, d) + np.arange(5) for d in [0, 1000, 2000, 3000]])
+    a.obs["total_counts"] = depth.astype(float)
+    runs = [{"adata": a, "spec": {}, "metadata": {}}]
+
+    s3_by_bin = np.repeat([0.3, 0.5, 0.7, 0.9], 5)  # low depth -> low S3, by construction
+    per_spot = pd.DataFrame({"spot_id": a.obs_names, "s3_score": s3_by_bin})
+
+    boundary = np.zeros(n, dtype=bool)
+    n_boundary_per_bin = [5, 4, 1, 0]  # skewed toward the low-depth (low-S3) bins
+    for bin_i, n_b in enumerate(n_boundary_per_bin):
+        start = bin_i * 5
+        boundary[start:start + n_b] = True
+
+    res = stakes_stratified_s3_depth_controlled(runs, per_spot, boundary, n_bins=4, n_perm=200)
+    assert res["gap_interior_minus_boundary"] > 0.1
+    assert res["p_value_depth_controlled"] > 0.9  # gap doesn't survive depth control
+    assert res["depth_groups_differ_mannwhitney_p"] < 0.05  # groups really do differ in depth
 
 
 def test_fragility_report_picks_contested_gene():

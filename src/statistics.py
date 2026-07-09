@@ -226,6 +226,73 @@ def multiverse_size_convergence(
     return pd.DataFrame(rows)
 
 
+def _boundary_flags(coords: np.ndarray, domains: np.ndarray, k: int = 6) -> np.ndarray:
+    """
+    Data-driven boundary proxy: a spot is a 'boundary' if any of its k nearest
+    spatial neighbors belongs to a different consensus domain, else 'interior'.
+    Used when pathologist annotations are unavailable (H1); labeled as a proxy.
+    """
+    from scipy.spatial import cKDTree
+
+    tree = cKDTree(coords)
+    _, nbr = tree.query(coords, k=min(k + 1, len(coords)))
+    nbr = nbr[:, 1:]  # drop self
+    same = (domains[nbr] == domains[:, None])
+    return ~same.all(axis=1)  # True = boundary
+
+
+def stakes_stratified_s3(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    reference_key: Optional[str] = None,
+    k: int = 6,
+    n_perm: int = 1000,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Test H1: are boundary spots more fragile (lower S3) than interior spots?
+
+    Strata come from pathologist annotation if ``reference_key`` names an
+    annotation whose labels include boundary terms; otherwise from a consensus-
+    domain boundary proxy. Significance is a label-shuffle permutation null on the
+    interior-minus-boundary mean-S3 gap (one-sided: boundary more fragile).
+    """
+    ref = runs[0]["adata"]
+    ps = per_spot.set_index("spot_id").reindex(ref.obs_names)
+    s3 = ps["s3_score"].values
+    coords = np.asarray(ref.obsm["spatial"])
+    domains = ps["consensus_cluster"].astype(int).values
+    boundary = _boundary_flags(coords, domains, k=k)
+
+    b_mean, i_mean = float(s3[boundary].mean()), float(s3[~boundary].mean())
+    obs_gap = i_mean - b_mean  # positive if boundary is more fragile
+
+    rng = np.random.RandomState(seed)
+    n_b = int(boundary.sum())
+    ge = 0
+    for _ in range(n_perm):
+        perm = rng.permutation(len(s3)) < n_b  # random subset of size n_b as "boundary"
+        gap = s3[~perm].mean() - s3[perm].mean()
+        if gap >= obs_gap:
+            ge += 1
+    p = (ge + 1) / (n_perm + 1)
+
+    result = {
+        "strata": "consensus_boundary_proxy",
+        "boundary_mean_s3": b_mean,
+        "interior_mean_s3": i_mean,
+        "gap_interior_minus_boundary": obs_gap,
+        "p_value": float(p),
+        "n_boundary": n_b,
+        "n_interior": int((~boundary).sum()),
+    }
+    logger.info(
+        "Stakes-stratified S3: boundary=%.3f interior=%.3f gap=%.3f (p=%.4f)",
+        b_mean, i_mean, obs_gap, result["p_value"],
+    )
+    return result, boundary
+
+
 def cross_dataset_region_summary(datasets: List[Dict[str, Any]]) -> pd.DataFrame:
     """
     Summarize per-region S3 across datasets to test whether the robust/fragile
@@ -262,6 +329,7 @@ def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any
     boot = bootstrap_ci_region_s3(runs)
     conf = confound_check_umi(runs, per_spot)
     conv = multiverse_size_convergence(runs)
+    stakes, _ = stakes_stratified_s3(runs, per_spot)
 
     agg = Path(results_dir) / "aggregate"
     perm.to_csv(agg / "stats_permutation_region_s3.csv", index=False)
@@ -274,6 +342,7 @@ def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any
         "variance_top_axis": var.iloc[0].to_dict() if len(var) else {},
         "regions_stable_p05": int((perm["p_value"] < 0.05).sum()) if len(perm) else 0,
         "n_regions": len(perm),
+        "stakes_stratified": stakes,
     }
     if out_json:
         save_json(summary, out_json)
@@ -357,6 +426,35 @@ def generate_stats_figures(results_dir: Path, output_dir: Path) -> None:
                      fontsize=12, fontweight="bold")
         ax.legend()
         _save(fig, output_dir / "11_confound_umi.png")
+
+    # Fig 13: stakes-stratified S3 (H1) -- boundary vs interior.
+    stakes, boundary = stakes_stratified_s3(runs, per_spot)
+    ref = runs[0]["adata"]
+    coords = np.asarray(ref.obsm["spatial"])
+    s3 = per_spot.set_index("spot_id").reindex(ref.obs_names)["s3_score"].values
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6), gridspec_kw={"width_ratios": [1.1, 1]})
+    axes[0].scatter(coords[~boundary, 0], coords[~boundary, 1], s=10, c="#999999",
+                    label=f"interior (n={stakes['n_interior']})")
+    axes[0].scatter(coords[boundary, 0], coords[boundary, 1], s=10, c="#D73027",
+                    label=f"boundary (n={stakes['n_boundary']})")
+    axes[0].set_aspect("equal")
+    axes[0].invert_yaxis()
+    axes[0].set_xticks([])
+    axes[0].set_yticks([])
+    axes[0].legend(loc="upper right", fontsize=8)
+    axes[0].set_title("A  Consensus-domain boundary proxy", fontsize=12, fontweight="bold")
+    axes[1].hist(s3[~boundary], bins=25, histtype="step", lw=2, color="#555555",
+                 density=True, label=f"interior (mean {stakes['interior_mean_s3']:.2f})")
+    axes[1].hist(s3[boundary], bins=25, histtype="step", lw=2, color="#D73027",
+                 density=True, label=f"boundary (mean {stakes['boundary_mean_s3']:.2f})")
+    axes[1].set_xlabel("Per-spot S3")
+    axes[1].set_ylabel("Density")
+    axes[1].legend(fontsize=9)
+    axes[1].set_title(f"B  Boundaries are more fragile (p={stakes['p_value']:.4f})",
+                      fontsize=12, fontweight="bold")
+    fig.suptitle("H1: analytical fragility concentrates at domain boundaries",
+                 fontsize=13, fontweight="bold")
+    _save(fig, output_dir / "13_stakes_stratified.png")
 
     logger.info("Statistics figures written to %s", output_dir)
 

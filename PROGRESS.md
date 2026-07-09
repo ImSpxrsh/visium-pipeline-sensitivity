@@ -10,10 +10,17 @@ Maps work to the ISEF hypotheses (H1/H2/H3) and the backlog in `CLAUDE.md`.
 ## Year 2 backlog
 | # | Task | Hypothesis | Status |
 |---|---|---|---|
-| 1 | Human tumor Visium loads + sweep runs unchanged | H1/H2/H3 | in progress |
+| 1 | Human tumor Visium loads + sweep runs unchanged | H1/H2/H3 | loader wired; sweep pending |
 | 2 | SVG-method axis (+SpatialDE, +nnSVG) | H2 | not started |
-| 3 | QC/filtering axis | — | not started |
-| 4 | Stakes-stratified S³ (boundary/interior/healthy) | H1 | not started |
+| 3 | QC/filtering axis | — | not started (needs intersection-safe S³) |
+| 4 | Stakes-stratified S³ (boundary/interior/healthy) | H1 | **done (mouse-brain baseline)** |
+
+## Findings so far (Year 2)
+- **H1 (mouse-brain baseline):** boundary spots are significantly more fragile than
+  interiors — mean S³ 0.72 vs 0.85, gap 0.13, permutation p<0.001. Establishes the
+  method; tumor tissue expected to widen the gap.
+- **Human tumor loader:** `--dataset breast_cancer` (10x V1_Breast_Cancer_Block_A_Section_1)
+  and `glioblastoma` wired via squidpy; no registration needed.
 | 5 | Per-dataset Type-II ANOVA (does dominant axis move?) | H2 | not started |
 | 6 | Cross-platform S³ (Xenium+Visium) | H3 | not started |
 | 7 | Downstream calibration swing (ECE/Brier) | — | not started |

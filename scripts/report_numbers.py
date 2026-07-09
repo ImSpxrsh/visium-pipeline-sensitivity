@@ -66,6 +66,13 @@ def main() -> None:
         macros["ConfoundR"] = _fmt(conf.get("pearson_r", 0), digits=2) if conf else "TBD"
         macros["RegionsStable"] = str(stats.get("regions_stable_p05", "TBD"))
         macros["NregionsTotal"] = str(stats.get("n_regions", "TBD"))
+        st = stats.get("stakes_stratified", {})
+        if st:
+            macros["BoundaryS"] = _fmt(st.get("boundary_mean_s3", 0), digits=2)
+            macros["InteriorS"] = _fmt(st.get("interior_mean_s3", 0), digits=2)
+            macros["StakesGap"] = _fmt(st.get("gap_interior_minus_boundary", 0), digits=2)
+            p = st.get("p_value", 1)
+            macros["StakesP"] = "<0.001" if p < 0.001 else _fmt(p, digits=3)
     if down:
         macros["DownstreamRangePP"] = _fmt(down.get("accuracy_range_pp", 0))
         macros["DownstreamAccMin"] = _fmt(down.get("accuracy_min", 0), digits=2)

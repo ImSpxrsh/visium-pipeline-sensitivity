@@ -51,10 +51,38 @@ def load_dataset(
             logger.info("Loading Visium fluorescence (mouse brain)...")
         adata = sq.datasets.visium_fluo_adata()
         image = None
+    elif dataset_name in TENX_VISIUM or dataset_name in TENX_ALIASES:
+        sample_id = TENX_ALIASES.get(dataset_name, dataset_name)
+        if verbose:
+            logger.info("Loading 10x Visium %s ...", sample_id)
+        # Public 10x Visium (human tumor/disease). Raw filtered_feature_bc_matrix;
+        # the pipeline re-derives normalization from counts, preserving Year-1
+        # invariants. The tissue image is embedded in adata.uns['spatial'].
+        adata = sq.datasets.visium(sample_id)
+        adata.var_names_make_unique()
+        image = None
     else:
-        raise ValueError(f"Unknown dataset: {dataset_name!r}")
+        raise ValueError(
+            f"Unknown dataset: {dataset_name!r}. Known: visium_hne, visium_fluo, "
+            f"aliases {sorted(TENX_ALIASES)}, or any 10x id in {sorted(TENX_VISIUM)}."
+        )
 
     return adata, image
+
+
+# Public 10x Visium human tumor/disease datasets reachable without registration.
+TENX_VISIUM = {
+    "V1_Breast_Cancer_Block_A_Section_1",
+    "V1_Breast_Cancer_Block_A_Section_2",
+    "Parent_Visium_Human_Glioblastoma",
+    "Targeted_Visium_Human_Glioblastoma_Pan_Cancer",
+}
+# Friendly aliases so results namespace cleanly (results/<alias>/...).
+TENX_ALIASES = {
+    "breast_cancer": "V1_Breast_Cancer_Block_A_Section_1",
+    "breast_cancer_2": "V1_Breast_Cancer_Block_A_Section_2",
+    "glioblastoma": "Parent_Visium_Human_Glioblastoma",
+}
 
 
 def _try_load_image(loader, retries: int = 2, verbose: bool = True):

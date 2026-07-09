@@ -11,6 +11,7 @@ from src.statistics import (
     build_aligned_matrix,
     confound_check_umi,
     multiverse_size_convergence,
+    stakes_stratified_s3,
     variance_decomposition,
 )
 
@@ -60,6 +61,25 @@ def test_convergence_returns_increasing_sizes():
     df = multiverse_size_convergence(runs, sizes=[2, 4, 6], n_draws=5)
     assert list(df["n_specs"]) == [2, 4, 6]
     assert df["mean_s3"].between(0, 1).all()
+
+
+def test_stakes_stratified_detects_fragile_boundary():
+    # A 1-D strip: left domain 0, right domain 1; the two middle spots are the
+    # boundary and are given low S3, interiors high S3.
+    n = 20
+    a = ad.AnnData(np.ones((n, 3)))
+    a.obs_names = [f"s{i}" for i in range(n)]
+    a.obsm["spatial"] = np.column_stack([np.arange(n), np.zeros(n)]).astype(float)
+    domains = np.array([0] * (n // 2) + [1] * (n // 2))
+    runs = [{"adata": a, "spec": {}, "metadata": {}}]
+    s3 = np.full(n, 0.95)
+    s3[n // 2 - 1] = s3[n // 2] = 0.4  # the boundary pair is fragile
+    per_spot = pd.DataFrame({"spot_id": a.obs_names, "s3_score": s3,
+                             "consensus_cluster": domains})
+    res, boundary = stakes_stratified_s3(runs, per_spot, k=2, n_perm=200)
+    assert res["boundary_mean_s3"] < res["interior_mean_s3"]
+    assert res["gap_interior_minus_boundary"] > 0
+    assert res["p_value"] < 0.1
 
 
 def test_variance_decomposition_runs():

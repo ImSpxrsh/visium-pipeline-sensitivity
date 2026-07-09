@@ -322,6 +322,28 @@ the fragility phenomenon, its concentration at boundaries, and its leading cause
 to human tumor tissue, while the tumor setting sharpens the importance of controlling for
 sequencing depth (Figure~\ref{fig:tumorstakes}).
 
+\begin{table}[t]
+  \centering
+  \caption{Cross-tissue summary. The boundary-fragility effect (H1) and the leading
+  analytical axis (H2) transfer from mouse brain to human tumor; the tumor setting adds a
+  strong sequencing-depth confound that the depth-stratified null controls for.}
+  \label{tab:crosstissue}
+  \small
+  \begin{tabular}{lcccc}
+    \toprule
+    Tissue & Spots & Boundary $S^3$ gap (H1) & $S^3$--depth $r$ & Dominant axis (H2) \\
+    \midrule
+    Mouse brain (H\&E) & \Nspots{} & \StakesGap{} ($p\,\StakesP{}$) & \ConfoundR{}
+      & resolution (\VarTopFrac{}) \\
+    Human breast tumor & 3{,}798 & \TumorGap{} ($p\,\TumorStakesP{}$)$^\dagger$ & \TumorConfoundR{}
+      & resolution (\TumorVarTopFrac{}) \\
+    \bottomrule
+  \end{tabular}
+  \\[2pt]
+  {\footnotesize $^\dagger$ Gap survives a depth-stratified block-permutation null
+  ($p\,\TumorDepthP{}$).}
+\end{table}
+
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{../results/breast_cancer/figures/13_stakes_stratified.png}

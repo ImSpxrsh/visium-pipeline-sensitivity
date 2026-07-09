@@ -82,6 +82,29 @@ def test_stakes_stratified_detects_fragile_boundary():
     assert res["p_value"] < 0.1
 
 
+def test_fragility_report_picks_contested_gene():
+    from src.statistics import fragility_report
+
+    # gene "flip" tested in all specs, significant in 2 of 4 (freq 0.5); gene
+    # "robust" always significant (freq 1.0) -> flip is the most contested.
+    def svg(flip_p):
+        return pd.DataFrame(
+            {"I": [0.5, 0.9], "pval_norm_fdr_bh": [flip_p, 0.001]},
+            index=["flip", "robust"],
+        )
+
+    runs = [
+        {"adata": ad.AnnData(np.ones((3, 2))), "spec": {}, "name": f"s{i}",
+         "metadata": {"spec_name": f"s{i}"}, "svg_df": svg(p)}
+        for i, p in enumerate([0.01, 0.02, 0.2, 0.3])
+    ]
+    for r in runs:
+        r["adata"].var_names = ["flip", "robust"]
+    gene, s3, df = fragility_report(runs)
+    assert gene == "flip"
+    assert int(df["significant"].sum()) == 2
+
+
 def test_variance_decomposition_runs():
     runs = []
     for res in [0.3, 0.5, 0.8, 1.2] * 3:

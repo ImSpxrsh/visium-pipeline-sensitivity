@@ -298,6 +298,66 @@ def stakes_stratified_s3(
     return result, boundary
 
 
+def fragility_report(runs: List[Dict[str, Any]], alpha: float = 0.05):
+    """
+    A concrete 'headline that flips' demo (the fragility-aware reporting story).
+
+    Among genes tested in every specification, pick the most contested SVG (call
+    frequency nearest 50%) and trace its FDR-adjusted Moran's I p-value across all
+    specifications. Returns (gene, s3, DataFrame[spec_name, pval, significant]).
+    """
+    from src.visualization import _significant, svg_concordance_matrix
+
+    conc = svg_concordance_matrix(runs, common_only=True)
+    if conc.empty:
+        return None, None, pd.DataFrame()
+    freq = conc.mean(axis=1)
+    gene = (freq - 0.5).abs().idxmin()
+    s3 = float(freq[gene])
+
+    rows = []
+    for r in runs:
+        svg = r["svg_df"]
+        if svg is None or gene not in svg.index:
+            continue
+        pcol = next((c for c in ("pval_norm_fdr_bh", "pval_sim_fdr_bh", "pval_norm",
+                                 "pval_sim", "pval") if c in svg.columns), None)
+        pval = float(svg.loc[gene, pcol]) if pcol else np.nan
+        sig = bool(_significant(svg, alpha).get(gene, False))
+        rows.append({"spec_name": r["metadata"].get("spec_name", ""),
+                     "pval": pval, "significant": sig})
+    df = pd.DataFrame(rows).sort_values("pval").reset_index(drop=True)
+    logger.info("Fragility report: gene %s called SVG in %d/%d specs (S3=%.2f)",
+                gene, int(df["significant"].sum()), len(df), s3)
+    return gene, s3, df
+
+
+def plot_fragility_report(runs: List[Dict[str, Any]], output_path: Optional[Path] = None,
+                          alpha: float = 0.05) -> None:
+    """Trace the most-contested SVG's p-value across pipelines vs the FDR threshold."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    gene, s3, df = fragility_report(runs, alpha)
+    if df.empty:
+        return
+    fig, ax = plt.subplots(figsize=(10, 5))
+    colors = ["#1A9850" if s else "#D73027" for s in df["significant"]]
+    ax.scatter(range(len(df)), df["pval"], c=colors, s=45, zorder=3)
+    ax.axhline(alpha, color="#333333", ls="--", lw=1.5, label=f"FDR = {alpha}")
+    ax.set_yscale("log")
+    ax.set_xlabel("Specification (sorted by p-value)")
+    ax.set_ylabel("FDR-adjusted Moran's I p-value (log)")
+    n_sig = int(df["significant"].sum())
+    ax.set_title(f"'{gene}' is called a significant SVG in {n_sig}/{len(df)} defensible "
+                 f"pipelines (S3 = {s3:.2f})", fontsize=12, fontweight="bold")
+    ax.legend()
+    fig.suptitle("Fragility-aware reporting: a headline SVG that flips across pipelines",
+                 fontsize=13, fontweight="bold")
+    _save(fig, output_path)
+
+
 def cross_dataset_region_summary(datasets: List[Dict[str, Any]]) -> pd.DataFrame:
     """
     Summarize per-region S3 across datasets to test whether the robust/fragile
@@ -460,6 +520,9 @@ def generate_stats_figures(results_dir: Path, output_dir: Path) -> None:
     fig.suptitle("H1: analytical fragility concentrates at domain boundaries",
                  fontsize=13, fontweight="bold")
     _save(fig, output_dir / "13_stakes_stratified.png")
+
+    # Fig 14: fragility-aware reporting demo (a headline SVG that flips).
+    plot_fragility_report(runs, output_dir / "14_fragility_report.png")
 
     logger.info("Statistics figures written to %s", output_dir)
 

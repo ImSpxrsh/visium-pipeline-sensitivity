@@ -202,14 +202,20 @@ specifications.
 
 \section{Experimental Setup}
 We evaluate on two independent 10x Genomics Visium mouse-brain coronal
-sections (a primary H\&E section, \Nspots{} spots and \Ngenes{} genes; and,
-for generalization, an independently prepared fluorescence section, 2{,}800
-spots), both shipping real histology and a 15-region curated anatomical
-annotation used as ground truth. To test whether fragility tracks
-biological stakes, we additionally run the full multiverse on a public
-human breast-cancer section (invasive ductal carcinoma; 3{,}798 spots),
-applying only minimal shared gene quality control so every specification
-sees the same gene universe.
+sections distributed with Squidpy~\cite{palla2022squidpy} (a primary H\&E
+section, \Nspots{} spots and \Ngenes{} genes; and, for generalization, an
+independently prepared fluorescence section, 2{,}800 spots), both shipping
+real histology and a 15-region curated anatomical annotation used as ground
+truth. To test whether fragility tracks biological stakes, we additionally
+run the full multiverse on the public 10x Visium human breast-cancer section
+(\texttt{V1\_Breast\_Cancer\_Block\_A\_Section\_1}; invasive ductal
+carcinoma; 3{,}798 spots), applying only minimal shared gene quality control
+so every specification sees the same gene universe. For this section we use
+per-spot board-certified pathologist annotations released with the SEDR
+study, matched to Visium barcodes, as clinical ground truth---these labels
+are produced entirely independently of any pipeline evaluated here. All
+datasets are public and fetched programmatically; no data were generated for
+this study.
 
 \section{Results: Instability on Mouse Brain}
 \label{sec:results}
@@ -346,8 +352,8 @@ trying to recover; the consensus attains best-pipeline-or-better accuracy
 using only the multiverse itself. Per-spot $S^3$ is additionally a
 ground-truth-free confidence signal on the consensus: where the consensus
 disagrees with reference anatomy, $S^3$ is significantly lower (mean $0.69$
-vs.\ $0.81$), and $S^3$ alone predicts consensus correctness at ROC AUC
-\ConsensusUncAUC{} (consensus accuracy \ConsensusAcc{}).
+vs.\ $0.81$; Mann--Whitney $p<10^{-40}$), and $S^3$ alone predicts consensus
+correctness at ROC AUC \ConsensusUncAUC{} (consensus accuracy \ConsensusAcc{}).
 
 \begin{figure}[t]
   \centering
@@ -439,9 +445,11 @@ auditing and improving spatial transcriptomics conclusions.
 
 \section*{Reproducibility}
 Every specification is seeded and re-derives its inputs from raw counts;
-sweeps are idempotent and content-hashed. We release the pipeline code, the
-specification configuration, the aggregate stability tables, statistical
-outputs, and figure-generation scripts. Analyses build on
+sweeps are idempotent and content-hashed, and a determinism check confirms
+bit-identical spot-level labels on repeated runs of a fixed specification.
+We release the pipeline code, the specification configuration, the aggregate
+stability tables, statistical outputs, and figure-generation scripts at
+\url{https://github.com/ImSpxrsh/MOSAIC-ISEF}. Analyses build on
 NumPy~\cite{harris2020array}, SciPy~\cite{virtanen2020scipy},
 scikit-learn~\cite{pedregosa2011scikit}, SCANPY~\cite{wolf2018scanpy}, and
 Squidpy~\cite{palla2022squidpy}.

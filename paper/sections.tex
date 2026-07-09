@@ -319,7 +319,17 @@ sequencing depth ($r=\TumorConfoundR{}$, versus $\ConfoundR{}$ in brain), and bo
 systematically shallower. We therefore test the gap with a depth-stratified block-permutation
 null---binning spots by depth decile and shuffling the boundary/interior label only within each
 bin, so the null preserves each group's depth distribution. The gap survives
-($p\,\TumorDepthP{}$), so it is not merely an artifact of low-coverage spots. Finally, the
+($p\,\TumorDepthP{}$), so it is not merely an artifact of low-coverage spots.
+
+Most importantly, the tumor section carries independent, board-certified \emph{pathologist}
+annotations (invasive carcinoma, in-situ tumor, surrounding-tumor margin, and healthy tissue),
+which let us replace the consensus-domain boundary proxy with clinical ground truth. Analytical
+fragility peaks precisely at the pathologist-defined tumor \emph{margin}: mean $S^3$ is
+\PathMarginS{} at the margin versus \PathInvasiveS{} in the invasive core and \PathHealthyS{}
+in healthy tissue ($p\,\PathP{}$, and $p\,\PathDepthP{}$ under the depth-stratified null;
+Figure~\ref{fig:pathstakes}). The surgical margin---the region of greatest clinical
+consequence---is exactly where analytical choices matter most, on genuinely independent labels.
+Finally, the
 dominant analytical axis does \emph{not} change with tissue type: clustering resolution still
 explains the most domain-count variance (\TumorVarTopFrac{}, versus \VarTopFrac{} in brain),
 an honest null for the hypothesis that the most consequential choice is tissue-dependent. Thus
@@ -356,6 +366,17 @@ sequencing depth (Figure~\ref{fig:tumorstakes}).
   are significantly more fragile than interiors, replicating the mouse-brain result on a
   higher-stakes tumor section; the gap survives a depth-stratified permutation null.}
   \label{fig:tumorstakes}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{../results/breast_cancer/figures/16_pathology_stakes.png}
+  \caption{Validation against independent board-certified pathology. Per-spot $S^3$ by
+  pathologist-annotated region: fragility is highest at the tumor \emph{margin} (surrounding
+  tumor) and lowest in the transcriptomically distinct invasive core, on labels produced
+  independently of any analytical pipeline. The margin--core gap is significant and survives a
+  depth-stratified null.}
+  \label{fig:pathstakes}
 \end{figure}
 
 \section{The multiverse consensus is a better estimator}

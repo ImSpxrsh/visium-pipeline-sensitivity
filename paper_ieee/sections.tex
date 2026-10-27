@@ -115,6 +115,24 @@ instability signals answer different questions: how much does a result
 change if I rerun the same method, versus how much does it change if I make
 a different, equally defensible analytical choice.
 
+\textbf{Analytical fragility beyond spatial transcriptomics.} The pattern
+MOSAIC instruments, that a conclusion's sign or magnitude depends on
+pipeline choices nominally orthogonal to the scientific question, recurs
+outside this domain. Auditing EEG foundation models on motor imagery,
+Zhou and Roy~\cite{zhou2026matched} find that matching the input pipeline
+across architectures still leaves the \emph{direction} of a performance
+comparison dependent on which architecture receives it, an
+architecture-by-pipeline interaction with the same shape as the
+specification dependence we report here. In clinical risk modeling, Roy
+\emph{et al.}~\cite{roy2026kaisen} stress-test a subgroup-fairness audit
+pipeline (KAISEN) to its failure points and reach a structurally similar
+conclusion: a post-hoc mitigation step's effect on fairness varies by
+cohort realization more than by disease, so the quantity worth reporting
+is the spread across runs, not a single averaged estimate. MOSAIC applies
+the same diagnose-the-spread strategy to spatial transcriptomics, with a
+cross-pipeline consensus estimator as a constructive remedy rather than
+diagnosis alone.
+
 \section{Method}
 \label{sec:method}
 
@@ -479,7 +497,14 @@ learning to propose specifications that maximally reduce uncertainty about
 $S^3$, mapping the boundary between robust and contingent regions of the
 configuration space more efficiently than uniform curation. The
 embarrassingly parallel architecture makes such agent-driven exploration,
-and eventually an exhaustive multiverse, computationally tractable.
+and eventually an exhaustive multiverse, computationally tractable. A
+related coupled-uncertainty routing strategy, estimating two stressors
+jointly rather than independently to decide where to spend a fixed compute
+budget, improves deadline-miss rates in a real-time perception
+setting~\cite{roy2026belief}; the same idea applied here would route the
+\emph{full} multiverse only toward spots our single-pipeline fragility
+predictor (\S\ref{sec:downstream}) flags as uncertain, rather than running
+every specification everywhere.
 
 \section{Conclusion}
 We introduced MOSAIC, a specification-curve framework that turns the

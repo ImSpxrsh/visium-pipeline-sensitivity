@@ -27,6 +27,9 @@ authors:
   - family-names: "Girmachew"
     given-names: "Samuel"
     affiliation: "Hopewell Valley Central High School"
+  - family-names: "Langille"
+    given-names: "William"
+    affiliation: "Hopewell Valley Central High School"
 repository-code: "https://github.com/ImSpxrsh/MOSAIC-ISEF"
 keywords:
   - spatial transcriptomics

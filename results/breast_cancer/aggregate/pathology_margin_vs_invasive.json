@@ -1,0 +1,14 @@
+{
+  "margin_mean_s3": 0.7017010935601458,
+  "invasive_mean_s3": 0.8685908999799559,
+  "gap_invasive_minus_margin": 0.1668898064198101,
+  "gap_ci95_low": 0.15506229622545067,
+  "gap_ci95_high": 0.1797576241242277,
+  "p_value_perm": 0.000999000999000999,
+  "n_margin": 823,
+  "n_invasive": 1663,
+  "n_boot": 1000,
+  "n_perm": 1000,
+  "seed": 42,
+  "note": "Specifically margin (Surrounding tumor) vs invasive-core (Invasive) only, matching the quantity described in the paper text. The existing pathology_stakes.json gap/CI is margin vs ALL other spots pooled (Healthy+Tumor+Invasive), a different quantity."
+}

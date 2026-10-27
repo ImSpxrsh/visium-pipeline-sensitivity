@@ -1,0 +1,10 @@
+{
+  "n_genes": 7365,
+  "selection_freq_mean": 0.3056392849060874,
+  "selection_freq_gt0.8_frac": 0.2482009504412763,
+  "selection_freq_lt0.5_frac": 0.7094365241004752,
+  "binary_call_consistency_mean": 0.9309843856076037,
+  "binary_call_consistency_gt0.8_frac": 0.8912423625254583,
+  "binary_call_consistency_gt0.9_frac": 0.6905634758995248,
+  "note": "selection_freq is S3_gene as defined in the paper (frac of specs calling gene significant SVG); it is directional and penalizes consistently-nonsignificant genes with a score near 0. binary_call_consistency = max(p,1-p) treats consistent absence and consistent presence symmetrically as stable."
+}

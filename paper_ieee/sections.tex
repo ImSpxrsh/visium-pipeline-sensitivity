@@ -43,10 +43,10 @@ transcriptomics. Our contributions are:
   tests: permutation nulls, bootstrap confidence intervals, and a
   variance decomposition that identifies the single most consequential
   analytical choice (\S\ref{sec:results}).
-\item[\textbf{C3}] Validation against independent, board-certified
-  pathology, showing that analytical fragility concentrates precisely at
-  the tumor \emph{margin} (the region of greatest clinical
-  consequence), with the effect surviving a depth-stratified permutation
+\item[\textbf{C3}] Validation against independent pathology annotations,
+  showing that analytical fragility concentrates precisely at
+  the pathologist-annotated tumor \emph{margin}, with the effect surviving
+  a depth-stratified permutation
   control (\S\ref{sec:tumor}).
 \item[\textbf{C4}] Two constructive uses of the multiverse beyond
   diagnosis: a co-association \emph{consensus} estimator that recovers
@@ -95,11 +95,25 @@ frameworks~\cite{strehl2002cluster}, which aggregate multiple partitions of
 the \emph{same} method under resampling or initialization noise into a more
 stable consensus. We instead aggregate partitions from a curated multiverse
 of \emph{qualitatively different} analytical pipelines, not perturbations of
-one method, and we are, to our knowledge, the first to show that such a
-cross-pipeline consensus on real spatial transcriptomics data matches or
-exceeds the best individual pipeline's agreement with ground truth
-\emph{without access to that ground truth}, and to pair it with a
-ground-truth-free per-spot confidence signal.
+one method; our contribution is applying this cross-pipeline consensus
+strategy to a curated spatial-transcriptomics multiverse and showing, on
+real tissue, that it matches or exceeds the best individual pipeline's
+agreement with ground truth \emph{without access to that ground truth},
+paired with a ground-truth-free per-spot confidence signal.
+
+\textbf{Concurrent work on per-spot instability.} Wu
+\emph{et al.}~\cite{wu2026instability} independently introduce InSTability,
+which localizes per-spot clustering disagreement across seven clustering
+methods (BayesSpace, GraphST, Leiden, Louvain, SEDR, STAGATE, SpiceMix) on
+18 benchmark samples. That work instruments \emph{stochastic} variation
+within and across methods under repeated runs. MOSAIC instead instruments
+\emph{analytical-choice} variation (normalization, feature selection, graph
+construction, resolution, and SVG test, not just clustering method or
+seed), and goes beyond diagnosis to build a cross-pipeline consensus
+estimator and a single-pipeline fragility predictor. The two per-spot
+instability signals answer different questions: how much does a result
+change if I rerun the same method, versus how much does it change if I make
+a different, equally defensible analytical choice.
 
 \section{Method}
 \label{sec:method}
@@ -164,6 +178,7 @@ per-gene stability is the fraction of specifications calling gene $g$ a
 significant SVG,
 \begin{equation}
   S^3_{\text{gene}}(g) = \frac1N\sum_{s\in\mathcal{S}} \mathbb{1}[g\in\text{SVG}_s],
+  \label{eq:s3gene}
 \end{equation}
 and headline stability reports the mean, standard deviation, and range of a
 scalar summary (e.g.\ domain count) across $\mathcal{S}$. As a label-free
@@ -210,9 +225,10 @@ run the full multiverse on the public 10x Visium human breast-cancer section
 (\texttt{V1\_Breast\_Cancer\_Block\_A\_Section\_1}; invasive ductal
 carcinoma; 3{,}798 spots), applying only minimal shared gene quality control
 so every specification sees the same gene universe. For this section we use
-per-spot board-certified pathologist annotations released with the SEDR
-study, matched to Visium barcodes, as clinical ground truth; these labels
-are produced entirely independently of any pipeline evaluated here. All
+per-spot pathology-region annotations (Invasive, Tumor, Surrounding tumor,
+Healthy) released with the SEDR study~\cite{fu2021sedr}, matched to
+Visium barcodes; these labels are produced entirely independently of any
+pipeline evaluated here. All
 datasets are public and fetched programmatically; no data were generated for
 this study.
 
@@ -249,10 +265,21 @@ with every other axis contributing at most a few percent
 (Fig.~\ref{fig:variance}), a concrete, actionable standardization
 priority for the field.
 
-\textbf{Gene-level and downstream churn.} Per-gene $S^3$ separates
-consistently significant SVGs (\GeneRobustFrac{} with $S^3>0.8$) from those
-whose significance flips with the analysis (\GeneFragileFrac{} with
-$S^3<0.5$). The effect propagates downstream: a cross-validated classifier
+\textbf{Gene-level churn.} Per-gene $S^3$ (Eq.~\ref{eq:s3gene}) is a
+\emph{selection frequency}: it is directional, so a gene the analysis
+consistently and correctly excludes still scores near 0, the same value a
+genuinely flip-flopping gene would get. Taken at face value this frequency
+puts \GeneSelFreqLowFrac{} of genes below $S^3<0.5$, which is \emph{not}
+evidence that most gene-level calls are unstable; most genes are simply,
+and consistently, not called spatially variable (\GeneRobustFrac{} are
+consistently significant, $S^3>0.8$). To separate true flip-flopping from
+consistent absence we also report binary-call consistency,
+$\max(p_g,1-p_g)$ for per-gene selection frequency $p_g$, which scores
+consistent presence and consistent absence alike: by this measure
+\GeneConsistentFrac{} of genes are consistent calls, and churn concentrates
+in a much smaller set of borderline genes than the selection frequency
+alone suggests. The effect still propagates downstream: a cross-validated
+classifier
 predicting anatomical region from each specification's embedding swings
 \DownstreamRangePP{} accuracy percentage points ($\DownstreamAccMin{}$--
 $\DownstreamAccMax{}$) purely from upstream pipeline choice, and the
@@ -307,19 +334,27 @@ survives ($p\,\TumorDepthP{}$) and is not merely an artifact of
 low-coverage spots.
 
 \textbf{Independent pathology validation.} This section carries
-independent, board-certified pathologist annotations (invasive carcinoma,
-in-situ tumor, surrounding-tumor margin, healthy tissue). These labels let
-us replace the consensus-domain boundary proxy used elsewhere with clinical
-ground truth. Analytical fragility peaks precisely at the pathologist-defined
-tumor \emph{margin}: mean $S^3$ is \PathMarginS{} at the margin versus
-\PathInvasiveS{} in the invasive core and \PathHealthyS{} in healthy tissue
-($p\,\PathP{}$; Fig.~\ref{fig:pathology}). A paired bootstrap (spot
-resampling, $B{=}1000$) places the margin--core gap's 95\% CI at
-$[0.128, 0.154]$, excluding zero, and the effect survives the
-depth-stratified null ($p\,\PathDepthP{}$). The surgical margin (the
-region of greatest clinical consequence, where a false boundary call could
-misinform treatment) is exactly where analytical choices matter most, on
-labels produced entirely independently of any pipeline in this study.
+independent per-spot pathology-region annotations from the SEDR
+study~\cite{fu2021sedr} (Invasive, Tumor [in-situ], Surrounding tumor,
+Healthy). These labels let us replace the consensus-domain boundary proxy
+used elsewhere with annotation-based ground truth. Analytical fragility
+peaks precisely at the annotated tumor \emph{margin} region ("Surrounding
+tumor"): mean $S^3$ is \PathMarginS{} at the margin versus \PathInvasiveS{}
+in the invasive core and \PathHealthyS{} in healthy tissue ($p\,\PathP{}$;
+Fig.~\ref{fig:pathology}). We report two bootstrap confidence intervals
+(spot resampling, $B{=}1000$) for two distinct quantities: the
+margin-versus-invasive-core gap, which the point estimate above describes,
+is \PathMarginInvasiveGap{} with 95\% CI
+$[\PathMarginInvasiveCILow{}, \PathMarginInvasiveCIHigh{}]$; the
+margin-versus-all-other-tissue gap used in the stakes test above is
+\PathMarginRestGap{} with 95\% CI
+$[\PathMarginRestCILow{}, \PathMarginRestCIHigh{}]$. Both exclude zero, and
+both survive the depth-stratified null ($p\,\PathDepthP{}$). This annotated
+margin region is not an independently verified clinical surgical resection
+margin; it is the dataset's own "Surrounding tumor" pathology-region label,
+adjacent to the invasive core and of plausible clinical relevance to margin
+assessment. On labels produced entirely independently of any pipeline in
+this study, it is exactly where analytical choices matter most.
 
 Finally, the dominant analytical axis does \emph{not} change with tissue
 type: clustering resolution still explains the most domain-count variance

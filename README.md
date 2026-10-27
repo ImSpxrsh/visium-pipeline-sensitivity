@@ -13,9 +13,9 @@ cell–cell communication — depend on those analytical choices. The headline o
 the **Spatial Stability Score (S³)**, which separates robust findings from contingent
 ones.
 
-Validated against independent, board-certified pathology on a human breast-cancer
-section, fragility peaks precisely at the tumor margin — the region of greatest
-clinical consequence. The IEEE-format paper (`paper_ieee/`) targets the IEEE BigData
+Validated against independent pathology-region annotations (SEDR study) on a human
+breast-cancer section, fragility peaks precisely at the annotated tumor margin. The
+IEEE-format paper (`paper_ieee/`) targets the IEEE BigData
 2026 workshop *Pixels to Biomarkers: Big Data for Computational Pathology and
 Multi-Omics*.
 

@@ -3,14 +3,30 @@ message: "If you use MOSAIC, please cite the following."
 title: "MOSAIC: Specification-Curve Analysis of Spatial Transcriptomics Pipelines"
 abstract: >-
   MOSAIC (Multiverse Of Spatial Analysis: Instability & Concordance) is a
-  specification-curve analysis framework that quantifies how biological
-  conclusions in spatial transcriptomics — spatial domains, spatially variable
-  genes, and cell-cell communication — depend on defensible analytical choices,
-  via a Spatial Stability Score (S3).
+  specification-curve analysis framework that quantifies how defensible
+  analytical choices move biological conclusions in spatial transcriptomics,
+  including spatial domains, spatially variable genes, and cell-cell
+  communication, via a Spatial Stability Score (S3).
 authors:
   - family-names: "Roy"
     given-names: "Sparsh"
     alias: "ImSpxrsh"
+    affiliation: "Massachusetts Institute of Technology"
+  - family-names: "Pemmasani"
+    given-names: "Adharv"
+    affiliation: "Hopewell Valley Central High School"
+  - family-names: "Zhou"
+    given-names: "Kevin"
+    affiliation: "Hopewell Valley Central High School"
+  - family-names: "Shah"
+    given-names: "Arhaan"
+    affiliation: "Paradise Valley High School"
+  - family-names: "Joshi-Apte"
+    given-names: "Vihaan"
+    affiliation: "Paradise Valley High School"
+  - family-names: "Girmachew"
+    given-names: "Samuel"
+    affiliation: "Hopewell Valley Central High School"
 repository-code: "https://github.com/ImSpxrsh/MOSAIC-ISEF"
 keywords:
   - spatial transcriptomics

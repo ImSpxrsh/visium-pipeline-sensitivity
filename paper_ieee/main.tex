@@ -27,15 +27,21 @@ Analytical Fragility in Spatial Transcriptomics}
 
 \author{
 \IEEEauthorblockN{Sparsh Roy}
-\IEEEauthorblockA{\textit{Independent Researcher} \\
-\texttt{github.com/ImSpxrsh}}
+\IEEEauthorblockA{\textit{Massachusetts Institute of Technology}\\
+sparshr@mit.edu}
+\and
+\IEEEauthorblockN{Adharv Pemmasani, Kevin Zhou, Samuel Girmachew}
+\IEEEauthorblockA{\textit{Hopewell Valley Central High School}}
+\and
+\IEEEauthorblockN{Arhaan Shah, Vihaan Joshi-Apte}
+\IEEEauthorblockA{\textit{Paradise Valley High School}}
 }
 
 \maketitle
 
 \begin{abstract}
 A spatial transcriptomics analysis passes through a long chain of individually
-defensible but arbitrary choices---normalization, feature selection,
+defensible but arbitrary choices: normalization, feature selection,
 dimensionality reduction, neighborhood-graph construction, clustering
 algorithm and resolution, and the statistical test used to call a gene
 spatially variable. We present MOSAIC, a specification-curve framework that
@@ -52,7 +58,7 @@ at domain boundaries (gap \StakesGap{}, $p\,\StakesP{}$) while tracking
 reference anatomy rather than sequencing depth ($r=\ConfoundR{}$). These
 findings transfer to a human breast-cancer section and, validated against
 independent board-certified pathology, fragility peaks precisely at the
-tumor \emph{margin}---the region of greatest clinical consequence---with
+tumor \emph{margin} (the region of greatest clinical consequence), with
 a bootstrap-confirmed effect that survives a depth-stratified permutation
 control. Beyond diagnosis, we show the multiverse is constructive: a
 co-association \emph{consensus} across all pipelines recovers ground-truth
@@ -62,7 +68,7 @@ typical one (ARI \ConsensusARI{}, beating the median pipeline in
 needed to select that best pipeline, and per-spot $S^3$ predicts where the
 consensus errs (AUC \ConsensusUncAUC{}). Finally, a classifier using only
 single-pipeline features predicts which spots the full multiverse will find
-fragile at AUC \FragPredAUC{}, giving an inexpensive early-warning signal
+fragile at AUC \FragPredAUC{}, an inexpensive early-warning signal
 before committing to an expensive sweep. We release the pipeline, the
 specification configuration, and all statistical and figure code.
 \end{abstract}

@@ -71,18 +71,24 @@ class StabilityScorer:
         """Register one pipeline result (spec, clustered AnnData, metadata)."""
         self.results.append((spec, adata, metadata))
 
-    def compute_per_spot_stability(self, cluster_key: str = "leiden") -> pd.DataFrame:
+    def compute_per_spot_stability(
+        self, cluster_key: str = "leiden", reference_idx: int = 0
+    ) -> pd.DataFrame:
         """
         Per-spot S³: fraction of specs assigning each spot to its consensus domain.
 
-        Labels are aligned to the first spec before comparison. Returns a DataFrame
-        with columns [spot_id, s3_score, consensus_cluster].
+        Labels are aligned to spec ``reference_idx`` (spec 0 by default) before
+        comparison. Returns a DataFrame with columns
+        [spot_id, s3_score, consensus_cluster]. ``reference_idx`` is exposed so
+        callers can check how much S3 moves if a different spec is used as the
+        Hungarian-alignment reference (see
+        ``mosaic.reference_robustness.reference_robustness``).
         """
         if not self.results:
             raise ValueError("No results to compute stability on")
 
         # Collect (aligned) label vectors from specs that share the reference index.
-        ref_adata = self.results[0][1]
+        ref_adata = self.results[reference_idx][1]
         ref_labels = ref_adata.obs[cluster_key].values
 
         aligned_cols = []

@@ -103,6 +103,88 @@ def spatial_block_groups(coords: np.ndarray, n_blocks: int = 10, seed: int = 42)
     return km.fit_predict(coords)
 
 
+def predict_fragility_buffered_spatial_cv(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    fragile_threshold: float = 0.5,
+    n_blocks: int = 10,
+    buffer_multiple: float = 3.0,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Buffered counterpart to ``predict_fragility_spatial_cv``.
+
+    K-means spatial blocks remove most spatial leakage, but spots right at a
+    block boundary can still be near neighbors of a held-out spot in an
+    adjacent block, so "no training spot is a near neighbor of a held-out
+    spot" is too strong a claim for plain spatial-block CV. This adds a
+    buffer: for each fold, any training spot within ``buffer_multiple`` times
+    the median nearest-neighbor spacing of a held-out spot is dropped from
+    that fold's training set (not evaluated -- excluded entirely), so the
+    train/test gap is at least that physical distance everywhere.
+    """
+    from scipy.spatial import cKDTree
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score
+
+    a = runs[0]["adata"]
+    feats = single_pipeline_features(a)
+    s3 = per_spot.set_index("spot_id").reindex(a.obs_names)["s3_score"].values
+    fragile = (s3 < fragile_threshold).astype(int)
+    coords = np.asarray(a.obsm["spatial"])
+    groups = spatial_block_groups(coords, n_blocks=n_blocks, seed=seed)
+
+    tree = cKDTree(coords)
+    nn_dist, _ = tree.query(coords, k=2)  # [:,0] is self (dist 0)
+    buffer_radius = buffer_multiple * float(np.median(nn_dist[:, 1]))
+
+    X = feats.values
+    n = len(fragile)
+    proba = np.full(n, np.nan)
+    n_dropped_total = 0
+    for block in np.unique(groups):
+        test_mask = groups == block
+        test_idx = np.where(test_mask)[0]
+        candidate_train_idx = np.where(~test_mask)[0]
+
+        # Drop any candidate-training spot within buffer_radius of a held-out spot.
+        test_tree = cKDTree(coords[test_idx])
+        dist_to_test, _ = test_tree.query(coords[candidate_train_idx], k=1)
+        keep = dist_to_test > buffer_radius
+        train_idx = candidate_train_idx[keep]
+        n_dropped_total += int((~keep).sum())
+
+        if len(np.unique(fragile[train_idx])) < 2:
+            continue  # degenerate fold; leave this block's proba as NaN
+
+        clf = LogisticRegression(max_iter=1000)
+        clf.fit(X[train_idx], fragile[train_idx])
+        proba[test_idx] = clf.predict_proba(X[test_idx])[:, 1]
+
+    valid = ~np.isnan(proba)
+    auc = float(roc_auc_score(fragile[valid], proba[valid]))
+    result = {
+        "auc_combined_buffered_spatial_cv": auc,
+        "n_blocks": n_blocks,
+        "buffer_radius": buffer_radius,
+        "buffer_multiple": buffer_multiple,
+        "mean_train_spots_dropped_per_fold": n_dropped_total / n_blocks,
+        "n_fragile": int(fragile.sum()),
+        "n_spots": int(len(fragile)),
+        "n_spots_scored": int(valid.sum()),
+        "proba": proba,
+        "s3": s3,
+        "valid_mask": valid,
+        "adata": a,
+    }
+    logger.info(
+        "Fragility predictable from ONE pipeline (buffered spatial-block CV): "
+        "AUC=%.3f (%d blocks, buffer radius=%.1f, avg %.0f train spots dropped/fold)",
+        auc, n_blocks, buffer_radius, n_dropped_total / n_blocks,
+    )
+    return result
+
+
 def predict_fragility_spatial_cv(
     runs: List[Dict[str, Any]],
     per_spot: pd.DataFrame,

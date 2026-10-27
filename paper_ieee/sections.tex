@@ -204,6 +204,23 @@ complement, we also report the mean pairwise Adjusted Rand
 Index~\cite{hubert1985comparing} between specifications, which requires no
 alignment.
 
+\textbf{Sensitivity to the alignment reference.} $S^3_{\text{spot}}$ is
+defined relative to a reference specification $s_0$; we check how much it
+moves if a different specification anchors the alignment by recomputing
+$S^3_{\text{spot}}$ once per choice of $s_0$, cycling through all
+\RefRobustN{} specifications on the mouse-brain multiverse. The aggregate
+statistic is essentially invariant: each reference's own mean $S^3$ falls in
+$[\RefRobustAggMeanRange{}]$ (std of per-reference means
+\RefRobustAggMeanStd{}). Per-spot values move more: the mean pairwise
+Pearson correlation between the resulting $S^3$ vectors across reference
+choices is \RefRobustMeanPearson{} (worst-case pair
+\RefRobustMinPearson{}), and a single spot's $S^3$ varies by
+\RefRobustMeanPerSpotStd{} standard deviation on average depending on which
+specification anchors the alignment. We therefore report and interpret
+$S^3_{\text{spot}}$ at the aggregate or regional level, where it is
+reference-stable, and treat any individual spot's exact value as
+approximate rather than anchor-independent.
+
 \subsection{Statistical validation}
 \label{sec:stats}
 Every positive claim in this paper is accompanied by a null and an
@@ -410,6 +427,21 @@ disagrees with reference anatomy, $S^3$ is significantly lower (mean $0.69$
 vs.\ $0.81$; Mann--Whitney $p<10^{-40}$), and $S^3$ alone predicts consensus
 correctness at ROC AUC \ConsensusUncAUC{} (consensus accuracy \ConsensusAcc{}).
 
+Figure~\ref{fig:consensus} sweeps granularity $k$ and linkage against the
+reference annotation to show the ceiling, but a researcher without that
+reference still needs a way to pick one setting. We select $(k,
+\text{linkage})$ using only the co-association matrix itself, no reference
+labels, by maximizing mean silhouette width on the co-association distance.
+On mouse-brain this ground-truth-free rule picks
+\ConsensusBlindLinkage{} linkage at $k=\ConsensusBlindK{}$, which attains
+ARI \ConsensusBlindARI{}, identical to the oracle setting chosen with
+access to the reference (ARI \ConsensusOracleARI{}, gap
+\ConsensusBlindOracleGap{}); across the full $(k,\text{linkage})$ grid,
+silhouette width and reference ARI correlate at Spearman
+$\rho=\ConsensusSilARISpearman{}$. Internal validity is therefore a usable
+proxy for selecting the consensus here, closing the selection-bias gap in
+the best-pipeline comparison above.
+
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.9\linewidth]{15_consensus_recovery.png}
@@ -440,14 +472,28 @@ held out a whole block at a time. AUC drops to
 \FragPredAUCSpatial{} (95\% CI
 $[\FragPredAUCSpatialCILow{}, \FragPredAUCSpatialCIHigh{}]$,
 permutation \FragPredPermP{}): part of the original estimate was
-spatial-adjacency leakage, but the predictive signal survives when no
-training spot can be a near neighbor of a held-out one. The combined model
-improves on its strongest single feature (single-pipeline neighbor
-disagreement, AUC $0.77$); depth alone reaches only AUC $0.57$, so the
-prediction draws on genuinely local structure and not on sequencing depth
-alone. A researcher can therefore identify where a single result is least
-trustworthy, and decide whether the full multiverse is worth running,
-\emph{before} committing to it.
+spatial-adjacency leakage, but the predictive signal survives when training
+and held-out spots are restricted to different k-means blocks. Adjacent
+blocks can still share a boundary, so a spot just inside one block can be a
+near neighbor of a spot just inside the next; this spatial-block split
+alone does not guarantee a minimum train-test distance. We therefore add an
+explicit spatial buffer: any training spot within \FragPredBufferMultiple{}
+times the median nearest-neighbor spacing of a held-out spot
+(\FragPredBufferDroppedPerFold{} spots dropped per fold on average) is
+excluded from that fold entirely, guaranteeing every remaining training
+spot is at least that physical distance from the spots it is scored
+against. AUC falls further to \FragPredAUCBuffered{} (95\% CI
+$[\FragPredAUCBufferedCILow{}, \FragPredAUCBufferedCIHigh{}]$, permutation
+\FragPredPermP{}): the estimate keeps shrinking as more spatial leakage is
+removed (random split \FragPredAUC{} $\to$ spatial block
+\FragPredAUCSpatial{} $\to$ buffered spatial block
+\FragPredAUCBuffered{}), but it remains significant and well above chance
+at every step. The combined model improves on its strongest single feature
+(single-pipeline neighbor disagreement, AUC $0.77$); depth alone reaches
+only AUC $0.57$, so the prediction draws on genuinely local structure and
+not on sequencing depth alone. A researcher can therefore identify where a
+single result is least trustworthy, and decide whether the full multiverse
+is worth running, \emph{before} committing to it.
 
 \begin{figure}[t]
   \centering

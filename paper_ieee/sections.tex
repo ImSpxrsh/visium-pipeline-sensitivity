@@ -178,7 +178,7 @@ uncertainty estimate, not a point estimate alone.
 \textbf{Permutation nulls} fix per-spot scores and permute region or
 boundary labels ($B{=}1000$ draws, size-preserving), reporting a one-sided
 empirical $p$-value with add-one correction. \textbf{Depth-stratified
-nulls} additionally bin spots by sequencing-depth decile and permute
+nulls} also bin spots by sequencing-depth decile and permute
 \emph{within} each bin, so the null preserves each group's true depth
 distribution. This directly tests whether an effect is a sequencing-depth
 artifact, instead of assuming random assignment controls for it.
@@ -205,7 +205,7 @@ sections distributed with Squidpy~\cite{palla2022squidpy} (a primary H\&E
 section, \Nspots{} spots and \Ngenes{} genes; and, for generalization, an
 independently prepared fluorescence section, 2{,}800 spots), both shipping
 real histology and a 15-region curated anatomical annotation used as ground
-truth. To test whether fragility tracks biological stakes, we additionally
+truth. To test whether fragility tracks biological stakes, we also
 run the full multiverse on the public 10x Visium human breast-cancer section
 (\texttt{V1\_Breast\_Cancer\_Block\_A\_Section\_1}; invasive ductal
 carcinoma; 3{,}798 spots), applying only minimal shared gene quality control
@@ -351,7 +351,7 @@ beating the median pipeline in \ConsensusBeatsMedianPct{} of consensus
 granularity/linkage settings (Fig.~\ref{fig:consensus}). A researcher
 cannot identify the single best pipeline without the ground truth they are
 trying to recover; the consensus attains best-pipeline-or-better accuracy
-using only the multiverse itself. Per-spot $S^3$ is additionally a
+using only the multiverse itself. Per-spot $S^3$ is also a
 ground-truth-free confidence signal on the consensus: where the consensus
 disagrees with reference anatomy, $S^3$ is significantly lower (mean $0.69$
 vs.\ $0.81$; Mann--Whitney $p<10^{-40}$), and $S^3$ alone predicts consensus

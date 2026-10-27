@@ -85,6 +85,73 @@ def predict_fragility(
     return result
 
 
+def spatial_block_groups(coords: np.ndarray, n_blocks: int = 10, seed: int = 42) -> np.ndarray:
+    """
+    Assign each spot to one of ``n_blocks`` contiguous spatial blocks via k-means
+    on its (x, y) coordinates.
+
+    Neighboring spots in Visium data are highly correlated (shared local
+    heterogeneity, shared neighbor-disagreement structure), so a random
+    spot-level split lets the classifier see training spots a few microns from
+    its test spots -- optimistic leakage that ordinary k-fold does not control
+    for. Grouping spots into spatial blocks and holding out whole blocks at a
+    time removes that leakage: no block straddles both the train and test set.
+    """
+    from sklearn.cluster import KMeans
+
+    km = KMeans(n_clusters=n_blocks, random_state=seed, n_init=10)
+    return km.fit_predict(coords)
+
+
+def predict_fragility_spatial_cv(
+    runs: List[Dict[str, Any]],
+    per_spot: pd.DataFrame,
+    fragile_threshold: float = 0.5,
+    n_blocks: int = 10,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Spatially blocked counterpart to ``predict_fragility``.
+
+    Uses the same features, labels, and classifier as ``predict_fragility``,
+    but replaces the random ``StratifiedKFold`` with group k-fold over
+    spatial blocks (``spatial_block_groups``), so every fold's held-out spots
+    are spatially disjoint from its training spots. Comparing this AUC to the
+    one from ``predict_fragility`` quantifies how much of the original 0.81
+    was genuine single-pipeline signal versus spatial-adjacency leakage.
+    """
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score
+    from sklearn.model_selection import GroupKFold, cross_val_predict
+
+    a = runs[0]["adata"]
+    feats = single_pipeline_features(a)
+    s3 = per_spot.set_index("spot_id").reindex(a.obs_names)["s3_score"].values
+    fragile = (s3 < fragile_threshold).astype(int)
+    coords = np.asarray(a.obsm["spatial"])
+
+    groups = spatial_block_groups(coords, n_blocks=n_blocks, seed=seed)
+
+    clf = LogisticRegression(max_iter=1000)
+    cv = GroupKFold(n_splits=n_blocks)
+    proba = cross_val_predict(clf, feats.values, fragile, cv=cv, groups=groups,
+                              method="predict_proba")[:, 1]
+    auc = float(roc_auc_score(fragile, proba))
+    result = {
+        "auc_combined_spatial_cv": auc,
+        "n_blocks": n_blocks,
+        "n_fragile": int(fragile.sum()),
+        "n_spots": int(len(fragile)),
+        "proba": proba,
+        "s3": s3,
+        "groups": groups,
+        "adata": a,
+    }
+    logger.info("Fragility predictable from ONE pipeline (spatial-block CV): AUC=%.3f "
+                "(%d spatial blocks)", auc, n_blocks)
+    return result
+
+
 def fragility_prediction_significance(
     fragile: np.ndarray,
     proba: np.ndarray,
@@ -185,6 +252,19 @@ def main() -> None:
         project / "results" / "aggregate" / "fragility_prediction.json",
     )
     plot_predicted_vs_actual(result, project / "results" / "figures" / "17_fragility_prediction.png")
+
+    spatial_result = predict_fragility_spatial_cv(runs, per_spot)
+    spatial_fragile = (spatial_result["s3"] < 0.5).astype(int)
+    spatial_significance = fragility_prediction_significance(
+        spatial_fragile, spatial_result["proba"]
+    )
+    save_json(
+        {**{k: v for k, v in spatial_result.items()
+            if k not in ("proba", "s3", "adata", "groups")},
+         "significance": spatial_significance,
+         "random_split_auc_for_comparison": result["auc_combined"]},
+        project / "results" / "aggregate" / "fragility_prediction_spatial_cv.json",
+    )
 
 
 if __name__ == "__main__":

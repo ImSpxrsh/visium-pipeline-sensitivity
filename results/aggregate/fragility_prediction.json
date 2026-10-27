@@ -7,5 +7,13 @@
     "n_genes": 0.5743951716024756
   },
   "n_fragile": 294,
-  "n_spots": 2688
+  "n_spots": 2688,
+  "significance": {
+    "auc_observed": 0.8148389681687209,
+    "ci95_low": 0.7882276868316704,
+    "ci95_high": 0.8406619133797514,
+    "n_boot_used": 1000,
+    "permutation_p_value": 0.000999000999000999,
+    "n_perm": 1000
+  }
 }

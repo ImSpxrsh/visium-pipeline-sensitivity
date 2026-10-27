@@ -411,13 +411,25 @@ spots can be flagged from a \emph{single} pipeline: a cross-validated
 logistic classifier, using only multiverse-free features from one run
 (local transcriptomic heterogeneity, single-pipeline neighbor disagreement,
 sequencing depth, and genes detected), predicts which spots the full
-multiverse will find fragile ($S^3<0.5$) at ROC AUC \FragPredAUC{}
-(Fig.~\ref{fig:fragpred}). The combined model improves on its strongest
-single feature (single-pipeline neighbor disagreement, AUC $0.77$); depth
-alone reaches only AUC $0.57$, so the prediction draws on genuinely local
-structure and not on sequencing depth alone. A researcher can therefore
-identify where a single result is least trustworthy, and decide whether the
-full multiverse is worth running, \emph{before} committing to it.
+multiverse will find fragile ($S^3<0.5$) at ROC AUC \FragPredAUC{} under
+random spot-level cross-validation (95\% CI
+$[\FragPredAUCRandomCILow{}, \FragPredAUCRandomCIHigh{}]$,
+permutation \FragPredPermP{}; Fig.~\ref{fig:fragpred}). Because neighboring
+spots share local structure, a random split lets training and test spots
+sit a few microns apart, so we also evaluate with spots grouped into
+\FragPredSpatialBlocks{} spatial blocks (k-means on spot coordinates) and
+held out a whole block at a time. AUC drops to
+\FragPredAUCSpatial{} (95\% CI
+$[\FragPredAUCSpatialCILow{}, \FragPredAUCSpatialCIHigh{}]$,
+permutation \FragPredPermP{}): part of the original estimate was
+spatial-adjacency leakage, but the predictive signal survives when no
+training spot can be a near neighbor of a held-out one. The combined model
+improves on its strongest single feature (single-pipeline neighbor
+disagreement, AUC $0.77$); depth alone reaches only AUC $0.57$, so the
+prediction draws on genuinely local structure and not on sequencing depth
+alone. A researcher can therefore identify where a single result is least
+trustworthy, and decide whether the full multiverse is worth running,
+\emph{before} committing to it.
 
 \begin{figure}[t]
   \centering

@@ -68,7 +68,7 @@ scripts/        Executable entry points
   test_reproducibility.py Determinism check
 configs/        multiverse_spec.yaml — 30-spec specification space
 data/           datasets_manifest.md + caches
-paper/          bioRxiv-style manuscript (main.tex, sections.tex) -> make paper
+paper_ieee/     IEEE-format manuscript (main.tex, sections.tex, numbers.tex) -> make paper
 results/        runs / aggregate / figures / logs  (large runs gitignored)
 tests/          Unit tests (27 offline)
 ```
@@ -137,8 +137,8 @@ Extending the framework to a human breast-cancer section (invasive ductal carcin
 See [`ISEF_MOSAIC_YEAR2_PLAN.md`](ISEF_MOSAIC_YEAR2_PLAN.md), [`PROGRESS.md`](PROGRESS.md),
 and [`NOTES.md`](NOTES.md) for hypotheses, status, and the honest run log.
 
-The full manuscript (bioRxiv format, ~14 pages) is in [`paper/`](paper/) with formal
-complexity analysis, a systems-architecture diagram, and the S³ math.
+The manuscript (IEEE conference format) is in [`paper_ieee/`](paper_ieee/) with the
+S³ definitions and all statistical results.
 
 ![Specification montage](results/figures/fig1_spec_montage.png)
 
@@ -163,7 +163,7 @@ make install            # venv + dependencies
 make repro              # download data -> sweep -> figures (primary dataset)
 python scripts/main.py --dataset visium_fluo   # second dataset (generalization)
 python scripts/generate_cross_dataset.py       # Extended Data 8
-make paper              # build the NeurIPS PDF (needs LaTeX / tectonic)
+make paper              # build the IEEE PDF (needs LaTeX / tectonic)
 ```
 
 ## Citation

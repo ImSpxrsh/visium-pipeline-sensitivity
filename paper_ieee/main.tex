@@ -13,14 +13,14 @@
 % Paths work whether LaTeX runs from paper_ieee/ (local latexmk) or from the
 % repository root (Overleaf, with main file paper_ieee/main.tex).
 \makeatletter
-\def\input@path{{paper_ieee/}{../paper/}{paper/}}
+\def\input@path{{paper_ieee/}}
 \makeatother
 \graphicspath{{../results/figures/}{../results/breast_cancer/figures/}%
   {results/figures/}{results/breast_cancer/figures/}}
 
-% Single source of truth: report_numbers.py writes paper/numbers.tex from the
+% Single source of truth: report_numbers.py writes paper_ieee/numbers.tex from the
 % aggregate results. Input it directly so the IEEE paper never drifts from the
-% canonical macros (and from the NeurIPS-format paper that shares them).
+% canonical macros.
 \input{numbers}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em

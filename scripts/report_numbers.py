@@ -1,8 +1,8 @@
 """
-Populate paper/numbers.tex from the aggregate sweep results.
+Populate paper_ieee/numbers.tex from the aggregate sweep results.
 
 Run after scripts/main.py:  PYTHONPATH=. python scripts/report_numbers.py
-Reads results/aggregate/*, writes LaTeX \\newcommand macros used by paper/main.tex.
+Reads results/aggregate/*, writes LaTeX \\newcommand macros used by paper_ieee/main.tex.
 """
 
 import json
@@ -13,7 +13,7 @@ import pandas as pd
 
 PROJECT = Path(__file__).resolve().parent.parent
 AGG = PROJECT / "results" / "aggregate"
-OUT = PROJECT / "paper" / "numbers.tex"
+OUT = PROJECT / "paper_ieee" / "numbers.tex"
 
 
 def _fmt(x, pct=False, digits=1):

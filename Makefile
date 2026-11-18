@@ -17,7 +17,7 @@ help:
 	@echo "  make analyses  figures + stats + downstream + tissue + numbers"
 	@echo "  make fluo      Run the sweep on the second dataset (generalization)"
 	@echo "  make repro     data -> sweep -> analyses (end to end)"
-	@echo "  make paper     Build the bioRxiv PDF (needs LaTeX / tectonic)"
+	@echo "  make paper     Build the IEEE paper PDF (needs LaTeX / tectonic)"
 
 venv:
 	python3.12 -m venv .venv
@@ -68,7 +68,7 @@ analyses: figures stats downstream tissue numbers
 repro: data sweep analyses
 
 paper:
-	cd paper && (latexmk -pdf main.tex || tectonic main.tex)
+	cd paper_ieee && (latexmk -pdf main.tex || tectonic main.tex)
 
 clean:
 	rm -rf results/runs/* results/logs/* __pycache__ mosaic/__pycache__ tests/__pycache__ .pytest_cache

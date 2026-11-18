@@ -1,58 +1,50 @@
 \section{Introduction}
 \label{sec:intro}
 
-A spatial transcriptomics study rarely admits a single ``correct'' analysis.
-Between raw counts and a figure of spatial domains lie a dozen forks: how to
-normalize, how many highly variable genes (HVGs) to keep, how many principal
-components, whether the neighborhood graph is $k$-nearest-neighbor or
-radius-based, whether clustering uses Leiden~\cite{traag2019louvain} or
-Louvain~\cite{blondel2008fast} and at what resolution, and which test
-declares a gene spatially variable~\cite{moran1950notes,
-svensson2018spatialde, weber2023nnsvg}. Each fork has published precedent,
-so each choice is individually defensible. Yet a study typically walks
-\emph{one} path through this space and reports its endpoint as though it
-were the destination.
+There is rarely one correct way to analyze a spatial transcriptomics
+dataset. Going from raw counts to a map of spatial domains requires
+choosing a normalization, a number of highly variable genes (HVGs), a number
+of principal components, a $k$-nearest-neighbor or radius-based graph,
+Leiden~\cite{traag2019louvain} or Louvain~\cite{blondel2008fast} clustering
+and a resolution, and a test for spatially variable genes
+(SVGs)~\cite{moran1950notes, svensson2018spatialde, weber2023nnsvg}. Each
+option has been used in published work, so each is defensible. But a study
+usually runs one pipeline and reports its output.
 
-This is the \emph{garden of forking paths}~\cite{gelman2013garden}: even
-absent any intent to cherry-pick, the sheer number of reasonable analytic
-choices means a reported result can be an artifact of the path taken rather
-than a property of the underlying biology. \emph{Multiverse
-analysis}~\cite{steegen2016increasing} and \emph{specification-curve
-analysis}~\cite{simonsohn2020specification} respond to this by running
-\emph{all} defensible analyses and reporting the distribution of
-outcomes, an approach dramatically validated when 70 independent teams
-analyzed one shared neuroimaging dataset and reached materially divergent
-conclusions~\cite{botvinik2020variability}. Spatial transcriptomics has, to
-date, lacked a systematic instrumentation of this problem: existing
-benchmarks rank analysis \emph{methods} against a reference, but none
-quantify how much a single analyst's reasonable choices move the
-conclusions on a fixed piece of tissue.
+Gelman and Loken call this the \emph{garden of forking
+paths}~\cite{gelman2013garden}: even without deliberate cherry-picking, a
+reported result can depend on which path was taken rather than on the
+biology. \emph{Multiverse analysis}~\cite{steegen2016increasing} and
+\emph{specification-curve analysis}~\cite{simonsohn2020specification}
+address this by running all reasonable analyses and reporting the spread of
+outcomes. The problem is real: when 70 teams analyzed the same neuroimaging
+dataset, they reached substantially different
+conclusions~\cite{botvinik2020variability}. Existing spatial
+transcriptomics benchmarks compare methods against a reference, but we are
+not aware of work that measures how much an analyst's reasonable choices
+change the results on a fixed tissue section.
 
-We present MOSAIC, a specification-curve framework for spatial
-transcriptomics. Our contributions are:
+MOSAIC is a specification-curve framework for spatial transcriptomics. This
+paper makes four contributions:
 
 \begin{enumerate}
-\item[\textbf{C1}] A parametric, bit-reproducible pipeline in which every
-  analytic choice is a configuration variable, together with the
-  \emph{Spatial Stability Score} ($S^3$), an interpretable family of
-  stability metrics at the level of spots, genes, and headline
-  summaries, with cluster labels made comparable across pipelines by
-  optimal (Hungarian) assignment (\S\ref{sec:method}).
-\item[\textbf{C2}] An empirical instability audit spanning two independent
-  mouse-brain sections and a human tumor section, with formal statistical
-  tests: permutation nulls, bootstrap confidence intervals, and a
-  variance decomposition that identifies the single most consequential
-  analytical choice (\S\ref{sec:results}).
-\item[\textbf{C3}] Validation against independent pathology annotations,
-  showing that analytical fragility concentrates precisely at
-  the pathologist-annotated tumor \emph{margin}, with the effect surviving
-  a depth-stratified permutation
-  control (\S\ref{sec:tumor}).
-\item[\textbf{C4}] Two constructive uses of the multiverse beyond
-  diagnosis: a co-association \emph{consensus} estimator that recovers
-  ground-truth anatomy at least as well as the best single pipeline
-  without needing the ground truth to select it, and a single-pipeline
-  classifier that predicts multiverse fragility in advance
+\item[\textbf{C1}] A pipeline in which every analysis choice is a
+  configuration setting, and the \emph{Spatial Stability Score} ($S^3$), which
+  measures agreement across pipelines per spot, per gene, and for summary
+  statistics, using Hungarian matching to align cluster labels
+  (\S\ref{sec:method}).
+\item[\textbf{C2}] Measurements of instability on two mouse-brain sections
+  and one human tumor section, with permutation tests, bootstrap
+  confidence intervals, and a variance decomposition across analysis
+  choices (\S\ref{sec:results}).
+\item[\textbf{C3}] A comparison against independent pathology annotations,
+  showing that stability is lowest in the annotated region surrounding the
+  tumor, including after controlling for sequencing depth
+  (\S\ref{sec:tumor}).
+\item[\textbf{C4}] Two practical uses of the pipeline collection: a
+  co-association consensus that matches the best single pipeline without
+  needing reference labels to pick it, and a classifier that predicts
+  unstable spots from a single pipeline run
   (\S\ref{sec:consensus}--\S\ref{sec:downstream}).
 \end{enumerate}
 
@@ -60,89 +52,71 @@ transcriptomics. Our contributions are:
 \label{sec:related}
 
 \textbf{Multiverse and specification-curve analysis.}
-Steegen~\emph{et al.}~\cite{steegen2016increasing} formalized the
-multiverse and Simonsohn~\emph{et al.}~\cite{simonsohn2020specification}
-the specification curve in psychology; Gelman and
-Loken~\cite{gelman2013garden} articulated why analytic flexibility
-threatens validity even without deliberate $p$-hacking, and
-Botvinik-Nezer~\emph{et al.}~\cite{botvinik2020variability} demonstrated
-the consequence empirically across 70 fMRI analysis teams. These works
-motivate our approach but do not address spatial omics data or the
-label-alignment problem that arbitrary cluster identities introduce.
+Steegen~\emph{et al.}~\cite{steegen2016increasing} introduced multiverse
+analysis and Simonsohn~\emph{et al.}~\cite{simonsohn2020specification}
+specification curves, both in psychology. Gelman and
+Loken~\cite{gelman2013garden} explained why analytic flexibility is a
+problem even without deliberate $p$-hacking, and
+Botvinik-Nezer~\emph{et al.}~\cite{botvinik2020variability} showed its
+effect across 70 fMRI analysis teams. None of these address spatial omics
+data or the problem that cluster labels are arbitrary and must be aligned
+before they can be compared.
 
-\textbf{Spatial transcriptomics pipelines.} Standard analyses build on
+\textbf{Spatial transcriptomics pipelines.} Standard analyses use
 SCANPY~\cite{wolf2018scanpy} and Squidpy~\cite{palla2022squidpy}, with
-community detection via Louvain~\cite{blondel2008fast} or
-Leiden~\cite{traag2019louvain,traag2011narrow} and spatially-variable-gene
-(SVG) detection via Moran's $I$~\cite{moran1950notes},
+Louvain~\cite{blondel2008fast} or
+Leiden~\cite{traag2019louvain,traag2011narrow} clustering and SVG detection
+by Moran's $I$~\cite{moran1950notes},
 SpatialDE~\cite{svensson2018spatialde}, or nnSVG~\cite{weber2023nnsvg}.
-Reference atlases such as the DLPFC transcriptome~\cite{maynard2021transcriptome}
-provide ground truth for benchmarking. Reviews of single-cell and spatial
-integration methods~\cite{luecken2019current} typically rank competing
-\emph{methods} against such a reference. Recent integration toolkits for
-multi-platform spatial data, such as MOSAIK~\cite{baptista2025mosaik} (with
-which our similarly-named framework should not be confused), unify data
-sources but likewise do not quantify analytical instability. MOSAIC asks a
-different question: holding the data fixed, how much does a competent
-analyst's downstream conclusion move across the space of defensible
-choices? We turn that instability signal into a spatially resolved,
-actionable, \emph{constructive} output.
+Reference atlases such as the DLPFC dataset~\cite{maynard2021transcriptome}
+are used for benchmarking, and reviews~\cite{luecken2019current} compare
+methods against such references. Multi-platform integration tools such as
+MOSAIK~\cite{baptista2025mosaik} (unrelated to this work despite the similar
+name) combine data sources but do not measure analytical instability.
+MOSAIC asks a different question: with the data fixed, how much do the
+results change across reasonable analysis choices, and where in the tissue
+do they change most?
 
-\textbf{Ensemble and consensus clustering.} Our co-association consensus
-(\S\ref{sec:consensus}) builds on classical consensus
-clustering~\cite{monti2003consensus} and cluster-ensemble
-frameworks~\cite{strehl2002cluster}, which aggregate multiple partitions of
-the \emph{same} method under resampling or initialization noise into a more
-stable consensus. We instead aggregate partitions from a curated multiverse
-of \emph{qualitatively different} analytical pipelines, not perturbations of
-one method; our contribution is applying this cross-pipeline consensus
-strategy to a curated spatial-transcriptomics multiverse and showing, on
-real tissue, that it matches or exceeds the best individual pipeline's
-agreement with ground truth \emph{without access to that ground truth},
-paired with a ground-truth-free per-spot confidence signal.
+\textbf{Consensus clustering.} Our co-association consensus
+(\S\ref{sec:consensus}) follows classical consensus
+clustering~\cite{monti2003consensus} and cluster
+ensembles~\cite{strehl2002cluster}, which usually combine partitions from
+one method under resampling or different random initializations. We instead
+combine partitions from pipelines that differ in normalization, features,
+graph, and clustering. We show on real tissue that this consensus matches or
+exceeds the best single pipeline's agreement with the reference without
+using the reference to choose, and that per-spot $S^3$ indicates where the
+consensus is likely wrong.
 
 \textbf{Concurrent work on per-spot instability.} Wu
-\emph{et al.}~\cite{wu2026instability} independently introduce InSTability,
-which localizes per-spot clustering disagreement across seven clustering
-methods (BayesSpace, GraphST, Leiden, Louvain, SEDR, STAGATE, SpiceMix) on
-18 benchmark samples. That work instruments \emph{stochastic} variation
-within and across methods under repeated runs. MOSAIC instead instruments
-\emph{analytical-choice} variation (normalization, feature selection, graph
-construction, resolution, and SVG test, not just clustering method or
-seed), and goes beyond diagnosis to build a cross-pipeline consensus
-estimator and a single-pipeline fragility predictor. The two per-spot
-instability signals answer different questions: how much does a result
-change if I rerun the same method, versus how much does it change if I make
-a different, equally defensible analytical choice.
+\emph{et al.}~\cite{wu2026instability} independently developed InSTability,
+which measures per-spot disagreement across seven clustering methods
+(BayesSpace, GraphST, Leiden, Louvain, SEDR, STAGATE, SpiceMix) on 18
+benchmark samples, focusing on variation from repeated runs and choice of
+method. MOSAIC varies the earlier analysis steps as well (normalization,
+feature selection, graph construction, resolution, and SVG test) and adds a
+consensus estimator and a single-pipeline predictor. The two measures
+answer different questions: how much a result changes when the same method
+is rerun, versus how much it changes under a different reasonable choice.
 
-\textbf{Analytical fragility beyond spatial transcriptomics.} The pattern
-MOSAIC instruments, that a conclusion's sign or magnitude depends on
-pipeline choices nominally orthogonal to the scientific question, recurs
-outside this domain. Auditing EEG foundation models on motor imagery,
-Zhou and Roy~\cite{zhou2026matched} find that matching the input pipeline
-across architectures still leaves the \emph{direction} of a performance
-comparison dependent on which architecture receives it, an
-architecture-by-pipeline interaction with the same shape as the
-specification dependence we report here. In clinical risk modeling, Roy
-\emph{et al.}~\cite{roy2026kaisen} stress-test a subgroup-fairness audit
-pipeline (KAISEN) to its failure points and reach a structurally similar
-conclusion: a post-hoc mitigation step's effect on fairness varies by
-cohort realization more than by disease, so the quantity worth reporting
-is the spread across runs, not a single averaged estimate. MOSAIC applies
-the same diagnose-the-spread strategy to spatial transcriptomics, with a
-cross-pipeline consensus estimator as a constructive remedy rather than
-diagnosis alone.
+\textbf{Related work in other domains.} Similar pipeline dependence appears
+elsewhere. Zhou and Roy~\cite{zhou2026matched} find that for EEG foundation
+models on motor imagery, which architecture performs better depends on the
+input pipeline. Roy \emph{et al.}~\cite{roy2026kaisen} find that the effect
+of a fairness mitigation step in clinical risk models varies more across
+cohort samples than across diseases, and recommend reporting the spread
+across runs. MOSAIC takes the same approach for spatial transcriptomics.
 
 \section{Method}
 \label{sec:method}
 
 \subsection{Specification space}
-Each analytic stage is treated as an axis (Table~\ref{tab:space}). The full
-Cartesian product exceeds 200 combinations; following specification-curve
-practice, we evaluate a \emph{curated} set of \Nspecs{} pipelines spanning
-canonical, conservative, aggressive, and extreme-but-defensible choices, so
-the resulting multiverse remains interpretable as a matrix rather than an
-unstructured search space.
+Each analysis stage is an axis (Table~\ref{tab:space}). The full Cartesian
+product has more than 200 combinations. Following standard
+specification-curve practice, we evaluate a curated set of \Nspecs{}
+pipelines covering typical, conservative, aggressive, and unusual but
+defensible settings, which keeps the results small enough to inspect
+directly.
 
 \begin{table}[t]
   \centering
@@ -164,177 +138,159 @@ unstructured search space.
   \end{tabular}
 \end{table}
 
-\subsection{Parametric pipeline}
-Given specification $s$, the pipeline maps raw counts to a clustered
-\texttt{AnnData}~\cite{virshup2023anndata} object and an SVG table. Every
-stochastic step is seeded (\texttt{random\_state}=42), and each
-specification re-derives its normalized matrix from stored raw counts, so
-no information leaks between specifications. Determinism is verified by
-re-running a fixed specification and confirming bit-identical spot-level
-labels across repeated runs.
+\subsection{Pipeline}
+Given a specification $s$, the pipeline turns raw counts into a clustered
+\texttt{AnnData}~\cite{virshup2023anndata} object and an SVG table. All
+random steps use a fixed seed (\texttt{random\_state}=42), and each
+specification starts again from the raw counts, so specifications do not
+share intermediate results. Running the same specification twice gives
+identical spot labels.
 
 \subsection{The Spatial Stability Score}
 \label{sec:s3}
-Let $\mathcal{S}$ be the specification set, $N=|\mathcal{S}|$, and
-$c_s(i)\in\{1,\dots,K_s\}$ the cluster label of spot $i$ under $s$. Cluster
-labels are arbitrary integers assigned independently per specification, so
-$c_s$ and $c_{s'}$ are not directly comparable; we first align every
-specification to a fixed reference $s_0$ via the overlap matrix
-$M^{(s)}_{ab}=|\{i: c_{s_0}(i)=a \wedge c_s(i)=b\}|$ and solve for the
-maximum-overlap injection
+Let $\mathcal{S}$ be the set of specifications, $N=|\mathcal{S}|$, and
+$c_s(i)\in\{1,\dots,K_s\}$ the cluster label of spot $i$ under $s$. Because
+cluster labels are assigned independently in each specification, $c_s$ and
+$c_{s'}$ cannot be compared directly. We align each specification to a
+reference specification $s_0$ using the overlap matrix
+$M^{(s)}_{ab}=|\{i: c_{s_0}(i)=a \wedge c_s(i)=b\}|$ and find the matching
+that maximizes overlap,
 \begin{equation}
-  \pi_s = \arg\max_{\pi} \sum_{b=1}^{K_s} M^{(s)}_{\pi(b),b}
+  \pi_s = \arg\max_{\pi} \sum_{b=1}^{K_s} M^{(s)}_{\pi(b),b},
 \end{equation}
-with the Hungarian algorithm~\cite{kuhn1955hungarian} in $O(K^3)$ time,
-$K=\max(K_{s_0},K_s)$. Writing $\tilde c_s(i)=\pi_s(c_s(i))$, per-spot
-stability is the frequency of the modal aligned label,
+with the Hungarian algorithm~\cite{kuhn1955hungarian} ($O(K^3)$,
+$K=\max(K_{s_0},K_s)$). With aligned labels $\tilde c_s(i)=\pi_s(c_s(i))$,
+per-spot stability is the fraction of specifications that give the most
+common label,
 \begin{equation}
   S^3_{\text{spot}}(i) = \frac{1}{N}\max_{\ell}\left|\{s\in\mathcal{S}:\tilde
-  c_s(i)=\ell\}\right| \in \left[\tfrac1N,1\right],
+  c_s(i)=\ell\}\right| \in \left[\tfrac1N,1\right].
 \end{equation}
-per-gene stability is the fraction of specifications calling gene $g$ a
+Per-gene stability is the fraction of specifications that call gene $g$ a
 significant SVG,
 \begin{equation}
-  S^3_{\text{gene}}(g) = \frac1N\sum_{s\in\mathcal{S}} \mathbb{1}[g\in\text{SVG}_s],
+  S^3_{\text{gene}}(g) = \frac1N\sum_{s\in\mathcal{S}} \mathbb{1}[g\in\text{SVG}_s].
   \label{eq:s3gene}
 \end{equation}
-and headline stability reports the mean, standard deviation, and range of a
-scalar summary (e.g.\ domain count) across $\mathcal{S}$. As a label-free
-complement, we also report the mean pairwise Adjusted Rand
-Index~\cite{hubert1985comparing} between specifications, which requires no
-alignment.
+For summary statistics such as the number of domains, we report the mean,
+standard deviation, and range across $\mathcal{S}$. We also report mean
+pairwise Adjusted Rand Index (ARI)~\cite{hubert1985comparing} between
+specifications, which does not need label alignment.
 
-\textbf{Sensitivity to the alignment reference.} $S^3_{\text{spot}}$ is
-defined relative to a reference specification $s_0$; we check how much it
-moves if a different specification anchors the alignment by recomputing
-$S^3_{\text{spot}}$ once per choice of $s_0$, cycling through all
-\RefRobustN{} specifications on the mouse-brain multiverse. The aggregate
-statistic is essentially invariant: each reference's own mean $S^3$ falls in
-$[\RefRobustAggMeanRange{}]$ (std of per-reference means
-\RefRobustAggMeanStd{}). Per-spot values move more: the mean pairwise
-Pearson correlation between the resulting $S^3$ vectors across reference
-choices is \RefRobustMeanPearson{} (worst-case pair
-\RefRobustMinPearson{}), and a single spot's $S^3$ varies by
-\RefRobustMeanPerSpotStd{} standard deviation on average depending on which
-specification anchors the alignment. We therefore report and interpret
-$S^3_{\text{spot}}$ at the aggregate or regional level, where it is
-reference-stable, and treat any individual spot's exact value as
-approximate rather than anchor-independent.
+\textbf{Sensitivity to the reference specification.} $S^3_{\text{spot}}$
+depends on the choice of $s_0$. To check how much, we recomputed it with
+each of the \RefRobustN{} mouse-brain specifications as the reference. The
+mean $S^3$ barely changes: it falls in $[\RefRobustAggMeanRange{}]$ across
+references (standard deviation \RefRobustAggMeanStd{}). Individual spots
+change more. The mean pairwise Pearson correlation between per-spot $S^3$
+vectors from different references is \RefRobustMeanPearson{} (lowest pair
+\RefRobustMinPearson{}), and a spot's $S^3$ has a standard deviation of
+\RefRobustMeanPerSpotStd{} across references on average. We therefore
+interpret $S^3_{\text{spot}}$ at the level of regions or the whole section
+and treat single-spot values as approximate.
 
-\subsection{Statistical validation}
+\subsection{Statistical tests}
 \label{sec:stats}
-Every positive claim in this paper is accompanied by a null and an
-uncertainty estimate, not a point estimate alone.
-\textbf{Permutation nulls} fix per-spot scores and permute region or
-boundary labels ($B{=}1000$ draws, size-preserving), reporting a one-sided
-empirical $p$-value with add-one correction. \textbf{Depth-stratified
-nulls} also bin spots by sequencing-depth decile and permute
-\emph{within} each bin, so the null preserves each group's true depth
-distribution. This directly tests whether an effect is a sequencing-depth
-artifact, instead of assuming random assignment controls for it.
-\textbf{Bootstrap confidence intervals} resample spots with replacement
-($B{=}1000$) to report 95\% CIs on effect magnitudes. \textbf{Variance
-decomposition} regresses a headline summary on all analytical axes via
-Type-II ANOVA, attributing variance share to each. \textbf{Confound checks}
-correlate $S^3$ with sequencing depth to distinguish biological from
-technical uncertainty.
+Each positive result is reported with a null test and a confidence interval.
+\textbf{Permutation tests} keep per-spot scores fixed and shuffle region or
+boundary labels ($B{=}1000$, preserving group sizes), with a one-sided
+empirical $p$-value using add-one correction. \textbf{Depth-stratified
+permutation tests} first bin spots by sequencing-depth decile and shuffle
+labels only within each bin, so the null keeps each group's depth
+distribution. This tests directly whether an effect is explained by
+sequencing depth. \textbf{Bootstrap confidence intervals} resample spots
+with replacement ($B{=}1000$) to give 95\% CIs. \textbf{Variance
+decomposition} fits a Type-II ANOVA of a summary statistic on all analysis
+axes to estimate each axis's share of the variance. Finally, we
+\textbf{correlate $S^3$ with sequencing depth} to check for a technical
+confound.
 
-\subsection{Complexity and architecture}
+\subsection{Computational cost}
 With $S$ spots, $H$ retained genes, $d$ PCA components, $P$ SVG
-permutations, and $N$ specifications, per-specification cost is dominated
-by SVG permutation testing, $O(SHd + PSH)$, giving sweep cost
-$O(N(SHd+PSH))$; cross-specification alignment adds $O(NK^3)$, negligible
-for $K\ll S$. Because specifications share no state, the sweep is
-embarrassingly parallel across $W$ workers, $O(N(SHd+PSH)/W)$; sweeps use
-content-hashed, idempotent checkpoints so re-running only computes new
-specifications.
+permutations, and $N$ specifications, each specification costs
+$O(SHd + PSH)$, mostly from SVG permutation testing, so a full sweep costs
+$O(N(SHd+PSH))$. Label alignment adds $O(NK^3)$, which is small since
+$K\ll S$. Specifications are independent and can run in parallel. Results
+are cached by a hash of the configuration, so rerunning a sweep only
+computes new specifications.
 
 \section{Experimental Setup}
-We evaluate on two independent 10x Genomics Visium mouse-brain coronal
-sections distributed with Squidpy~\cite{palla2022squidpy} (a primary H\&E
-section, \Nspots{} spots and \Ngenes{} genes; and, for generalization, an
-independently prepared fluorescence section, 2{,}800 spots), both shipping
-real histology and a 15-region curated anatomical annotation used as ground
-truth. To test whether fragility tracks biological stakes, we also
-run the full multiverse on the public 10x Visium human breast-cancer section
+We use two 10x Genomics Visium mouse-brain coronal sections distributed with
+Squidpy~\cite{palla2022squidpy}: an H\&E section (\Nspots{} spots, \Ngenes{}
+genes) as the main dataset, and a separately prepared fluorescence section
+(2{,}800 spots) to check generalization. Both come with histology images and
+a 15-region anatomical annotation, which we use as the reference. We also
+run all pipelines on the public 10x Visium human breast-cancer section
 (\texttt{V1\_Breast\_Cancer\_Block\_A\_Section\_1}; invasive ductal
-carcinoma; 3{,}798 spots), applying only minimal shared gene quality control
-so every specification sees the same gene universe. For this section we use
-per-spot pathology-region annotations (Invasive, Tumor, Surrounding tumor,
-Healthy) released with the SEDR study~\cite{fu2021sedr}, matched to
-Visium barcodes; these labels are produced entirely independently of any
-pipeline evaluated here. All
-datasets are public and fetched programmatically; no data were generated for
-this study.
+carcinoma; 3{,}798 spots), with a single shared gene filter so that all
+specifications use the same genes. For this section we use per-spot
+pathology annotations (Invasive, Tumor, Surrounding tumor, Healthy)
+released with the SEDR study~\cite{fu2021sedr}, matched to Visium barcodes.
+These labels were made independently of every pipeline we evaluate. All
+datasets are public and downloaded by script; we generated no new data.
 
-\section{Results: Instability on Mouse Brain}
+\section{Results: Mouse Brain}
 \label{sec:results}
 
-\textbf{Headline instability.} Recovered spatial domains range from
-\ClustMin{} to \ClustMax{} across the multiverse (mean
-$\ClustMean{}\pm\ClustStd{}$). Label-invariant agreement is modest: mean
-pairwise ARI between specifications is \AriMean{} (range
-$\AriMin{}$--$\AriMax{}$). Different pipelines carve materially different
-domains, not merely relabeled versions of one partition.
+\textbf{Number of domains.} The number of spatial domains ranges from
+\ClustMin{} to \ClustMax{} across pipelines (mean
+$\ClustMean{}\pm\ClustStd{}$). Mean pairwise ARI between specifications is
+\AriMean{} (range $\AriMin{}$--$\AriMax{}$), so the pipelines produce
+different partitions, not just relabeled copies of one partition.
 
-\textbf{Boundary fragility.} Per-spot $S^3$ concentrates instability at
-region boundaries: \SpotStableFrac{} of spots are robust ($S^3\ge0.8$) and
-\SpotFragileFrac{} fragile ($S^3<0.5$). Stratifying into boundary and
-interior spots, mean $S^3$ is \BoundaryS{} at boundaries versus
-\InteriorS{} in interiors, a gap of \StakesGap{} that a permutation null
-rejects as chance ($p\,\StakesP{}$).
+\textbf{Instability at boundaries.} \SpotStableFrac{} of spots are stable
+($S^3\ge0.8$) and \SpotFragileFrac{} are unstable ($S^3<0.5$). Mean $S^3$ is
+\BoundaryS{} for spots on region boundaries and \InteriorS{} for interior
+spots, a gap of \StakesGap{} ($p\,\StakesP{}$, permutation test).
 
-\textbf{Stability tracks biology, not technical noise.} Individual
-specifications recover reference anatomy at mean ARI \RefAriMean{} (best
-specification \RefAriMax{}); a permutation null confirms
-\RegionsStable{}/\NregionsTotal{} anatomical regions are stable beyond
-chance ($p<0.05$); and $S^3$ is essentially uncorrelated with sequencing
-depth ($r=\ConfoundR{}$), so instability reflects biological rather than
-technical uncertainty. (The co-association \emph{consensus} of
-\S\ref{sec:consensus} improves on this per-specification agreement; here we
-establish only that the individual pipelines are anatomically meaningful.)
+\textbf{Relation to anatomy and sequencing depth.} Individual
+specifications agree with the reference anatomy at mean ARI \RefAriMean{}
+(best \RefAriMax{}). In a permutation test,
+\RegionsStable{}/\NregionsTotal{} anatomical regions are more stable than
+chance ($p<0.05$). $S^3$ is nearly uncorrelated with sequencing depth
+($r=\ConfoundR{}$), so on this section instability is not explained by
+low coverage. (The consensus in \S\ref{sec:consensus} improves on the
+per-specification ARI; here we only show that individual pipelines
+recover meaningful anatomy.)
 
-\textbf{One choice dominates.} A Type-II variance decomposition attributes
-\VarTopFrac{} of domain-count variance to clustering \VarTopAxis{} alone,
+\textbf{Clustering resolution dominates.} A Type-II ANOVA attributes
+\VarTopFrac{} of the variance in domain count to clustering \VarTopAxis{},
 with every other axis contributing at most a few percent
-(Fig.~\ref{fig:variance}), a concrete, actionable standardization
-priority for the field.
+(Fig.~\ref{fig:variance}). Resolution is therefore the most important
+setting to fix and report.
 
-\textbf{Gene-level churn.} Per-gene $S^3$ (Eq.~\ref{eq:s3gene}) is a
-\emph{selection frequency}: it is directional, so a gene the analysis
-consistently and correctly excludes still scores near 0, the same value a
-genuinely flip-flopping gene would get. Taken at face value this frequency
-puts \GeneSelFreqLowFrac{} of genes below $S^3<0.5$, which is \emph{not}
-evidence that most gene-level calls are unstable; most genes are simply,
-and consistently, not called spatially variable (\GeneRobustFrac{} are
-consistently significant, $S^3>0.8$). To separate true flip-flopping from
-consistent absence we also report binary-call consistency,
-$\max(p_g,1-p_g)$ for per-gene selection frequency $p_g$, which scores
-consistent presence and consistent absence alike: by this measure
-\GeneConsistentFrac{} of genes are consistent calls, and churn concentrates
-in a much smaller set of borderline genes than the selection frequency
-alone suggests. The effect still propagates downstream: a cross-validated
-classifier
-predicting anatomical region from each specification's embedding swings
-\DownstreamRangePP{} accuracy percentage points ($\DownstreamAccMin{}$--
-$\DownstreamAccMax{}$) purely from upstream pipeline choice, and the
-multiclass Brier score swings further still ($\BrierMin{}$--$\BrierMax{}$):
-pipeline choice degrades \emph{calibration} more than accuracy
-(Fig.~\ref{fig:downstreamml}).
+\textbf{Gene-level variation.} Per-gene $S^3$ (Eq.~\ref{eq:s3gene}) is a
+selection frequency, so a gene that is consistently \emph{not} called an
+SVG scores near 0, the same as a gene that switches back and forth. By this
+measure \GeneSelFreqLowFrac{} of genes have $S^3<0.5$, but this mostly
+reflects genes that are never called spatially variable, not unstable
+calls (\GeneRobustFrac{} are consistently significant, $S^3>0.8$). To
+separate the two cases we also compute call consistency,
+$\max(p_g,1-p_g)$ where $p_g$ is the selection frequency. By this measure
+\GeneConsistentFrac{} of genes are called consistently, and the unstable
+calls are limited to a smaller set of genes near the significance
+threshold.
 
-\textbf{Generalization.} An independent fluorescence section reproduces a
-comparable robust-core / fragile-tail $S^3$ distribution and pairwise ARI;
-the pattern does not appear to be an artifact of one sample.
+\textbf{Effect on downstream models.} A cross-validated classifier that
+predicts anatomical region from each specification's embedding varies by
+\DownstreamRangePP{} percentage points in accuracy
+($\DownstreamAccMin{}$--$\DownstreamAccMax{}$) depending only on the
+upstream pipeline. Its multiclass Brier score varies more
+($\BrierMin{}$--$\BrierMax{}$), so pipeline choice affects calibration
+more than accuracy (Fig.~\ref{fig:downstreamml}).
+
+\textbf{Second section.} The fluorescence section shows a similar $S^3$
+distribution (mostly stable spots with a tail of unstable ones) and similar
+pairwise ARI, so the pattern is not specific to one sample.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.9\linewidth]{12_downstream_ml.png}
-  \caption{Downstream impact of upstream analytical choice. A cross-validated
-  region classifier's accuracy swings \DownstreamRangePP{} percentage points
-  across the multiverse, and its multiclass Brier score (miscalibration)
-  swings further still. The same fixed tissue yields materially different
-  downstream model behavior depending only on the pipeline that produced its
-  features.}
+  \caption{Effect of upstream pipeline choice on a downstream region
+  classifier. Accuracy varies by \DownstreamRangePP{} percentage points
+  across pipelines, and the multiclass Brier score varies more. The tissue
+  is the same in every case; only the pipeline that produced the features
+  differs.}
   \label{fig:downstreamml}
 \end{figure}
 
@@ -342,240 +298,208 @@ the pattern does not appear to be an artifact of one sample.
   \centering
   \includegraphics[width=\linewidth]{fig1_spec_montage.png}
   \caption{The same tissue analyzed with five defensible pipelines (A--E)
-  yields 8--18 spatial domains with visibly different extents; (F) the
-  per-spot $S^3$ overlay summarizes agreement across the full multiverse.}
+  gives 8--18 spatial domains with different extents. (F) Per-spot $S^3$
+  across all pipelines.}
   \label{fig:montage}
 \end{figure}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.85\linewidth]{08_variance_decomposition.png}
-  \caption{Variance in domain count attributed to each analytical axis
-  (Type-II ANOVA); clustering resolution dominates.}
+  \caption{Share of variance in domain count attributed to each analysis
+  axis (Type-II ANOVA). Clustering resolution accounts for most of it.}
   \label{fig:variance}
 \end{figure}
 
-\section{Results: Higher-Stakes Human Tumor Tissue}
+\section{Results: Human Breast Cancer}
 \label{sec:tumor}
 
-Fragility persists on tumor tissue and is modestly \emph{larger}: mean
-$S^3$ is \TumorBoundaryS{} at consensus-domain boundaries versus
-\TumorInteriorS{} in interiors (gap \TumorGap{}, $p\,\TumorStakesP{}$),
-compared to \StakesGap{} in brain. Tumor tissue introduces a genuine
-technical confound absent in brain: $S^3$ correlates with sequencing
-depth ($r=\TumorConfoundR{}$ versus $\ConfoundR{}$), so we test the gap
-with the depth-stratified permutation null of \S\ref{sec:stats}. The gap
-survives ($p\,\TumorDepthP{}$) and is not merely an artifact of
-low-coverage spots.
+Instability is somewhat larger on tumor tissue: mean $S^3$ is
+\TumorBoundaryS{} at consensus-domain boundaries and \TumorInteriorS{} in
+interiors (gap \TumorGap{}, $p\,\TumorStakesP{}$), compared with a gap of
+\StakesGap{} in brain. Unlike in brain, $S^3$ is correlated with sequencing
+depth here ($r=\TumorConfoundR{}$ versus $\ConfoundR{}$), so we also run the
+depth-stratified permutation test from \S\ref{sec:stats}. The gap remains
+significant ($p\,\TumorDepthP{}$), so it is not explained by low-coverage
+spots alone.
 
-\textbf{Independent pathology validation.} This section carries
-independent per-spot pathology-region annotations from the SEDR
-study~\cite{fu2021sedr} (Invasive, Tumor [in-situ], Surrounding tumor,
-Healthy). These labels let us replace the consensus-domain boundary proxy
-used elsewhere with annotation-based ground truth. Analytical fragility
-peaks precisely at the annotated tumor \emph{margin} region ("Surrounding
-tumor"): mean $S^3$ is \PathMarginS{} at the margin versus \PathInvasiveS{}
-in the invasive core and \PathHealthyS{} in healthy tissue ($p\,\PathP{}$;
-Fig.~\ref{fig:pathology}). We report two bootstrap confidence intervals
-(spot resampling, $B{=}1000$) for two distinct quantities: the
-margin-versus-invasive-core gap, which the point estimate above describes,
-is \PathMarginInvasiveGap{} with 95\% CI
-$[\PathMarginInvasiveCILow{}, \PathMarginInvasiveCIHigh{}]$; the
-margin-versus-all-other-tissue gap used in the stakes test above is
-\PathMarginRestGap{} with 95\% CI
-$[\PathMarginRestCILow{}, \PathMarginRestCIHigh{}]$. Both exclude zero, and
-both survive the depth-stratified null ($p\,\PathDepthP{}$). This annotated
-margin region is not an independently verified clinical surgical resection
-margin; it is the dataset's own "Surrounding tumor" pathology-region label,
-adjacent to the invasive core and of plausible clinical relevance to margin
-assessment. On labels produced entirely independently of any pipeline in
-this study, it is exactly where analytical choices matter most.
+\textbf{Comparison with pathology annotations.} Instead of boundaries
+derived from our own consensus domains, we can use the SEDR
+annotations~\cite{fu2021sedr} (Invasive, Tumor [in situ], Surrounding
+tumor, Healthy). Stability is lowest in the ``Surrounding tumor'' region:
+mean $S^3$ is \PathMarginS{} there, versus \PathInvasiveS{} in the invasive
+region and \PathHealthyS{} in healthy tissue ($p\,\PathP{}$;
+Fig.~\ref{fig:pathology}). We report bootstrap CIs ($B{=}1000$, resampling
+spots) for two comparisons. The surrounding-tumor versus invasive gap is
+\PathMarginInvasiveGap{} (95\% CI
+$[\PathMarginInvasiveCILow{}, \PathMarginInvasiveCIHigh{}]$), and the
+surrounding-tumor versus all-other-tissue gap is \PathMarginRestGap{} (95\%
+CI $[\PathMarginRestCILow{}, \PathMarginRestCIHigh{}]$). Both exclude zero
+and both remain significant under the depth-stratified test
+($p\,\PathDepthP{}$). Note that ``Surrounding tumor'' is the dataset's
+pathology label, not a verified surgical margin. It is the tissue next to
+the invasive region, which is relevant to margin assessment, but we do not
+make clinical claims from one section.
 
-Finally, the dominant analytical axis does \emph{not} change with tissue
-type: clustering resolution still explains the most domain-count variance
-(\TumorVarTopFrac{}, versus \VarTopFrac{} in brain). This is an honest null
-for the hypothesis that the most consequential choice is tissue-dependent,
-reported plainly instead of reframed as a positive finding.
+The most important analysis axis is the same as in brain: clustering
+resolution explains the most variance in domain count (\TumorVarTopFrac{},
+versus \VarTopFrac{} in brain). We had hypothesized that the dominant axis
+would differ by tissue type; this hypothesis was not supported.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.9\linewidth]{16_pathology_stakes.png}
-  \caption{Per-spot $S^3$ by pathologist-annotated region on human
-  breast-cancer tissue. Fragility is highest at the tumor \emph{margin} and
-  lowest in the transcriptomically distinct invasive core, on ground truth
-  produced independently of any pipeline in this study.}
+  \caption{Per-spot $S^3$ by pathology-annotated region on human
+  breast-cancer tissue. Stability is lowest in the surrounding-tumor region
+  and highest in the transcriptionally distinct invasive region. Annotations
+  were made independently of all pipelines in this study.}
   \label{fig:pathology}
 \end{figure}
 
-\section{The Multiverse as a Constructive Estimator}
+\section{Consensus Across Pipelines}
 \label{sec:consensus}
 
-So far $S^3$ has served as a diagnostic. We show the multiverse also yields
-a constructive output: a \emph{co-association} matrix (the fraction of
-specifications placing each pair of spots in the same aligned cluster)
-re-clustered into consensus domains. Single pipelines recover reference
-anatomy at ARI \SingleWorstARI{}--\SingleBestARI{} (median
-\SingleMedianARI{}); the consensus reaches \ConsensusARI{}, matching or
-exceeding the best single pipeline near the reference granularity and
-beating the median pipeline in \ConsensusBeatsMedianPct{} of consensus
-granularity/linkage settings (Fig.~\ref{fig:consensus}). A researcher
-cannot identify the single best pipeline without the ground truth they are
-trying to recover; the consensus attains best-pipeline-or-better accuracy
-using only the multiverse itself. Per-spot $S^3$ is also a
-ground-truth-free confidence signal on the consensus: where the consensus
-disagrees with reference anatomy, $S^3$ is significantly lower (mean $0.69$
-vs.\ $0.81$; Mann--Whitney $p<10^{-40}$), and $S^3$ alone predicts consensus
-correctness at ROC AUC \ConsensusUncAUC{} (consensus accuracy \ConsensusAcc{}).
+Besides measuring instability, the set of pipelines can be combined. We
+build a co-association matrix (the fraction of specifications that put each
+pair of spots in the same aligned cluster) and cluster it to get consensus
+domains. Single pipelines agree with the reference anatomy at ARI
+\SingleWorstARI{}--\SingleBestARI{} (median \SingleMedianARI{}). The
+consensus reaches \ConsensusARI{}, which matches or exceeds the best single
+pipeline near the reference number of domains and beats the median pipeline
+in \ConsensusBeatsMedianPct{} of the granularity and linkage settings we
+tried (Fig.~\ref{fig:consensus}). This matters because in practice the
+best single pipeline can only be identified using the reference labels,
+which a researcher normally does not have. Per-spot $S^3$ also indicates
+where the consensus is wrong: spots where the consensus disagrees with the
+reference have lower $S^3$ (mean $0.69$ vs.\ $0.81$; Mann--Whitney
+$p<10^{-40}$), and $S^3$ alone predicts whether the consensus is correct
+at ROC AUC \ConsensusUncAUC{} (consensus accuracy \ConsensusAcc{}).
 
-Figure~\ref{fig:consensus} sweeps granularity $k$ and linkage against the
-reference annotation to show the ceiling, but a researcher without that
-reference still needs a way to pick one setting. We select $(k,
-\text{linkage})$ using only the co-association matrix itself, no reference
-labels, by maximizing mean silhouette width on the co-association distance.
-On mouse-brain this ground-truth-free rule picks
-\ConsensusBlindLinkage{} linkage at $k=\ConsensusBlindK{}$, which attains
-ARI \ConsensusBlindARI{}, identical to the oracle setting chosen with
-access to the reference (ARI \ConsensusOracleARI{}, gap
-\ConsensusBlindOracleGap{}); across the full $(k,\text{linkage})$ grid,
-silhouette width and reference ARI correlate at Spearman
-$\rho=\ConsensusSilARISpearman{}$. Internal validity is therefore a usable
-proxy for selecting the consensus here, closing the selection-bias gap in
-the best-pipeline comparison above.
+Fig.~\ref{fig:consensus} sweeps the number of clusters $k$ and the linkage
+method against the reference, which shows the best achievable result.
+Without a reference, a researcher still has to pick one setting. We
+therefore choose $(k, \text{linkage})$ using only the co-association
+matrix, by maximizing mean silhouette width on the co-association distance.
+On mouse brain this picks \ConsensusBlindLinkage{} linkage with
+$k=\ConsensusBlindK{}$, giving ARI \ConsensusBlindARI{}, the same as the
+best setting chosen using the reference (ARI \ConsensusOracleARI{}, gap
+\ConsensusBlindOracleGap{}). Across the full grid, silhouette width and
+reference ARI have Spearman $\rho=\ConsensusSilARISpearman{}$. On this
+dataset, then, silhouette width is a reasonable way to choose the consensus
+settings without the reference.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.9\linewidth]{15_consensus_recovery.png}
-  \caption{Consensus anatomy recovery versus the single-pipeline
-  distribution. The co-association consensus meets or beats the best
-  single pipeline near the reference granularity and beats the median
-  pipeline almost everywhere, without using the ground truth needed to
-  identify that best pipeline.}
+  \caption{Agreement with reference anatomy for the consensus versus the
+  distribution of single pipelines. The consensus matches or beats the best
+  single pipeline near the reference number of domains and beats the
+  median pipeline in almost all settings.}
   \label{fig:consensus}
 \end{figure}
 
-\section{Predicting Fragility Before Running the Multiverse}
+\section{Predicting Unstable Spots from One Pipeline}
 \label{sec:downstream}
 
-A full \Nspecs{}-pipeline sweep is not always affordable. We show fragile
-spots can be flagged from a \emph{single} pipeline: a cross-validated
-logistic classifier, using only multiverse-free features from one run
-(local transcriptomic heterogeneity, single-pipeline neighbor disagreement,
-sequencing depth, and genes detected), predicts which spots the full
-multiverse will find fragile ($S^3<0.5$) at ROC AUC \FragPredAUC{} under
-random spot-level cross-validation (95\% CI
-$[\FragPredAUCRandomCILow{}, \FragPredAUCRandomCIHigh{}]$,
-permutation \FragPredPermP{}; Fig.~\ref{fig:fragpred}). Because neighboring
-spots share local structure, a random split lets training and test spots
-sit a few microns apart, so we also evaluate with spots grouped into
-\FragPredSpatialBlocks{} spatial blocks (k-means on spot coordinates) and
-held out a whole block at a time. AUC drops to
+Running all \Nspecs{} pipelines is not always practical, so we tested
+whether unstable spots can be predicted from a single run. A
+cross-validated logistic regression uses four features from one pipeline:
+local transcriptomic heterogeneity, disagreement with neighboring spots,
+sequencing depth, and number of genes detected. It predicts which spots
+will be unstable across all pipelines ($S^3<0.5$) at ROC AUC \FragPredAUC{}
+with random spot-level cross-validation (95\% CI
+$[\FragPredAUCRandomCILow{}, \FragPredAUCRandomCIHigh{}]$, permutation
+\FragPredPermP{}; Fig.~\ref{fig:fragpred}).
+
+Random splits put neighboring spots, which share local structure, in both
+training and test sets, so this estimate is optimistic. We therefore also
+group spots into \FragPredSpatialBlocks{} spatial blocks (k-means on
+coordinates) and hold out one block at a time. AUC drops to
 \FragPredAUCSpatial{} (95\% CI
-$[\FragPredAUCSpatialCILow{}, \FragPredAUCSpatialCIHigh{}]$,
-permutation \FragPredPermP{}): part of the original estimate was
-spatial-adjacency leakage, but the predictive signal survives when training
-and held-out spots are restricted to different k-means blocks. Adjacent
-blocks can still share a boundary, so a spot just inside one block can be a
-near neighbor of a spot just inside the next; this spatial-block split
-alone does not guarantee a minimum train-test distance. We therefore add an
-explicit spatial buffer: any training spot within \FragPredBufferMultiple{}
-times the median nearest-neighbor spacing of a held-out spot
-(\FragPredBufferDroppedPerFold{} spots dropped per fold on average) is
-excluded from that fold entirely, guaranteeing every remaining training
-spot is at least that physical distance from the spots it is scored
-against. AUC falls further to \FragPredAUCBuffered{} (95\% CI
-$[\FragPredAUCBufferedCILow{}, \FragPredAUCBufferedCIHigh{}]$, permutation
-\FragPredPermP{}): the estimate keeps shrinking as more spatial leakage is
-removed (random split \FragPredAUC{} $\to$ spatial block
-\FragPredAUCSpatial{} $\to$ buffered spatial block
-\FragPredAUCBuffered{}), but it remains significant and well above chance
-at every step. The combined model improves on its strongest single feature
-(single-pipeline neighbor disagreement, AUC $0.77$); depth alone reaches
-only AUC $0.57$, so the prediction draws on genuinely local structure and
-not on sequencing depth alone. A researcher can therefore identify where a
-single result is least trustworthy, and decide whether the full multiverse
-is worth running, \emph{before} committing to it.
+$[\FragPredAUCSpatialCILow{}, \FragPredAUCSpatialCIHigh{}]$, permutation
+\FragPredPermP{}). Spots on either side of a block boundary can still be
+neighbors, so we add a buffer: training spots within
+\FragPredBufferMultiple{} times the median nearest-neighbor spacing of any
+held-out spot are removed from that fold (\FragPredBufferDroppedPerFold{}
+spots per fold on average). AUC falls further to \FragPredAUCBuffered{}
+(95\% CI $[\FragPredAUCBufferedCILow{}, \FragPredAUCBufferedCIHigh{}]$,
+permutation \FragPredPermP{}). The estimate decreases as more spatial
+leakage is removed (\FragPredAUC{} $\to$ \FragPredAUCSpatial{} $\to$
+\FragPredAUCBuffered{}) but stays above chance in every case. The best
+single feature is disagreement with neighboring spots (AUC $0.77$), and
+depth alone gives AUC $0.57$, so the model is not just picking up
+low-coverage spots. This gives a rough, cheap indication of which parts of
+a single analysis are least reliable, which can help decide whether the
+full set of pipelines is worth running.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.9\linewidth]{17_fragility_prediction.png}
-  \caption{Predicting fragility from one pipeline. Left: predicted
-  probability a spot is fragile, from a single run's local features
-  (AUC \FragPredAUC{}). Right: actual per-spot $S^3$ from the full
-  multiverse; predicted-fragile regions visibly align with the truly
-  fragile ones.}
+  \caption{Predicting unstable spots from one pipeline. Left: predicted
+  probability that a spot is unstable, from one run's local features
+  (AUC \FragPredAUC{}, random split). Right: actual per-spot $S^3$ across
+  all pipelines.}
   \label{fig:fragpred}
 \end{figure}
 
-\section{Practical Recommendations}
-For researchers who cannot run a full multiverse, our variance
-decomposition (Fig.~\ref{fig:variance}) gives a concrete priority order:
-first, fix and report the clustering resolution, which accounts for
-\VarTopFrac{} of domain-count variability, dwarfing every other choice;
-second, report the neighborhood-graph size $k$. Normalization,
-feature-selection method, HVG count, PCA dimensionality, and the
-Leiden-versus-Louvain choice each move results only marginally. Finally,
-treat SVG calls near the significance threshold as provisional and report
-a per-gene $S^3$ alongside any SVG list.
+\section{Recommendations}
+For researchers who cannot run many pipelines, the variance decomposition
+(Fig.~\ref{fig:variance}) suggests an order of priority. First, choose and
+report the clustering resolution, which accounts for \VarTopFrac{} of the
+variation in domain count. Second, report the neighborhood size $k$.
+Normalization, feature-selection method, number of HVGs, number of PCs, and
+Leiden versus Louvain each had small effects in our data. SVG calls near
+the significance threshold should be treated as tentative, and a per-gene
+$S^3$ can be reported alongside an SVG list.
 
 \section{Discussion and Limitations}
-MOSAIC quantifies, rather than resolves, analytic ambiguity: it identifies
-which conclusions are robust and which are contingent, and now, via the
-consensus estimator, provides a route to a more accurate answer than any
-single defensible choice. The agreement between per-spot $S^3$ and reference
-anatomy, together with the near-zero depth correlation on brain tissue,
-indicates $S^3$ measures biological rather than purely analytical
-uncertainty. Limitations: our specification space is curated, not
-exhaustive; we evaluate three Visium sections across two mouse-brain samples
-and one human tumor, and a broader survey across further tissues, patients,
-and sub-cellular platforms (e.g.\ Xenium) remains future work; where
-pathologist annotations are unavailable we rely on a consensus-domain
-boundary proxy, clearly labeled as such; and on tumor tissue, while the
-depth-stratified null shows the boundary-fragility gap survives, we do not
-claim a full multivariate deconfounding of every possible technical
-covariate. The framework accommodates additional axes, datasets, SVG tests,
-and stratifications without modification to its core architecture.
+MOSAIC measures analytic ambiguity rather than resolving it: it shows which
+results hold across pipelines and which depend on specific choices, and the
+consensus gives one way to combine them. On brain tissue, $S^3$ follows
+anatomical boundaries and is not correlated with depth, which suggests it
+reflects genuine ambiguity in the tissue (for example, transitions between
+regions) rather than data quality.
 
-\textbf{Toward agentic multiverse navigation.} The curated \Nspecs{}-specification
-set is a static sample of a far larger space. Because each specification
-returns a well-defined stability signal, the multiverse is naturally framed
-as a search problem: an agent could use Bayesian optimization or active
-learning to propose specifications that maximally reduce uncertainty about
-$S^3$, mapping the boundary between robust and contingent regions of the
-configuration space more efficiently than uniform curation. The
-embarrassingly parallel architecture makes such agent-driven exploration,
-and eventually an exhaustive multiverse, computationally tractable. A
-related coupled-uncertainty routing strategy, estimating two stressors
-jointly rather than independently to decide where to spend a fixed compute
-budget, improves deadline-miss rates in a real-time perception
-setting~\cite{roy2026belief}; the same idea applied here would route the
-\emph{full} multiverse only toward spots our single-pipeline fragility
-predictor (\S\ref{sec:downstream}) flags as uncertain, rather than running
-every specification everywhere.
+This study has several limitations. The specification space is curated,
+not exhaustive. We analyze three Visium sections (two mouse brain, one
+human tumor), and results on other tissues, patients, and higher-resolution
+platforms such as Xenium are untested. Where pathology annotations are not
+available we use boundaries of our own consensus domains as a proxy. On
+tumor tissue, the depth-stratified test controls for sequencing depth but
+not for every possible technical covariate. The consensus results come from
+mouse brain, where a reference annotation exists, and the silhouette-based
+selection rule has only been checked there.
+
+\textbf{Future work.} The \Nspecs{} specifications are a small sample of
+the possible space. Adaptive methods such as Bayesian optimization could
+choose which specifications to run next based on where $S^3$ is most
+uncertain. Another option is to run the full set of pipelines only on
+regions that the single-pipeline predictor (\S\ref{sec:downstream}) flags
+as likely unstable, similar to the compute-allocation approach
+in~\cite{roy2026belief}.
 
 \section{Conclusion}
-We introduced MOSAIC, a specification-curve framework that turns the
-garden-of-forking-paths problem in spatial transcriptomics into a
-measurable, spatially resolved, and actionable signal. Beyond diagnosis,
-we showed the multiverse itself is a better estimator than any single
-pipeline, and that its fragility is predictable in advance from a single
-run. Validated against independent pathology, the framework identifies
-exactly the tissue regions (tumor margins) where the stakes of an
-analytical choice are highest. This gives a concrete, reproducible tool for
-auditing and improving spatial transcriptomics conclusions.
+MOSAIC runs many reasonable analysis pipelines on the same spatial
+transcriptomics data and measures where their results agree. On mouse
+brain, most of the disagreement comes from clustering resolution and is
+concentrated at region boundaries. On a breast-cancer section, the least
+stable region is the tissue annotated as surrounding the tumor. A consensus
+across pipelines matches the best single pipeline without needing reference
+labels to choose it, and unstable spots can be partly predicted from a
+single run.
 
 \section*{Reproducibility}
-Every specification is seeded and re-derives its inputs from raw counts;
-sweeps are idempotent and content-hashed, and a determinism check confirms
-bit-identical spot-level labels on repeated runs of a fixed specification.
-We release the pipeline code, the specification configuration, the aggregate
-stability tables, statistical outputs, and figure-generation scripts at
-\url{https://github.com/ImSpxrsh/MOSAIC-ISEF}. Analyses build on
+Every specification is seeded and starts from raw counts. Sweeps are cached
+by configuration hash, and repeated runs of a fixed specification give
+identical spot labels. Code, configuration, aggregate stability tables,
+statistical outputs, and figure scripts are at
+\url{https://github.com/ImSpxrsh/MOSAIC-ISEF}. Analyses use
 NumPy~\cite{harris2020array}, SciPy~\cite{virtanen2020scipy},
 scikit-learn~\cite{pedregosa2011scikit}, SCANPY~\cite{wolf2018scanpy}, and
 Squidpy~\cite{palla2022squidpy}.
 
 \section*{Use of AI Tools}
 An AI assistant (Claude, Anthropic) was used to edit the prose of this
-manuscript for clarity and style. All analyses, code, statistical results,
-and claims were produced and verified by the authors, and the authors take
-full responsibility for the content of this paper.
+manuscript. All analyses, code, statistical results, and claims were
+produced and checked by the authors, who take full responsibility for the
+content of this paper.

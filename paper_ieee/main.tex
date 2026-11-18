@@ -22,8 +22,8 @@
 
 \begin{document}
 
-\title{MOSAIC: Multiverse Analysis Reveals and Corrects\\
-Analytical Fragility in Spatial Transcriptomics}
+\title{MOSAIC: Measuring How Analysis Choices\\
+Change Results in Spatial Transcriptomics}
 
 \author{
 \IEEEauthorblockN{
@@ -43,37 +43,32 @@ William Langille\IEEEauthorrefmark{2}}
 \maketitle
 
 \begin{abstract}
-A spatial transcriptomics analysis passes through a long chain of individually
-defensible but arbitrary choices: normalization, feature selection,
-dimensionality reduction, neighborhood-graph construction, clustering
-algorithm and resolution, and the statistical test used to call a gene
-spatially variable. We present MOSAIC, a specification-curve framework that
-executes a curated multiverse of \Nspecs{} such pipelines on the same tissue
-and quantifies conclusion stability with the \emph{Spatial Stability Score}
-($S^3$), a family of metrics defined at the level of spots, genes, and
-headline summaries, with cluster labels aligned across pipelines by optimal
-(Hungarian) assignment. On two independent mouse-brain sections we find that
-recovered spatial domains range from \ClustMin{} to \ClustMax{} across the
-multiverse (mean pairwise Adjusted Rand Index \AriMean{}), that a Type-II
-variance decomposition attributes \VarTopFrac{} of this instability to a
-single choice (clustering \VarTopAxis{}), and that fragility concentrates
-at domain boundaries (gap \StakesGap{}, $p\,\StakesP{}$) while tracking
-reference anatomy rather than sequencing depth ($r=\ConfoundR{}$). These
-findings transfer to a human breast-cancer section and, validated against
-independent pathology-region annotations, fragility peaks precisely at the
-annotated tumor \emph{margin}, with
-a bootstrap-confirmed effect that survives a depth-stratified permutation
-control. Beyond diagnosis, we show the multiverse is constructive: a
-co-association \emph{consensus} across all pipelines recovers ground-truth
-anatomy at least as well as the best single pipeline and better than the
-typical one (ARI \ConsensusARI{}, beating the median pipeline in
-\ConsensusBeatsMedianPct{} of settings) without requiring the ground truth
-needed to select that best pipeline, and per-spot $S^3$ predicts where the
-consensus errs (AUC \ConsensusUncAUC{}). Finally, a classifier using only
-single-pipeline features predicts which spots the full multiverse will find
-fragile at AUC \FragPredAUC{}, an inexpensive early-warning signal
-before committing to an expensive sweep. We release the pipeline, the
-specification configuration, and all statistical and figure code.
+Analyzing spatial transcriptomics data involves many choices that are each
+reasonable but somewhat arbitrary: normalization, feature selection,
+dimensionality reduction, neighborhood graph, clustering algorithm and
+resolution, and the test used to call spatially variable genes. MOSAIC runs
+\Nspecs{} such pipelines on the same tissue section and measures how much
+the results agree using a \emph{Spatial Stability Score} ($S^3$), computed
+per spot, per gene, and for summary statistics. Cluster labels are matched
+across pipelines with the Hungarian algorithm. On two mouse-brain sections,
+the number of spatial domains ranges from \ClustMin{} to \ClustMax{}
+depending on the pipeline (mean pairwise Adjusted Rand Index \AriMean{}).
+A Type-II ANOVA attributes \VarTopFrac{} of the variation in domain count
+to clustering \VarTopAxis{}. Low-stability spots cluster at domain
+boundaries (gap \StakesGap{}, $p\,\StakesP{}$), and stability is not
+correlated with sequencing depth ($r=\ConfoundR{}$). On a human
+breast-cancer section with pathology annotations, stability is lowest in
+the region annotated as surrounding tumor, and this holds under bootstrap
+resampling and a depth-stratified permutation test. We also find that
+combining all pipelines into a co-association consensus recovers reference
+anatomy about as well as the best single pipeline (ARI \ConsensusARI{};
+better than the median pipeline in \ConsensusBeatsMedianPct{} of settings),
+without needing the reference labels to choose a pipeline, and that per-spot
+$S^3$ predicts where the consensus is wrong (AUC \ConsensusUncAUC{}).
+Finally, a classifier trained on features from a single pipeline predicts
+which spots will be unstable across all pipelines (AUC \FragPredAUC{} with
+random splits, lower with spatially blocked splits). Code, configuration,
+and figure scripts are public.
 \end{abstract}
 
 \begin{IEEEkeywords}

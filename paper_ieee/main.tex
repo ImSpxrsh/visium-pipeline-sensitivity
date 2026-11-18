@@ -10,12 +10,18 @@
 \usepackage{url}
 \usepackage{hyperref}
 
-\graphicspath{{../results/figures/}{../results/breast_cancer/figures/}}
+% Paths work whether LaTeX runs from paper_ieee/ (local latexmk) or from the
+% repository root (Overleaf, with main file paper_ieee/main.tex).
+\makeatletter
+\def\input@path{{paper_ieee/}{../paper/}{paper/}}
+\makeatother
+\graphicspath{{../results/figures/}{../results/breast_cancer/figures/}%
+  {results/figures/}{results/breast_cancer/figures/}}
 
 % Single source of truth: report_numbers.py writes paper/numbers.tex from the
 % aggregate results. Input it directly so the IEEE paper never drifts from the
 % canonical macros (and from the NeurIPS-format paper that shares them).
-\input{../paper/numbers}
+\input{numbers}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -80,6 +86,8 @@ uncertainty quantification
 \input{sections}
 
 \bibliographystyle{IEEEtran}
-\bibliography{references}
+\IfFileExists{paper_ieee/references.bib}%
+  {\bibliography{paper_ieee/references}}%
+  {\bibliography{references}}
 
 \end{document}

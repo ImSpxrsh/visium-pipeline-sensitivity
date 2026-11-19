@@ -111,11 +111,16 @@ across runs. We take the same approach for spatial transcriptomics.
 
 \subsection{Specification space}
 Each analysis stage is an axis (Table~\ref{tab:space}). The full Cartesian
-product has more than 200 combinations. Following standard
-specification-curve practice, we evaluate a curated set of \Nspecs{}
-pipelines covering typical, conservative, aggressive, and unusual but
-defensible settings, which keeps the results small enough to inspect
-directly.
+product has 864 combinations. Following standard specification-curve
+practice, we evaluate a curated set of \Nspecs{} pipelines covering
+typical, conservative, aggressive, and unusual but defensible settings.
+The set is built around one canonical pipeline (log1p, 3000 Seurat HVGs,
+30 PCs, $k=15$, Leiden at resolution 0.5): 12 specifications change one
+setting from it, 10 change two, and 7 change three or more. The SVG test is
+held fixed at Moran's $I$ in all specifications reported here, so per-gene
+variation comes from the upstream choices. Because the design is not a full
+factorial, the variance shares in \S\ref{sec:results} describe this
+curated set and should not be read as fixed properties of each axis.
 
 \begin{table}[t]
   \centering
@@ -132,7 +137,7 @@ directly.
     Dimensionality & PCA, \{30, 50\} components \\
     Neighborhood graph & $k$-NN, $k \in \{6, 10, 15\}$ \\
     Clustering & Leiden / Louvain; resolution $\in \{0.3,0.5,0.8,1.2\}$ \\
-    SVG test & Moran's $I$ or Geary's $C$, FDR $<0.05$ (BH) \\
+    SVG test & Moran's $I$, FDR $<0.05$ (BH); fixed \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -233,7 +238,7 @@ datasets are public and downloaded by script; we generated no new data.
 
 \textbf{Number of domains.} The number of spatial domains ranges from
 \ClustMin{} to \ClustMax{} across pipelines (mean
-$\ClustMean{}\pm\ClustStd{}$). Mean pairwise ARI between specifications is
+$\ClustMean{}\pm\ClustStd{}$; Fig.~\ref{fig:montage}). Mean pairwise ARI between specifications is
 \AriMean{} (range $\AriMin{}$--$\AriMax{}$), so the pipelines produce
 different partitions, not just relabeled copies of one partition.
 
@@ -253,8 +258,9 @@ per-specification ARI; here we only show that individual pipelines
 recover meaningful anatomy.)
 
 \textbf{Clustering resolution dominates.} A Type-II ANOVA attributes
-\VarTopFrac{} of the variance in domain count to clustering \VarTopAxis{},
-with every other axis contributing at most a few percent
+\VarTopFrac{} of the variance in domain count to clustering \VarTopAxis{}.
+Neighborhood size $k$ is second (\VarKFrac{}), and every other axis
+accounts for about 1\% or less, with \VarResidFrac{} unexplained
 (Fig.~\ref{fig:variance}). Resolution is therefore the most important
 setting to fix and report.
 
@@ -284,6 +290,15 @@ pairwise ARI, so the pattern is not specific to one sample.
 
 \begin{figure}[t]
   \centering
+  \includegraphics[width=\linewidth]{fig1_spec_montage.png}
+  \caption{The same tissue analyzed with five defensible pipelines (A--E)
+  gives 8--18 spatial domains with different extents. (F) Per-spot $S^3$
+  across all pipelines.}
+  \label{fig:montage}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
   \includegraphics[width=0.9\linewidth]{12_downstream_ml.png}
   \caption{Effect of upstream pipeline choice on a downstream region
   classifier. Accuracy varies by \DownstreamRangePP{} percentage points
@@ -291,15 +306,6 @@ pairwise ARI, so the pattern is not specific to one sample.
   is the same in every case; only the pipeline that produced the features
   differs.}
   \label{fig:downstreamml}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{fig1_spec_montage.png}
-  \caption{The same tissue analyzed with five defensible pipelines (A--E)
-  gives 8--18 spatial domains with different extents. (F) Per-spot $S^3$
-  across all pipelines.}
-  \label{fig:montage}
 \end{figure}
 
 \begin{figure}[t]
@@ -342,7 +348,9 @@ make clinical claims from one section.
 
 The most important analysis axis is the same as in brain: clustering
 resolution explains the most variance in domain count (\TumorVarTopFrac{},
-versus \VarTopFrac{} in brain). We had hypothesized that the dominant axis
+versus \VarTopFrac{} in brain), followed by $k$ (\TumorVarKFrac{}).
+Normalization matters more here than in brain (\TumorVarNormFrac{} versus
+\VarNormFrac{}). We had hypothesized that the dominant axis
 would differ by tissue type; this hypothesis was not supported.
 
 \begin{figure}[t]
@@ -445,9 +453,10 @@ full set of pipelines is worth running.
 For researchers who cannot run many pipelines, the variance decomposition
 (Fig.~\ref{fig:variance}) suggests an order of priority. First, choose and
 report the clustering resolution, which accounts for \VarTopFrac{} of the
-variation in domain count. Second, report the neighborhood size $k$.
-Normalization, feature-selection method, number of HVGs, number of PCs, and
-Leiden versus Louvain each had small effects in our data. SVG calls near
+variation in domain count. Second, report the neighborhood size $k$ (\VarKFrac{} in both tissues).
+On tumor tissue, normalization also had a noticeable effect
+(\TumorVarNormFrac{}). Feature-selection method, number of HVGs, number of
+PCs, and Leiden versus Louvain each had small effects in our data. SVG calls near
 the significance threshold should be treated as tentative, and a per-gene
 $S^3$ can be reported alongside an SVG list.
 
@@ -460,7 +469,10 @@ reflects genuine ambiguity in the tissue (for example, transitions between
 regions) rather than data quality.
 
 This study has several limitations. The specification space is curated,
-not exhaustive. We analyze three Visium sections (two mouse brain, one
+not exhaustive, and is centered on one canonical pipeline, so the variance
+shares depend on which combinations were included. The SVG test was not
+varied, so we do not measure how much the choice of SVG method changes gene
+calls. We analyze three Visium sections (two mouse brain, one
 human tumor), and results on other tissues, patients, and higher-resolution
 platforms such as Xenium are untested. Where pathology annotations are not
 available we use boundaries of our own consensus domains as a proxy. On

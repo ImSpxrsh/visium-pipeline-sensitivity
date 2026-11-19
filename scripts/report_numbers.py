@@ -58,6 +58,14 @@ def main() -> None:
         "RefAriMean": _fmt(ref["mean"], digits=2) if ref else "TBD",
         "RefAriMax": _fmt(ref["max"], digits=2) if ref else "TBD",
     }
+    # Per-axis variance shares (Type-II ANOVA) for the axes the paper discusses.
+    for prefix, csv_path in (("Var", PROJECT / "results" / "aggregate" / "stats_variance_decomposition.csv"),
+                             ("TumorVar", PROJECT / "results" / "breast_cancer" / "aggregate" / "stats_variance_decomposition.csv")):
+        if csv_path.exists():
+            vd = pd.read_csv(csv_path).set_index("term")["variance_fraction"]
+            for term, name in (("k", "K"), ("normalization", "Norm"), ("Residual", "Resid")):
+                if term in vd:
+                    macros[f"{prefix}{name}Frac"] = _fmt(vd[term], pct=True)
     if stats:
         top = stats.get("variance_top_axis", {})
         conf = stats.get("confound_umi", {})

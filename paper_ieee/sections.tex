@@ -24,7 +24,7 @@ transcriptomics benchmarks compare methods against a reference, but we are
 not aware of work that measures how much an analyst's reasonable choices
 change the results on a fixed tissue section.
 
-MOSAIC is a specification-curve framework for spatial transcriptomics. This
+We apply specification-curve analysis to spatial transcriptomics. This
 paper makes four contributions:
 
 \begin{enumerate}
@@ -71,9 +71,8 @@ SpatialDE~\cite{svensson2018spatialde}, or nnSVG~\cite{weber2023nnsvg}.
 Reference atlases such as the DLPFC dataset~\cite{maynard2021transcriptome}
 are used for benchmarking, and reviews~\cite{luecken2019current} compare
 methods against such references. Multi-platform integration tools such as
-MOSAIK~\cite{baptista2025mosaik} (unrelated to this work despite the similar
-name) combine data sources but do not measure analytical instability.
-MOSAIC asks a different question: with the data fixed, how much do the
+MOSAIK~\cite{baptista2025mosaik} combine data sources but do not measure analytical instability.
+We ask a different question: with the data fixed, how much do the
 results change across reasonable analysis choices, and where in the tissue
 do they change most?
 
@@ -93,8 +92,8 @@ consensus is likely wrong.
 which measures per-spot disagreement across seven clustering methods
 (BayesSpace, GraphST, Leiden, Louvain, SEDR, STAGATE, SpiceMix) on 18
 benchmark samples, focusing on variation from repeated runs and choice of
-method. MOSAIC varies the earlier analysis steps as well (normalization,
-feature selection, graph construction, resolution, and SVG test) and adds a
+method. We vary the earlier analysis steps as well (normalization,
+feature selection, graph construction, resolution, and SVG test) and add a
 consensus estimator and a single-pipeline predictor. The two measures
 answer different questions: how much a result changes when the same method
 is rerun, versus how much it changes under a different reasonable choice.
@@ -105,7 +104,7 @@ models on motor imagery, which architecture performs better depends on the
 input pipeline. Roy \emph{et al.}~\cite{roy2026kaisen} find that the effect
 of a fairness mitigation step in clinical risk models varies more across
 cohort samples than across diseases, and recommend reporting the spread
-across runs. MOSAIC takes the same approach for spatial transcriptomics.
+across runs. We take the same approach for spatial transcriptomics.
 
 \section{Method}
 \label{sec:method}
@@ -453,7 +452,7 @@ the significance threshold should be treated as tentative, and a per-gene
 $S^3$ can be reported alongside an SVG list.
 
 \section{Discussion and Limitations}
-MOSAIC measures analytic ambiguity rather than resolving it: it shows which
+Our approach measures analytic ambiguity rather than resolving it: it shows which
 results hold across pipelines and which depend on specific choices, and the
 consensus gives one way to combine them. On brain tissue, $S^3$ follows
 anatomical boundaries and is not correlated with depth, which suggests it
@@ -479,8 +478,8 @@ as likely unstable, similar to the compute-allocation approach
 in~\cite{roy2026belief}.
 
 \section{Conclusion}
-MOSAIC runs many reasonable analysis pipelines on the same spatial
-transcriptomics data and measures where their results agree. On mouse
+We ran many reasonable analysis pipelines on the same spatial
+transcriptomics data and measured where their results agree. On mouse
 brain, most of the disagreement comes from clustering resolution and is
 concentrated at region boundaries. On a breast-cancer section, the least
 stable region is the tissue annotated as surrounding the tumor. A consensus

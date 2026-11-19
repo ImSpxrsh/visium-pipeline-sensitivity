@@ -28,8 +28,8 @@
 
 \begin{document}
 
-\title{MOSAIC: Measuring How Analysis Choices\\
-Change Results in Spatial Transcriptomics}
+\title{How Analysis Choices Change\\
+Spatial Transcriptomics Results}
 
 \author{
 \IEEEauthorblockN{
@@ -39,11 +39,15 @@ Kevin Zhou\IEEEauthorrefmark{2},
 Arhaan Shah\IEEEauthorrefmark{3},
 Vihaan Joshi-Apte\IEEEauthorrefmark{3}\\
 Samuel Girmachew\IEEEauthorrefmark{2},
-William Langille\IEEEauthorrefmark{2}}
+William Langille\IEEEauthorrefmark{2},
+Aarush Vera\IEEEauthorrefmark{4},
+Ishant Ghimiray\IEEEauthorrefmark{5}}
 \IEEEauthorblockA{
 \IEEEauthorrefmark{1}Massachusetts Institute of Technology, sparshr@mit.edu\\
 \IEEEauthorrefmark{2}Hopewell Valley Central High School\\
-\IEEEauthorrefmark{3}Paradise Valley High School}
+\IEEEauthorrefmark{3}Paradise Valley High School\\
+\IEEEauthorrefmark{4}Windermere High School\\
+\IEEEauthorrefmark{5}Columbus State Community College}
 }
 
 \maketitle
@@ -52,8 +56,8 @@ William Langille\IEEEauthorrefmark{2}}
 Analyzing spatial transcriptomics data involves many choices that are each
 reasonable but somewhat arbitrary: normalization, feature selection,
 dimensionality reduction, neighborhood graph, clustering algorithm and
-resolution, and the test used to call spatially variable genes. MOSAIC runs
-\Nspecs{} such pipelines on the same tissue section and measures how much
+resolution, and the test used to call spatially variable genes. We run
+\Nspecs{} such pipelines on the same tissue section and measure how much
 the results agree using a \emph{Spatial Stability Score} ($S^3$), computed
 per spot, per gene, and for summary statistics. Cluster labels are matched
 across pipelines with the Hungarian algorithm. On two mouse-brain sections,

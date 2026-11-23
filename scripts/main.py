@@ -33,7 +33,7 @@ def load_specs_from_config(config_path: Path) -> Dict[str, Any]:
 
 
 def _slim(adata):
-    """Keep only what the stability scorer reads (obs labels, obsm, uns SVG table).
+    """Keep only what the stability scorer reads (obs labels, obsm, the SVG table).
 
     Dropping X, layers, and neighbor graphs cuts memory from ~150 MB to a few MB
     per spec, so hundreds of specs fit in memory during aggregation.
@@ -43,7 +43,8 @@ def _slim(adata):
     return ad.AnnData(
         obs=adata.obs.copy(),
         obsm={k: v for k, v in adata.obsm.items()},
-        uns=dict(adata.uns),
+        # Only the SVG table: uns also holds the tissue images (~50 MB per spec).
+        uns={k: adata.uns[k] for k in ("svg_results",) if k in adata.uns},
     )
 
 

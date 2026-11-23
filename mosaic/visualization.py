@@ -54,7 +54,9 @@ plt.rcParams.update(
 def _slim_adata(adata):
     import anndata as ad
 
-    return ad.AnnData(obs=adata.obs.copy(), obsm=dict(adata.obsm.items()), uns=dict(adata.uns))
+    # Drop uns entirely: it holds the tissue images (~50 MB per spec), and the
+    # analyses read SVG tables from the per-spec CSV (run["svg_df"]) instead.
+    return ad.AnnData(obs=adata.obs.copy(), obsm=dict(adata.obsm.items()))
 
 
 def load_runs(results_dir: Path, lean: bool = False) -> List[Dict[str, Any]]:

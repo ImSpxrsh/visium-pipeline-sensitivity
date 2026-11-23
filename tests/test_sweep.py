@@ -58,6 +58,7 @@ def test_lean_aggregation_matches_full(tmp_path):
         a.obs["cluster"] = pd.Categorical(rng.integers(0, 3, n).astype(str))
         a.obsm["spatial"] = rng.random((n, 2))
         a.layers["counts"] = a.X.copy()
+        a.uns["spatial"] = {"img": np.zeros((50, 50, 3))}
         a.uns["svg_results"] = pd.DataFrame(
             {"I": rng.random(10), "pval_norm_fdr_bh": rng.random(10)},
             index=[f"g{i}" for i in range(10)],
@@ -80,4 +81,6 @@ def test_lean_aggregation_matches_full(tmp_path):
     pd.testing.assert_frame_equal(f[0], s[0])
     pd.testing.assert_frame_equal(f[1], s[1])
     assert f[2] == s[2] and f[3] == s[3]
-    assert main._slim(full[0]).X is None
+    slim = main._slim(full[0])
+    assert slim.X is None
+    assert list(slim.uns.keys()) == ["svg_results"]

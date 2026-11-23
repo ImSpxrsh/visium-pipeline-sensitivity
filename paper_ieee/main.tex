@@ -28,8 +28,8 @@
 
 \begin{document}
 
-\title{Sensitivity of Spatial Domains to Analysis\\
-Choices in Three Visium Sections}
+\title{Sensitivity of Expression-Derived Domains to\\
+Analysis Choices in Three Visium Sections}
 
 \author{
 \IEEEauthorblockN{
@@ -56,19 +56,20 @@ Fayzan Khan\IEEEauthorrefmark{6}}
 \begin{abstract}
 Spatial transcriptomics analyses involve many reasonable choices, from
 normalization to clustering resolution, and a study usually reports one.
-We ran a curated set of \Nspecs{} pipelines and a full factorial of
-\FullNspecs{} on public Visium sections (two mouse-brain sections, one
-breast-cancer section) and measured how much the results agree. On the
-mouse-brain H\&E section, the number of spatial domains ranged from
+We ran a curated set of \Nspecs{} pipelines on three public Visium
+sections (two mouse-brain, one breast-cancer) and all \FullNspecs{}
+combinations of our listed options on two of them, and measured how much
+the results agree. On the
+mouse-brain H\&E section, the number of expression-derived domains ranged from
 \ClustMin{} to \ClustMax{} across curated pipelines (mean pairwise ARI
 \AriMean{}); in the factorial, mean pairwise ARI was \FullAriHne{} in brain
 and \FullAriBreast{} in tumor. In a main-effects ANOVA on the factorial,
 clustering resolution had the largest share of variance in domain count
 (\FullVarResHne{} in brain, \FullVarResBreast{} in tumor), followed by the
-neighbor-graph size. Agreement was lower near domain transitions in all
-sections. These are descriptive results for three sections; we describe
-the limits of our agreement score and statistical tests, and report a
-consensus estimator and a single-pipeline predictor as exploratory. Code
+neighbor-graph size. These are descriptive results for three sections;
+our per-spot agreement score depends on a reference pipeline, our tests
+ignore spatial dependence, and we report the consensus estimator and
+single-pipeline predictor as exploratory. Code
 and configuration are public.
 \end{abstract}
 

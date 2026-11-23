@@ -30,7 +30,7 @@
 \newcommand{\BoundaryS}{0.71}
 \newcommand{\InteriorS}{0.85}
 \newcommand{\StakesGap}{0.13}
-\newcommand{\StakesP}{=0.001}
+\newcommand{\StakesP}{\le 0.001}
 \newcommand{\DownstreamRangePP}{5.0}
 \newcommand{\DownstreamAccMin}{0.89}
 \newcommand{\DownstreamAccMax}{0.94}
@@ -47,16 +47,16 @@
 \newcommand{\TumorBoundaryS}{0.73}
 \newcommand{\TumorInteriorS}{0.87}
 \newcommand{\TumorGap}{0.15}
-\newcommand{\TumorStakesP}{=0.001}
+\newcommand{\TumorStakesP}{\le 0.001}
 \newcommand{\TumorConfoundR}{0.45}
 \newcommand{\TumorVarTopAxis}{resolution}
 \newcommand{\TumorVarTopFrac}{72\%}
-\newcommand{\TumorDepthP}{=0.001}
+\newcommand{\TumorDepthP}{\le 0.001}
 \newcommand{\PathMarginS}{0.70}
 \newcommand{\PathInvasiveS}{0.87}
 \newcommand{\PathHealthyS}{0.74}
-\newcommand{\PathP}{=0.001}
-\newcommand{\PathDepthP}{=0.001}
+\newcommand{\PathP}{\le 0.001}
+\newcommand{\PathDepthP}{\le 0.001}
 \newcommand{\PathMarginInvasiveGap}{0.17}
 \newcommand{\PathMarginInvasiveCILow}{0.155}
 \newcommand{\PathMarginInvasiveCIHigh}{0.180}
@@ -71,7 +71,7 @@
 \newcommand{\FragPredAUCSpatialCILow}{0.759}
 \newcommand{\FragPredAUCSpatialCIHigh}{0.818}
 \newcommand{\FragPredSpatialBlocks}{10}
-\newcommand{\FragPredPermP}{$p=0.001$}
+\newcommand{\FragPredPermP}{$p\le0.001$}
 \newcommand{\FragPredAUCBuffered}{0.77}
 \newcommand{\FragPredAUCBufferedCILow}{0.739}
 \newcommand{\FragPredAUCBufferedCIHigh}{0.804}
@@ -96,7 +96,7 @@
 \newcommand{\FullAriBreast}{0.51}
 \newcommand{\FullFragileHne}{17\%}
 \newcommand{\FullFragileBreast}{17\%}
-\newcommand{\FullVarResHne}{80\%}
+\newcommand{\FullVarResHne}{81\%}
 \newcommand{\FullVarResBreast}{63\%}
 \newcommand{\FullVarKHne}{9\%}
 \newcommand{\FullVarKBreast}{8\%}
@@ -106,4 +106,23 @@
 \newcommand{\FullResidBreast}{21\%}
 \newcommand{\FullGapHne}{0.13}
 \newcommand{\FullGapBreast}{0.21}
-\newcommand{\FullGapP}{=0.001}
+\newcommand{\FullGapP}{\le 0.001}
+% Categorical Type-II shares with 95% bootstrap intervals (1000 resamples of
+% pipelines); scripts/variance_categorical.py. Added by hand.
+\newcommand{\CatResHne}{80\%}
+\newcommand{\CatResHneCI}{58--90\%}
+\newcommand{\CatKHne}{9\%}
+\newcommand{\CatKHneCI}{2--23\%}
+\newcommand{\CatResidHne}{7\%}
+\newcommand{\CatResBreast}{75\%}
+\newcommand{\CatResBreastCI}{49--90\%}
+\newcommand{\CatKBreast}{8\%}
+\newcommand{\CatNormBreast}{6\%}
+\newcommand{\CatNormBreastCI}{0--21\%}
+\newcommand{\CatResidBreast}{9\%}
+\newcommand{\FullCatResHneCI}{79--82\%}
+\newcommand{\FullCatKHne}{10\%}
+\newcommand{\FullCatResidHne}{6\%}
+\newcommand{\FullCatResBreastCI}{60--66\%}
+\newcommand{\FullCatResidBreastCI}{19--22\%}
+\newcommand{\FullCatHvgBreastCI}{5--8\%}

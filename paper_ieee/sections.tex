@@ -2,7 +2,7 @@
 \label{sec:intro}
 
 There is rarely one correct way to analyze a spatial transcriptomics
-dataset. Going from raw counts to a map of spatial domains requires
+dataset. Going from raw counts to a map of tissue domains requires
 choosing a normalization, a number of highly variable genes (HVGs), a number
 of principal components, a neighbor graph, Leiden~\cite{traag2019louvain} or
 Louvain~\cite{blondel2008fast} clustering and a resolution, and a test for
@@ -29,7 +29,7 @@ three public Visium sections. We contribute:
 \item[\textbf{C1}] A configurable pipeline and a simple agreement score
   ($S^3$) computed per spot, per gene, and for summary statistics
   (\S\ref{sec:method}).
-\item[\textbf{C2}] Descriptive measurements of how much spatial domains,
+\item[\textbf{C2}] Descriptive measurements of how much the domains,
   SVG calls, and a downstream classifier change across pipelines on two
   mouse-brain sections and one breast-cancer section (\S\ref{sec:results},
   \S\ref{sec:tumor}), with a full 864-pipeline factorial on two of the
@@ -101,8 +101,43 @@ PCs, $k=15$, Leiden at resolution 0.5): 12 change one setting from it, 10
 change two, and 7 change three or more. The SVG test is fixed at Moran's
 $I$. Because the curated set is not a factorial design and its axes are
 correlated, it describes sensitivity around one pipeline rather than across
-the whole space. Section~\ref{sec:factorial} reports the full factorial on
-two sections.
+the whole space. Table~\ref{tab:curated} lists all \Nspecs{}. Section~\ref{sec:factorial}
+reports the full factorial on two sections.
+\begin{table*}[t]
+  \centering
+  \caption{The \Nspecs{} curated pipelines. Pipeline 1 is the canonical
+  pipeline and the reference for label matching. Norm: transform after
+  total-count scaling. HVG: Seurat (SE) or Cell Ranger (CR) flavor, $n$
+  genes. Alg: Leiden (Le) or Louvain (Lo). Res: resolution. The set was
+  chosen by hand to vary each axis around the canonical pipeline and to
+  include a few multi-axis combinations; it is not a sample from the full
+  space.}
+  \label{tab:curated}
+  \footnotesize
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{tabular}{@{}rlllrrrlr@{\hspace{14pt}}rlllrrrlr@{}}
+    \toprule
+    \# & Norm & HVG & $n$ & PCs & $k$ & Alg & Res & \# & Norm & HVG & $n$ & PCs & $k$ & Alg & Res \\
+    \midrule
+    1 & log & SE & 3000 & 30 & 15 & Le & 0.5 & 16 & none & CR & 5000 & 30 & 15 & Le & 0.3 \\
+    2 & log & SE & 2000 & 30 & 15 & Le & 0.5 & 17 & log & SE & 3000 & 50 & 15 & Le & 0.8 \\
+    3 & log & SE & 5000 & 30 & 15 & Le & 0.5 & 18 & log & SE & 3000 & 50 & 15 & Lo & 0.5 \\
+    4 & log & CR & 3000 & 30 & 15 & Le & 0.5 & 19 & log & SE & 3000 & 30 & 15 & Lo & 0.3 \\
+    5 & sqrt & SE & 3000 & 30 & 15 & Le & 0.5 & 20 & log & SE & 3000 & 30 & 15 & Lo & 1.2 \\
+    6 & none & SE & 3000 & 30 & 15 & Le & 0.5 & 21 & log & SE & 3000 & 30 & 6 & Le & 0.8 \\
+    7 & log & SE & 3000 & 50 & 15 & Le & 0.5 & 22 & sqrt & SE & 3000 & 30 & 6 & Le & 0.3 \\
+    8 & log & SE & 3000 & 30 & 6 & Le & 0.5 & 23 & sqrt & SE & 5000 & 30 & 10 & Le & 0.5 \\
+    9 & log & SE & 3000 & 30 & 10 & Le & 0.5 & 24 & none & SE & 2000 & 30 & 15 & Le & 0.8 \\
+    10 & log & SE & 3000 & 30 & 15 & Le & 0.3 & 25 & log & CR & 2000 & 30 & 15 & Le & 0.3 \\
+    11 & log & SE & 3000 & 30 & 15 & Le & 0.8 & 26 & log & CR & 5000 & 50 & 10 & Le & 0.8 \\
+    12 & log & SE & 3000 & 30 & 15 & Le & 1.2 & 27 & log & SE & 3000 & 50 & 6 & Le & 0.5 \\
+    13 & log & SE & 3000 & 30 & 15 & Lo & 0.5 & 28 & sqrt & SE & 3000 & 30 & 15 & Lo & 0.8 \\
+    14 & log & SE & 3000 & 30 & 15 & Lo & 0.8 & 29 & log & SE & 3000 & 30 & 10 & Le & 1.2 \\
+    15 & sqrt & SE & 2000 & 50 & 6 & Lo & 1.2 & 30 & log & SE & 5000 & 30 & 15 & Lo & 0.5 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
 
 \begin{table}[t]
   \centering
@@ -132,7 +167,10 @@ applies $\log(1+x)$, $\sqrt{x}$, or nothing. HVGs are selected with
 \texttt{cell\_ranger} flavor. The neighbor graph is SCANPY's default
 \texttt{sc.pp.neighbors} on the PCA embedding (UMAP-style connectivities,
 Euclidean distance); it is built in expression space, not physical space,
-so clustering is not spatially constrained. Leiden uses the
+so clustering does not use spot locations. We call the resulting clusters
+\emph{expression-derived domains} (``domains'' for short); spatial
+information enters only through the boundary analysis and the SVG test.
+We did not include spatially aware clustering methods. Leiden uses the
 \texttt{leidenalg} backend and Louvain uses igraph's multilevel method,
 both at the given resolution. Moran's $I$ uses
 \texttt{sq.gr.spatial\_autocorr} on Squidpy's default Visium grid graph
@@ -194,33 +232,43 @@ We describe these procedures exactly because they have known weaknesses.
 \textbf{Permutation tests} keep per-spot scores fixed and shuffle region or
 boundary labels among spots ($B{=}1000$, preserving group sizes), with a
 one-sided empirical $p$-value using add-one correction. The smallest
-attainable value is $1/1001\approx0.001$, which we report as $p=0.001$.
+attainable value is $1/1001\approx0.001$; results at this floor are
+reported as $p\le0.001$, meaning only that no permutation matched the
+observed gap.
 \textbf{Depth-stratified tests} shuffle labels only within
 sequencing-depth deciles. Both tests treat spots as exchangeable and break
 the spatial arrangement of the tissue, so they ignore spatial
 autocorrelation and their $p$-values are likely too small. Region-level
 \textbf{bootstrap intervals} resample specifications; the pathology
 comparisons resample spots, which also ignores spatial dependence. We did
-not correct for multiple comparisons. All $p$-values and intervals should
-therefore be read as descriptive, alongside the effect sizes.
-\textbf{Variance decomposition} fits
+not correct for multiple comparisons. We therefore treat all tests as
+exploratory and base conclusions on effect sizes, not $p$-values.
+\textbf{Variance decomposition} fits an ordinary least-squares model of
+domain count on all seven axes as categorical factors (main effects only,
+no interactions):
 \begin{align*}
-  \text{domains} \sim{}& \text{norm} + \text{HVG method} + \text{cluster method}\\
-  &+ \text{HVG count} + \text{resolution} + k + \text{PCs}
+  \text{domains} \sim{}& \text{norm} + \text{HVG method} + \text{HVG count}
+  + \text{PCs}\\
+  &+ k + \text{cluster method} + \text{resolution}.
 \end{align*}
-by ordinary least squares, with the first three as categorical factors and
-the last four as linear numeric terms, and no interactions. Each axis's
-share is its Type-II sum of squares divided by the sum of all Type-II sums
-of squares plus the residual. In the curated set the axes are correlated,
-so these shares are not an exact partition of variance; interactions are
-absorbed into the residual. We give no intervals for the shares. Finally,
+Each axis's share is its Type-II sum of squares divided by the sum of all
+Type-II sums of squares plus the residual. Interactions and other unmodeled
+structure fall into the residual, which we report. In the curated set the
+axes are correlated, so the shares are not an exact partition. Intervals
+are 95\% bootstrap intervals over 1000 resamples of pipelines.
+Fig.~\ref{fig:variance} shows an earlier fit with the four numeric axes as
+linear terms; its shares are within two points of the categorical fit.
+Finally,
 we \textbf{correlate $S^3$ with sequencing depth} (total UMI per spot).
 
 \textbf{Boundary definition.} In all three sections, a spot is a boundary
 spot if any of its 6 nearest spatial neighbors has a different modal
-matched label (the label behind its $S^3$); other spots are interior. This
-proxy is derived from the pipelines themselves, not from the reference
-anatomy, and we did not vary the neighborhood size.
+matched label (the label behind its $S^3$); other spots are interior.
+Because these labels come from the same pipelines whose agreement $S^3$
+measures, the comparison is partly circular: it shows how much the
+pipelines agree near transitions in their own ensemble labels, not that
+biological boundaries are less stable. We did not compare against
+reference-anatomy boundaries or vary the neighborhood size.
 
 \subsection{Computational cost}
 With $S$ spots, $H$ retained genes, $d$ PCA components, $P$ SVG
@@ -254,21 +302,21 @@ generated none.
 All results in this section are for the H\&E section with the curated
 pipelines unless noted.
 
-\textbf{Number of domains.} The number of spatial domains ranges from
+\textbf{Number of domains.} The number of domains ranges from
 \ClustMin{} to \ClustMax{} across pipelines (mean
 $\ClustMean{}\pm\ClustStd{}$; Fig.~\ref{fig:montage}). Mean pairwise ARI
 between specifications is \AriMean{} (range $\AriMin{}$--$\AriMax{}$), so
 the pipelines produce different partitions, not relabeled copies of one
 partition.
 
-\textbf{Lower agreement at label transitions.} \SpotStableFrac{} of spots
+\textbf{Agreement near ensemble-label transitions.} \SpotStableFrac{} of spots
 have $S^3\ge0.8$ and \SpotFragileFrac{} have $S^3<0.5$. Mean $S^3$ is
 \BoundaryS{} for boundary spots and \InteriorS{} for interior spots (gap
-\StakesGap{}; permutation $p\,\StakesP{}$). Some of this is expected:
-wherever hard labels are drawn across gradual transitions, pipelines will
-disagree about where the line falls. We read this as lower agreement near
-label transitions, not as evidence of a separate kind of biological
-ambiguity.
+\StakesGap{}; permutation $p\,\StakesP{}$, exploratory). Given how
+boundaries are defined (\S\ref{sec:stats}) and the matching artifacts in
+$S^3$ (\S\ref{sec:s3}), this gap partly reflects how the comparison is
+built. We read it only as lower pipeline agreement near transitions in the
+ensemble labels.
 
 \textbf{Relation to anatomy and sequencing depth.} Individual
 specifications agree with the reference anatomy at mean ARI \RefAriMean{}
@@ -277,11 +325,10 @@ have higher mean $S^3$ than under label shuffling ($p<0.05$, uncorrected).
 $S^3$ is nearly uncorrelated with sequencing depth ($r=\ConfoundR{}$).
 
 \textbf{Variance in domain count.} In the curated set, resolution has the
-largest share (\VarTopFrac{}), then $k$ (\VarKFrac{}); every other axis has
-about 1\% or less, and the residual is \VarResidFrac{}
-(Fig.~\ref{fig:variance}). Because the curated axes are correlated, these
-shares are approximate; the factorial in \S\ref{sec:factorial} gives a
-cleaner estimate.
+largest share (\CatResHne{}, 95\% interval \CatResHneCI{}), then $k$
+(\CatKHne{}, \CatKHneCI{}); the residual is \CatResidHne{}, and every
+other axis is under 2\%. The wide intervals reflect only 30 correlated
+pipelines; the factorial (\S\ref{sec:factorial}) gives a cleaner estimate.
 
 \textbf{Gene-level variation.} Per-gene $S^3$ (Eq.~\ref{eq:s3gene}) is a
 selection frequency, so a gene that is consistently \emph{not} called an
@@ -293,12 +340,19 @@ selection frequency, separates the two cases: \GeneConsistentFrac{} of
 genes are called consistently one way or the other, and the inconsistent
 calls are concentrated in genes near the significance threshold.
 
-\textbf{Effect on a downstream classifier.} A cross-validated classifier
-that predicts anatomical region from each specification's embedding varies
-by \DownstreamRangePP{} percentage points in accuracy
-($\DownstreamAccMin{}$--$\DownstreamAccMax{}$) depending only on the
-upstream pipeline. Its multiclass Brier score varies more
-($\BrierMin{}$--$\BrierMax{}$; Fig.~\ref{fig:downstreamml}).
+\textbf{Effect on a downstream classifier.} For each pipeline we trained a
+logistic regression (scikit-learn defaults, no tuning) to predict the
+reference anatomical region from that pipeline's standardized PCA
+embedding, evaluated with stratified 5-fold cross-validation over randomly
+assigned spots. Standardization was fit on all spots before splitting, and
+folds are not spatially separated, so neighboring spots appear in both
+training and test sets and absolute accuracies are likely optimistic. We
+did not run a spatially blocked version or a non-expression baseline. With
+that caveat, accuracy varies by \DownstreamRangePP{} percentage points
+across pipelines ($\DownstreamAccMin{}$--$\DownstreamAccMax{}$) and the
+multiclass Brier score varies more ($\BrierMin{}$--$\BrierMax{}$;
+Fig.~\ref{fig:downstreamml}). The spread across pipelines, not the
+absolute level, is the result of interest.
 
 \textbf{Fluorescence section.} The fluorescence section shows a similar
 $S^3$ distribution and similar pairwise ARI.
@@ -307,7 +361,7 @@ $S^3$ distribution and similar pairwise ARI.
   \centering
   \includegraphics[width=\linewidth]{fig1_spec_montage.png}
   \caption{Mouse-brain H\&E section analyzed with five of the curated
-  pipelines (A--E), which give 8--18 spatial domains. (F) Per-spot $S^3$
+  pipelines (A--E), which give 8--18 domains. (F) Per-spot $S^3$
   across all \Nspecs{} curated pipelines (reference: canonical pipeline).}
   \label{fig:montage}
 \end{figure}
@@ -336,7 +390,8 @@ $S^3$ distribution and similar pairwise ARI.
 
 On the breast-cancer section with the curated pipelines, mean $S^3$ is
 \TumorBoundaryS{} for boundary spots and \TumorInteriorS{} for interior
-spots (gap \TumorGap{}; permutation $p\,\TumorStakesP{}$). Unlike in brain,
+spots (gap \TumorGap{}; permutation $p\,\TumorStakesP{}$, exploratory;
+same construction caveats as in brain). Unlike in brain,
 $S^3$ is correlated with sequencing depth ($r=\TumorConfoundR{}$ versus
 $\ConfoundR{}$), and boundary spots have lower depth. The gap remains under
 the depth-stratified test ($p\,\TumorDepthP{}$), with the caveats of
@@ -356,8 +411,9 @@ from one patient, and ``Surrounding tumor'' is a dataset label, not a
 verified surgical margin, so we make no general claim about tumor margins.
 
 Resolution again has the largest share of variance in domain count
-(\TumorVarTopFrac{}), followed by $k$ (\TumorVarKFrac{}) and normalization
-(\TumorVarNormFrac{}). We had expected the dominant axis to differ from
+(\CatResBreast{}, \CatResBreastCI{}), followed by $k$ (\CatKBreast{}) and
+normalization (\CatNormBreast{}, \CatNormBreastCI{}); residual
+\CatResidBreast{}. We had expected the dominant axis to differ from
 brain; in this section it did not.
 
 \begin{figure}[t]
@@ -371,28 +427,38 @@ brain; in this section it did not.
 
 \section{Full Factorial}
 \label{sec:factorial}
-We ran all \FullNspecs{} combinations in Table~\ref{tab:space} on the H\&E
-mouse-brain section and the breast-cancer section. This design is balanced,
+We ran all \FullNspecs{} combinations of the options in
+Table~\ref{tab:space} on the H\&E mouse-brain section and the
+breast-cancer section. ``Full'' means only that these listed options are
+exhausted: the factorial excludes spatially aware clustering, keeps the
+SVG test fixed, and uses one random seed per pipeline, so it cannot
+separate sensitivity to analysis choices from sensitivity to random
+initialization. This design is balanced,
 so the axes are uncorrelated and the Type-II shares approximately partition
 the variance of the main-effects model; interactions remain in the
 residual. Compared with the curated set, pipelines agree less (mean
 pairwise ARI \FullAriHne{} vs.\ \AriMean{} in brain, \FullAriBreast{} in
 tumor), and more spots have $S^3<0.5$ (\FullFragileHne{} in both sections).
 
-Resolution again has the largest share (\FullVarResHne{} in brain,
-\FullVarResBreast{} in tumor), followed by $k$ (\FullVarKHne{},
-\FullVarKBreast{}). In tumor, HVG method (\FullVarHvgBreast{}) has a larger
-share than normalization (\FullVarNormBreast{}), and the residual is
-\FullResidBreast{} versus \FullResidHne{} in brain, which suggests larger
-interactions between choices in that section. We did not fit interaction
-terms or compute intervals for these shares. Boundary spots have lower
+With all axes categorical, resolution has the largest share
+(\FullVarResHne{}, 95\% interval \FullCatResHneCI{} in brain;
+\FullVarResBreast{}, \FullCatResBreastCI{} in tumor), followed by $k$
+(\FullCatKHne{}, \FullVarKBreast{}). In tumor, HVG method
+(\FullVarHvgBreast{}, \FullCatHvgBreastCI{}) has a larger share than
+normalization (\FullVarNormBreast{}), and the residual is
+\FullResidBreast{} (\FullCatResidBreastCI{}) versus \FullCatResidHne{} in
+brain, which suggests larger interactions between choices in that section.
+We did not fit interaction terms. Boundary spots have lower
 $S^3$ than interior spots in both sections (gap \FullGapHne{} in brain,
-\FullGapBreast{} in tumor; permutation $p\,\FullGapP{}$ for both, with the
-caveats of \S\ref{sec:stats}). We have not rerun the pathology, consensus,
+\FullGapBreast{} in tumor; exploratory, with the construction caveats
+above). We have not rerun the pathology, consensus,
 or prediction analyses on the factorial.
 
 \section{Exploratory: Consensus Across Pipelines}
 \label{sec:consensus}
+
+Both analyses in this and the next section rely on per-spot $S^3$, with
+its reference dependence and shared overflow label (\S\ref{sec:s3}).
 
 We build a co-association matrix (the fraction of curated specifications
 that put each pair of spots in the same matched cluster) and cluster it
@@ -466,9 +532,9 @@ transfer to new sections, specimens, or platforms.
 \end{figure}
 
 \section{Practical Notes}
-In these sections, resolution changed the number of domains more than any
-other setting, followed by $k$, both in the curated set and in the
-factorial. Studies using similar pipelines should at least report both
+In each of the three sections we analyzed, resolution changed the number
+of domains more than any other listed setting, followed by $k$, in the
+curated set and (for two sections) the factorial. Studies using similar pipelines should at least report both
 values, and ideally show results at more than one resolution. SVG calls
 near the significance threshold changed most across pipelines, so a
 per-gene selection frequency is a useful addition to an SVG list. Whether
@@ -484,7 +550,8 @@ merged clusters poorly (\S\ref{sec:s3}). The permutation tests and
 bootstraps ignore spatial dependence, and we made no correction for
 multiple comparisons. The variance shares come from a main-effects model
 without intervals. The boundary proxy is derived from the pipelines and
-was not varied in width. The SVG test was fixed. The consensus and
+was not varied in width. The SVG test was fixed, no spatially aware
+clustering was included, and each pipeline used one random seed. The consensus and
 predictor were evaluated on the same section they were developed on. Next
 steps are a label-free per-spot agreement measure, spatially blocked
 permutations and bootstraps, factorial models with interactions, and more
@@ -493,11 +560,12 @@ sections with independent annotations.
 \section{Conclusion}
 Across 30 curated and 864 factorial pipelines on three public Visium
 sections, reasonable analysis choices changed the number and extent of
-spatial domains substantially, with clustering resolution and $k$
-accounting for most of the variation in domain count. Agreement was lower
-near label transitions in all three sections. These results argue for
-reporting key settings and, where possible, results across several
-pipelines.
+expression-derived domains substantially. In a main-effects model,
+clustering resolution and $k$ accounted for most of the variation in
+domain count in these sections. Pipelines agreed less near transitions in
+their own ensemble labels, a comparison that is partly circular by
+construction. These results argue for reporting key settings and, where
+possible, results across several pipelines.
 
 \section*{Reproducibility}
 Code, configuration, pinned package versions, aggregate tables, statistical

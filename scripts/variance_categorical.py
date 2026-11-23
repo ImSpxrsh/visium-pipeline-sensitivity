@@ -1,0 +1,27 @@
+"""Type-II ANOVA of domain count with every axis categorical, plus 95% bootstrap
+intervals from resampling pipelines. Usage: python scripts/variance_categorical.py SPEC_CURVES.json ...
+"""
+import json,sys,numpy as np,pandas as pd,statsmodels.api as sm
+from statsmodels.formula.api import ols
+def table(path):
+    rows=[]
+    for m in json.load(open(path))["metadata"]:
+        s=m["spec"]
+        rows.append(dict(y=m["n_clusters_found"],norm=s["normalization"],hvgm=s["feature_selection"]["method"],
+          hvgn=s["feature_selection"]["n_genes"],res=s["clustering"]["resolution"],cl=s["clustering"]["method"],
+          k=s["neighborhood_graph"]["k_or_radius"],pc=s["dimensionality_reduction"]["n_components"]))
+    return pd.DataFrame(rows)
+def shares(df):
+    terms=[f"C({c})" for c in ["norm","hvgm","hvgn","res","cl","k","pc"] if df[c].nunique()>1]
+    a=sm.stats.anova_lm(ols("y ~ "+" + ".join(terms),data=df).fit(),typ=2)["sum_sq"]
+    sh=a/a.sum(); sh.index=[i.replace("C(","").replace(")","") for i in sh.index]; return sh
+for path in sys.argv[1:]:
+    df=table(path); base=shares(df); rng=np.random.default_rng(0); B=[]
+    for _ in range(1000):
+        try: B.append(shares(df.sample(len(df),replace=True,random_state=int(rng.integers(1e9)))))
+        except Exception: pass
+    B=pd.DataFrame(B)
+    print(path,len(df),"boot ok",len(B))
+    for t in base.sort_values(ascending=False).index:
+        lo,hi=np.nanpercentile(B[t],[2.5,97.5]) if t in B else (np.nan,np.nan)
+        print(f"  {t:10s} {base[t]*100:5.1f}%  [{lo*100:.1f}, {hi*100:.1f}]")

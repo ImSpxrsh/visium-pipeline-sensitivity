@@ -28,8 +28,8 @@
 
 \begin{document}
 
-\title{How Analysis Choices Change\\
-Spatial Transcriptomics Results}
+\title{Sensitivity of Spatial Domains to Analysis\\
+Choices in Three Visium Sections}
 
 \author{
 \IEEEauthorblockN{
@@ -54,38 +54,27 @@ Fayzan Khan\IEEEauthorrefmark{6}}
 \maketitle
 
 \begin{abstract}
-Analyzing spatial transcriptomics data involves many choices that are each
-reasonable but somewhat arbitrary: normalization, feature selection,
-dimensionality reduction, neighborhood graph, clustering algorithm and
-resolution, and the test used to call spatially variable genes. We run
-\Nspecs{} such pipelines on the same tissue section and measure how much
-the results agree using a \emph{Spatial Stability Score} ($S^3$), computed
-per spot, per gene, and for summary statistics. Cluster labels are matched
-across pipelines with the Hungarian algorithm. On two mouse-brain sections,
-the number of spatial domains ranges from \ClustMin{} to \ClustMax{}
-depending on the pipeline (mean pairwise Adjusted Rand Index \AriMean{}).
-A Type-II ANOVA attributes \VarTopFrac{} of the variation in domain count
-to clustering \VarTopAxis{}. Low-stability spots cluster at domain
-boundaries (gap \StakesGap{}, $p\,\StakesP{}$), and stability is not
-correlated with sequencing depth ($r=\ConfoundR{}$). On a human
-breast-cancer section with pathology annotations, stability is lowest in
-the region annotated as surrounding tumor, and this holds under bootstrap
-resampling and a depth-stratified permutation test. We also find that
-combining all pipelines into a co-association consensus recovers reference
-anatomy about as well as the best single pipeline (ARI \ConsensusARI{};
-better than the median pipeline in \ConsensusBeatsMedianPct{} of settings),
-without needing the reference labels to choose a pipeline, and that per-spot
-$S^3$ predicts where the consensus is wrong (AUC \ConsensusUncAUC{}).
-Finally, a classifier trained on features from a single pipeline predicts
-which spots will be unstable across all pipelines (AUC \FragPredAUC{} with
-random splits, lower with spatially blocked splits). Code, configuration,
-and figure scripts are public.
+Spatial transcriptomics analyses involve many reasonable choices, from
+normalization to clustering resolution, and a study usually reports one.
+We ran a curated set of \Nspecs{} pipelines and a full factorial of
+\FullNspecs{} on public Visium sections (two mouse-brain sections, one
+breast-cancer section) and measured how much the results agree. On the
+mouse-brain H\&E section, the number of spatial domains ranged from
+\ClustMin{} to \ClustMax{} across curated pipelines (mean pairwise ARI
+\AriMean{}); in the factorial, mean pairwise ARI was \FullAriHne{} in brain
+and \FullAriBreast{} in tumor. In a main-effects ANOVA on the factorial,
+clustering resolution had the largest share of variance in domain count
+(\FullVarResHne{} in brain, \FullVarResBreast{} in tumor), followed by the
+neighbor-graph size. Agreement was lower near domain transitions in all
+sections. These are descriptive results for three sections; we describe
+the limits of our agreement score and statistical tests, and report a
+consensus estimator and a single-pipeline predictor as exploratory. Code
+and configuration are public.
 \end{abstract}
 
 \begin{IEEEkeywords}
-spatial transcriptomics, computational pathology, multiverse analysis,
-specification-curve analysis, reproducibility, ensemble clustering,
-uncertainty quantification
+spatial transcriptomics, multiverse analysis,
+reproducibility, ensemble clustering
 \end{IEEEkeywords}
 
 \input{sections}

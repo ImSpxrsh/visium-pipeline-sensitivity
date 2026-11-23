@@ -366,7 +366,7 @@ would differ by tissue type; this hypothesis was not supported.
 \section{Consensus Across Pipelines}
 \label{sec:consensus}
 
-Besides measuring instability, the set of pipelines can be combined. We
+The pipelines can also be combined. We
 build a co-association matrix (the fraction of specifications that put each
 pair of spots in the same aligned cluster) and cluster it to get consensus
 domains. Single pipelines agree with the reference anatomy at ARI
@@ -374,9 +374,8 @@ domains. Single pipelines agree with the reference anatomy at ARI
 consensus reaches \ConsensusARI{}, which matches or exceeds the best single
 pipeline near the reference number of domains and beats the median pipeline
 in \ConsensusBeatsMedianPct{} of the granularity and linkage settings we
-tried (Fig.~\ref{fig:consensus}). This matters because in practice the
-best single pipeline can only be identified using the reference labels,
-which a researcher normally does not have. Per-spot $S^3$ also indicates
+tried (Fig.~\ref{fig:consensus}). Picking the best single pipeline
+requires the reference labels, which a researcher normally does not have. Per-spot $S^3$ also indicates
 where the consensus is wrong: spots where the consensus disagrees with the
 reference have lower $S^3$ (mean $0.69$ vs.\ $0.81$; Mann--Whitney
 $p<10^{-40}$), and $S^3$ alone predicts whether the consensus is correct
@@ -392,7 +391,7 @@ $k=\ConsensusBlindK{}$, giving ARI \ConsensusBlindARI{}, the same as the
 best setting chosen using the reference (ARI \ConsensusOracleARI{}, gap
 \ConsensusBlindOracleGap{}). Across the full grid, silhouette width and
 reference ARI have Spearman $\rho=\ConsensusSilARISpearman{}$. On this
-dataset, then, silhouette width is a reasonable way to choose the consensus
+dataset, silhouette width is a reasonable way to choose the consensus
 settings without the reference.
 
 \begin{figure}[t]
@@ -435,9 +434,9 @@ leakage is removed (\FragPredAUC{} $\to$ \FragPredAUCSpatial{} $\to$
 \FragPredAUCBuffered{}) but stays above chance in every case. The best
 single feature is disagreement with neighboring spots (AUC $0.77$), and
 depth alone gives AUC $0.57$, so the model is not just picking up
-low-coverage spots. This gives a rough, cheap indication of which parts of
-a single analysis are least reliable, which can help decide whether the
-full set of pipelines is worth running.
+low-coverage spots. A single run can therefore flag its least reliable
+regions, which helps decide whether running all pipelines is worth the
+cost.
 
 \begin{figure}[t]
   \centering
@@ -448,6 +447,26 @@ full set of pipelines is worth running.
   all pipelines.}
   \label{fig:fragpred}
 \end{figure}
+
+\section{Full Factorial Check}
+\label{sec:factorial}
+Because the curated set is centered on one pipeline, we also ran all
+\FullNspecs{} combinations in Table~\ref{tab:space} on both the H\&E mouse-brain
+section and the breast-cancer section. Agreement between pipelines is lower
+than in the curated set (mean pairwise ARI \FullAriHne{} vs.\ \AriMean{} in
+brain, \FullAriBreast{} in tumor), and more spots are unstable
+($S^3<0.5$: \FullFragileHne{} in brain, \FullFragileBreast{} in tumor). The
+main conclusions do not change. Clustering resolution still explains the
+most variance in domain count (\FullVarResHne{} in brain, \FullVarResBreast{}
+in tumor), followed by $k$ (\FullVarKHne{}, \FullVarKBreast{}). Boundary spots
+remain less stable than interior spots (gap \FullGapHne{} in brain,
+\FullGapBreast{} in tumor; both $p\,\FullGapP{}$), and the tumor gap
+survives the depth-stratified test ($p\,\FullGapP{}$). Two things differ in
+tumor: HVG method overtakes normalization (\FullVarHvgBreast{} vs.\
+\FullVarNormBreast{}), and unexplained variance rises to \FullResidBreast{}
+(\FullResidHne{} in brain), which points to interactions between choices
+that a design centered on one pipeline cannot detect. We have not yet rerun
+the pathology, consensus, and prediction analyses on the full set.
 
 \section{Recommendations}
 For researchers who cannot run many pipelines, the variance decomposition
@@ -469,8 +488,9 @@ reflects genuine ambiguity in the tissue (for example, transitions between
 regions) rather than data quality.
 
 This study has several limitations. The specification space is curated,
-not exhaustive, and is centered on one canonical pipeline, so the variance
-shares depend on which combinations were included. The SVG test was not
+not exhaustive, and is centered on one canonical pipeline; the full
+factorial (\S\ref{sec:factorial}) shows the main variance results hold but
+that the curated set understates overall instability. The SVG test was not
 varied, so we do not measure how much the choice of SVG method changes gene
 calls. We analyze three Visium sections (two mouse brain, one
 human tumor), and results on other tissues, patients, and higher-resolution

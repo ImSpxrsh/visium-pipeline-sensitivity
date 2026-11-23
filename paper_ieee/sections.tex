@@ -524,10 +524,18 @@ Every specification is seeded and starts from raw counts. Sweeps are cached
 by configuration hash, and repeated runs of a fixed specification give
 identical spot labels. Code, configuration, aggregate stability tables,
 statistical outputs, and figure scripts are at
-\url{https://github.com/ImSpxrsh/MOSAIC-ISEF}. Analyses use
+\url{https://github.com/ImSpxrsh/MOSAIC-ISEF}. The \FullNspecs{}-specification
+sweeps (\S\ref{sec:factorial}) ran on the MIT ORCD Engaging cluster under
+Slurm, with 4 CPUs and 16 GB of memory per task and a median of about two
+minutes per specification. Analyses use
 NumPy~\cite{harris2020array}, SciPy~\cite{virtanen2020scipy},
 scikit-learn~\cite{pedregosa2011scikit}, SCANPY~\cite{wolf2018scanpy}, and
 Squidpy~\cite{palla2022squidpy}.
+
+\section*{Acknowledgments}
+The authors acknowledge the MIT Office of Research Computing and Data for
+providing high performance computing resources that have contributed to the
+research results reported within this paper.
 
 \section*{Use of AI Tools}
 An AI assistant (Claude, Anthropic) was used to edit the prose of this

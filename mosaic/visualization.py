@@ -51,12 +51,24 @@ plt.rcParams.update(
 
 
 # --- data loading --------------------------------------------------------------
-def load_runs(results_dir: Path) -> List[Dict[str, Any]]:
+def _slim_adata(adata):
+    import anndata as ad
+
+    # Drop uns entirely: it holds the tissue images (~50 MB per spec), and the
+    # analyses read SVG tables from the per-spec CSV (run["svg_df"]) instead.
+    return ad.AnnData(obs=adata.obs.copy(), obsm=dict(adata.obsm.items()))
+
+
+def load_runs(results_dir: Path, lean: bool = False) -> List[Dict[str, Any]]:
     """
     Load every completed spec directory into a list of run records.
 
     Each record: {idx, name, spec, adata, svg_df, metadata}. Records are sorted
     by spec index. The (small) SVG table is read from the per-spec CSV.
+
+    With ``lean=True``, every run except the first keeps only obs, obsm, and uns
+    (the analyses read full data only from ``runs[0]``), so sweeps with hundreds
+    of specs fit in memory.
     """
     import anndata as ad
 
@@ -76,7 +88,8 @@ def load_runs(results_dir: Path) -> List[Dict[str, Any]]:
                 "idx": idx,
                 "name": metadata.get("spec_name", spec_dir.name),
                 "spec": metadata.get("spec", {}),
-                "adata": ad.read_h5ad(adata_path),
+                "adata": _slim_adata(ad.read_h5ad(adata_path)) if lean and runs
+                else ad.read_h5ad(adata_path),
                 "svg_df": svg_df,
                 "metadata": metadata,
             }

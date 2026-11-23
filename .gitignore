@@ -44,3 +44,6 @@ results/**/logs/
 # IDE
 .vscode/
 .idea/
+
+# Slurm job logs
+logs/

@@ -11,7 +11,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 # Allow "python scripts/main.py" from the project root.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -32,14 +32,38 @@ def load_specs_from_config(config_path: Path) -> Dict[str, Any]:
     return config
 
 
+def _slim(adata):
+    """Keep only what the stability scorer reads (obs labels, obsm, the SVG table).
+
+    Dropping X, layers, and neighbor graphs cuts memory from ~150 MB to a few MB
+    per spec, so hundreds of specs fit in memory during aggregation.
+    """
+    import anndata as ad
+
+    return ad.AnnData(
+        obs=adata.obs.copy(),
+        obsm={k: v for k, v in adata.obsm.items()},
+        # Only the SVG table: uns also holds the tissue images (~50 MB per spec).
+        uns={k: adata.uns[k] for k in ("svg_results",) if k in adata.uns},
+    )
+
+
 def run_multiverse_sweep(
     adata,
     specs: List[Dict[str, Any]],
     output_dir: Path,
     random_state: int = 42,
     verbose: bool = True,
+    only_index: Optional[int] = None,
+    lean: bool = False,
 ) -> List[Dict[str, Any]]:
-    """Run the pipeline for each spec, saving outputs and collecting results."""
+    """Run the pipeline for each spec, saving outputs and collecting results.
+
+    If ``only_index`` is given, run just that spec (used by cluster job arrays,
+    one spec per job); its output directory keeps the same index and hash.
+    If ``lean`` is true, the returned AnnData objects keep only obs, obsm, and
+    uns (see ``_slim``); saved files are unaffected.
+    """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -47,6 +71,8 @@ def run_multiverse_sweep(
     failures: List[Dict[str, Any]] = []
 
     for i, spec in enumerate(specs):
+        if only_index is not None and i != only_index:
+            continue
         spec_name = spec.get("name", f"spec_{i:02d}")
         spec_hash = dict_to_hash(spec)
         spec_dir = output_dir / f"spec_{i:02d}_{spec_hash}"
@@ -65,7 +91,9 @@ def run_multiverse_sweep(
                         i + 1, len(specs), spec_name, existing.name)
             all_results.append({
                 "spec": spec,
-                "adata": ad.read_h5ad(existing / "adata_clustered.h5ad"),
+                "adata": (_slim if lean else (lambda a: a))(
+                    ad.read_h5ad(existing / "adata_clustered.h5ad")
+                ),
                 "metadata": json.loads((existing / "metadata.json").read_text()),
                 "output_dir": str(existing),
             })
@@ -89,7 +117,7 @@ def run_multiverse_sweep(
             all_results.append(
                 {
                     "spec": spec,
-                    "adata": adata_result,
+                    "adata": _slim(adata_result) if lean else adata_result,
                     "metadata": metadata,
                     "output_dir": str(spec_dir),
                 }
@@ -99,7 +127,10 @@ def run_multiverse_sweep(
             logger.error("  spec %s failed: %s", spec_name, e)
             failures.append({"spec_name": spec_name, "spec_hash": spec_hash, "error": str(e)})
 
-    save_json({"failures": failures}, output_dir / "failure_manifest.json")
+    # Parallel array jobs each write their own manifest so they don't overwrite each other.
+    manifest = ("failure_manifest.json" if only_index is None
+                else f"failure_manifest_spec{only_index}.json")
+    save_json({"failures": failures}, output_dir / manifest)
     logger.info(
         "Sweep complete: %d/%d specs succeeded (%d failed)",
         len(all_results), len(specs), len(failures),
@@ -161,6 +192,20 @@ def main() -> None:
         "--results-root", default=None,
         help="output root (default: results/ for visium_hne, results/<dataset>/ otherwise)",
     )
+    parser.add_argument(
+        "--config", default=None,
+        help="spec file (default: configs/multiverse_spec.yaml)",
+    )
+    parser.add_argument(
+        "--spec-index", type=int, default=None,
+        help="run only the spec at this 0-based index and skip aggregation "
+             "(for cluster job arrays; rerun without it afterwards to aggregate)",
+    )
+    parser.add_argument(
+        "--lean", action="store_true",
+        help="keep only labels and SVG tables in memory while aggregating "
+             "(needed for sweeps with hundreds of specs)",
+    )
     args = parser.parse_args()
 
     project_dir = Path(__file__).resolve().parent.parent
@@ -182,14 +227,19 @@ def main() -> None:
     adata = prepare_data(adata, verbose=True)
 
     logger.info("--- Loading specifications ---")
-    config = load_specs_from_config(project_dir / "configs" / "multiverse_spec.yaml")
+    config_path = Path(args.config) if args.config else project_dir / "configs" / "multiverse_spec.yaml"
+    config = load_specs_from_config(config_path)
     specs = config["specs"]
     random_state = config.get("global", {}).get("random_state", 42)
 
     logger.info("--- Running sweep ---")
     results = run_multiverse_sweep(
-        adata, specs, output_dir=results_dir / "runs", random_state=random_state, verbose=True
+        adata, specs, output_dir=results_dir / "runs", random_state=random_state,
+        verbose=True, only_index=args.spec_index, lean=args.lean,
     )
+    if args.spec_index is not None:
+        logger.info("Ran spec %d only; skipping aggregation", args.spec_index)
+        return
 
     logger.info("--- Computing stability ---")
     compute_aggregate_stability(results, results_root=results_dir, verbose=True)

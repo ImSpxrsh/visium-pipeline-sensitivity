@@ -28,18 +28,27 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", default="visium_hne",
                         help="dataset name; results read from results/ or results/<dataset>/")
+    parser.add_argument("--results-root", default=None,
+                        help="read results from this folder instead (e.g. results/full_hne)")
+    parser.add_argument("--lean", action="store_true",
+                        help="keep only labels in memory for all but the first spec "
+                             "(needed for sweeps with hundreds of specs)")
     args = parser.parse_args()
 
     project = Path(__file__).resolve().parent.parent
-    results_dir = project / "results" if args.dataset == "visium_hne" \
-        else project / "results" / args.dataset
+    if args.results_root:
+        results_dir = Path(args.results_root).resolve()
+    else:
+        results_dir = project / "results" if args.dataset == "visium_hne" \
+            else project / "results" / args.dataset
 
     if not (results_dir / "aggregate" / "per_spot_stability.csv").exists():
         logger.error("No sweep aggregates in %s; run the sweep first.", results_dir)
         sys.exit(1)
 
-    summary = run_all(results_dir, results_dir / "aggregate" / "statistics_summary.json")
-    generate_stats_figures(results_dir, results_dir / "figures")
+    summary = run_all(results_dir, results_dir / "aggregate" / "statistics_summary.json",
+                      lean=args.lean)
+    generate_stats_figures(results_dir, results_dir / "figures", lean=args.lean)
 
     logger.info("=== %s summary ===", args.dataset)
     logger.info(json.dumps(summary, indent=2, default=str))

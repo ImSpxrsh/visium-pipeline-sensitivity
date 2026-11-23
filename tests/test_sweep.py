@@ -40,3 +40,44 @@ def test_only_index_runs_one_spec(tmp_path, monkeypatch):
     out = main.run_multiverse_sweep(adata, specs, tmp_path, verbose=False)
     assert sorted(calls) == ["s0", "s1", "s3"]
     assert len(out) == 4
+
+
+def test_lean_aggregation_matches_full(tmp_path):
+    """Slimmed AnnData gives the same stability outputs as the full object."""
+    import pandas as pd
+
+    from mosaic.stability import StabilityScorer
+
+    main = _load_main()
+    rng = np.random.default_rng(0)
+    n = 40
+    full = []
+    for s in range(5):
+        a = ad.AnnData(rng.random((n, 10)).astype(np.float32))
+        a.obs["leiden"] = pd.Categorical(rng.integers(0, 4, n).astype(str))
+        a.obs["cluster"] = pd.Categorical(rng.integers(0, 3, n).astype(str))
+        a.obsm["spatial"] = rng.random((n, 2))
+        a.layers["counts"] = a.X.copy()
+        a.uns["svg_results"] = pd.DataFrame(
+            {"I": rng.random(10), "pval_norm_fdr_bh": rng.random(10)},
+            index=[f"g{i}" for i in range(10)],
+        )
+        full.append(a)
+
+    def outputs(adatas):
+        sc = StabilityScorer(verbose=False)
+        for i, a in enumerate(adatas):
+            sc.add_result({"name": str(i)}, a, {"n_clusters_found": i})
+        return (
+            sc.compute_per_spot_stability("leiden"),
+            sc.compute_per_feature_stability(),
+            sc.compute_partition_concordance("leiden"),
+            sc.concordance_with_reference("leiden", "cluster"),
+        )
+
+    f = outputs(full)
+    s = outputs([main._slim(a) for a in full])
+    pd.testing.assert_frame_equal(f[0], s[0])
+    pd.testing.assert_frame_equal(f[1], s[1])
+    assert f[2] == s[2] and f[3] == s[3]
+    assert main._slim(full[0]).X is None

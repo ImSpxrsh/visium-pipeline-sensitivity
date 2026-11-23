@@ -32,6 +32,21 @@ def load_specs_from_config(config_path: Path) -> Dict[str, Any]:
     return config
 
 
+def _slim(adata):
+    """Keep only what the stability scorer reads (obs labels, obsm, uns SVG table).
+
+    Dropping X, layers, and neighbor graphs cuts memory from ~150 MB to a few MB
+    per spec, so hundreds of specs fit in memory during aggregation.
+    """
+    import anndata as ad
+
+    return ad.AnnData(
+        obs=adata.obs.copy(),
+        obsm={k: v for k, v in adata.obsm.items()},
+        uns=dict(adata.uns),
+    )
+
+
 def run_multiverse_sweep(
     adata,
     specs: List[Dict[str, Any]],
@@ -39,11 +54,14 @@ def run_multiverse_sweep(
     random_state: int = 42,
     verbose: bool = True,
     only_index: Optional[int] = None,
+    lean: bool = False,
 ) -> List[Dict[str, Any]]:
     """Run the pipeline for each spec, saving outputs and collecting results.
 
     If ``only_index`` is given, run just that spec (used by cluster job arrays,
     one spec per job); its output directory keeps the same index and hash.
+    If ``lean`` is true, the returned AnnData objects keep only obs, obsm, and
+    uns (see ``_slim``); saved files are unaffected.
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -72,7 +90,9 @@ def run_multiverse_sweep(
                         i + 1, len(specs), spec_name, existing.name)
             all_results.append({
                 "spec": spec,
-                "adata": ad.read_h5ad(existing / "adata_clustered.h5ad"),
+                "adata": (_slim if lean else (lambda a: a))(
+                    ad.read_h5ad(existing / "adata_clustered.h5ad")
+                ),
                 "metadata": json.loads((existing / "metadata.json").read_text()),
                 "output_dir": str(existing),
             })
@@ -96,7 +116,7 @@ def run_multiverse_sweep(
             all_results.append(
                 {
                     "spec": spec,
-                    "adata": adata_result,
+                    "adata": _slim(adata_result) if lean else adata_result,
                     "metadata": metadata,
                     "output_dir": str(spec_dir),
                 }
@@ -180,6 +200,11 @@ def main() -> None:
         help="run only the spec at this 0-based index and skip aggregation "
              "(for cluster job arrays; rerun without it afterwards to aggregate)",
     )
+    parser.add_argument(
+        "--lean", action="store_true",
+        help="keep only labels and SVG tables in memory while aggregating "
+             "(needed for sweeps with hundreds of specs)",
+    )
     args = parser.parse_args()
 
     project_dir = Path(__file__).resolve().parent.parent
@@ -209,7 +234,7 @@ def main() -> None:
     logger.info("--- Running sweep ---")
     results = run_multiverse_sweep(
         adata, specs, output_dir=results_dir / "runs", random_state=random_state,
-        verbose=True, only_index=args.spec_index,
+        verbose=True, only_index=args.spec_index, lean=args.lean,
     )
     if args.spec_index is not None:
         logger.info("Ran spec %d only; skipping aggregation", args.spec_index)

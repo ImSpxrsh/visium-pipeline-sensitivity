@@ -523,18 +523,19 @@ def cross_dataset_region_summary(datasets: List[Dict[str, Any]]) -> pd.DataFrame
     return pd.concat(frames, axis=1)
 
 
-def _load_runs_and_spot(results_dir: Path) -> Tuple[list, pd.DataFrame]:
+def _load_runs_and_spot(results_dir: Path, lean: bool = False) -> Tuple[list, pd.DataFrame]:
     from mosaic.visualization import load_runs
 
     per_spot = pd.read_csv(Path(results_dir) / "aggregate" / "per_spot_stability.csv")
-    return load_runs(results_dir), per_spot
+    return load_runs(results_dir, lean=lean), per_spot
 
 
-def run_all(results_dir: Path, out_json: Optional[Path] = None) -> Dict[str, Any]:
+def run_all(results_dir: Path, out_json: Optional[Path] = None,
+            lean: bool = False) -> Dict[str, Any]:
     """Run every statistical analysis on one dataset and return a summary dict."""
     from mosaic.utils import save_json
 
-    runs, per_spot = _load_runs_and_spot(results_dir)
+    runs, per_spot = _load_runs_and_spot(results_dir, lean=lean)
     perm = permutation_test_region_s3(runs, per_spot)
     var = variance_decomposition(runs)
     boot = bootstrap_ci_region_s3(runs)
@@ -580,7 +581,7 @@ def _save(fig, output_path):
     plt.close(fig)
 
 
-def generate_stats_figures(results_dir: Path, output_dir: Path) -> None:
+def generate_stats_figures(results_dir: Path, output_dir: Path, lean: bool = False) -> None:
     """Build the four statistics figures (variance, permutation, convergence, confound)."""
     import matplotlib
     matplotlib.use("Agg")
@@ -588,7 +589,7 @@ def generate_stats_figures(results_dir: Path, output_dir: Path) -> None:
 
     results_dir, output_dir = Path(results_dir), Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    runs, per_spot = _load_runs_and_spot(results_dir)
+    runs, per_spot = _load_runs_and_spot(results_dir, lean=lean)
 
     # Fig 8: variance decomposition.
     var = variance_decomposition(runs)

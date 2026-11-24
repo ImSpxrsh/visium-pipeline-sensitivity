@@ -1,14 +1,16 @@
 {
-  "margin_mean_s3": 0.7017010935601458,
-  "invasive_mean_s3": 0.8685908999799559,
-  "gap_invasive_minus_margin": 0.1668898064198101,
-  "gap_ci95_low": 0.15506229622545067,
-  "gap_ci95_high": 0.1797576241242277,
-  "p_value_perm": 0.000999000999000999,
+  "margin_vs_invasive_gap": 0.16056135161997964,
+  "margin_vs_invasive_ci95": [
+    0.14780370581987567,
+    0.1731153604759146
+  ],
+  "margin_vs_rest_gap": 0.13451003536286932,
+  "margin_vs_rest_ci95": [
+    0.12229203297357831,
+    0.14638418949596846
+  ],
   "n_margin": 823,
   "n_invasive": 1663,
-  "n_boot": 1000,
-  "n_perm": 1000,
-  "seed": 42,
-  "note": "Specifically margin (Surrounding tumor) vs invasive-core (Invasive) only, matching the quantity described in the paper text. The existing pathology_stakes.json gap/CI is margin vs ALL other spots pooled (Healthy+Tumor+Invasive), a different quantity."
+  "n_rest": 2975,
+  "n_boot": 1000
 }

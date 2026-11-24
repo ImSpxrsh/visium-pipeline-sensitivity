@@ -49,7 +49,7 @@ def _add_scale_bar(ax, um_per_px: float, length_um: float = 500.0, loc=(0.05, 0.
     x0, y0 = ax.transLimits.inverted().transform(loc)
     ax.plot([x0, x0 + length_px], [y0, y0], color="white", lw=3, solid_capstyle="butt")
     ax.text(x0 + length_px / 2, y0, f"{length_um:.0f} um", color="white",
-            ha="center", va="bottom", fontsize=8, fontweight="bold")
+            ha="center", va="bottom", fontsize=12, fontweight="bold")
 
 
 def plot_raw_histology(
@@ -63,7 +63,7 @@ def plot_raw_histology(
     fig, ax = plt.subplots(figsize=(7, 7))
     ax.imshow(info["image"])
     _add_scale_bar(ax, info["um_per_hires_px"])
-    ax.set_title(title, fontsize=12, fontweight="bold")
+    ax.set_title(title, fontsize=16, fontweight="bold")
     ax.axis("off")
     _save(fig, output_path)
 
@@ -125,14 +125,14 @@ def plot_zoomed_inset(
     axFull = fig.add_subplot(gsL[0])
     axFull.imshow(img)
     axFull.axis("off")
-    axFull.set_title("A  Full section with call-outs", fontsize=11, fontweight="bold")
+    axFull.set_title("A  Full section with call-outs", fontsize=15, fontweight="bold")
     _add_scale_bar(axFull, info["um_per_hires_px"])
 
     gsR = gsL[1].subgridspec(2, 1, hspace=0.2)
     for row, (label, (cx, cy)) in enumerate(regions.items()):
         axFull.add_patch(Rectangle((cx - crop_px, cy - crop_px), 2 * crop_px, 2 * crop_px,
                                    fill=False, edgecolor="white", lw=2, linestyle="--"))
-        axFull.text(cx, cy - crop_px - 10, label, color="white", fontsize=9,
+        axFull.text(cx, cy - crop_px - 10, label, color="white", fontsize=13,
                     ha="center", va="bottom", fontweight="bold")
 
         ax = fig.add_subplot(gsR[row])
@@ -145,11 +145,11 @@ def plot_zoomed_inset(
         ax.set_ylim(cy + crop_px, cy - crop_px)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_title(f"{'BC'[row]}  {label}", fontsize=11, fontweight="bold")
-        fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04).set_label("S3", fontsize=8)
+        ax.set_title(f"{'BC'[row]}  {label}", fontsize=15, fontweight="bold")
+        fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04).set_label("S3", fontsize=12)
 
     fig.suptitle("Real tissue at fragile boundaries vs robust cores",
-                 fontsize=13, fontweight="bold")
+                 fontsize=17, fontweight="bold")
     _save(fig, output_path)
 
 
@@ -185,9 +185,9 @@ def plot_marker_gene_expression(
         col = a[:, g].X
         expr = col.toarray().ravel() if hasattr(col, "toarray") else np.asarray(col).ravel()
         sc_ = ax.scatter(coords[:, 0], coords[:, 1], c=expr, cmap="magma", s=10)
-        ax.set_title(g, fontsize=11, fontweight="bold", style="italic")
+        ax.set_title(g, fontsize=15, fontweight="bold", style="italic")
         fig.colorbar(sc_, ax=ax, fraction=0.046, pad=0.04)
-    fig.suptitle("Marker gene spatial expression", fontsize=13, fontweight="bold")
+    fig.suptitle("Marker gene spatial expression", fontsize=17, fontweight="bold")
     _save(fig, output_path)
 
 

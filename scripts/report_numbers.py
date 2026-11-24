@@ -22,6 +22,121 @@ def _fmt(x, pct=False, digits=1):
     return f"{x:.{digits}f}"
 
 
+
+def _pct(x):
+    return f"{100 * x:.0f}\\%"
+
+
+def _load(p):
+    p = PROJECT / p
+    return json.loads(p.read_text()) if p.exists() else None
+
+
+def _extra_macros() -> dict:
+    """Macros that used to be added to numbers.tex by hand."""
+    import importlib.util
+
+    import numpy as np
+
+    m = {}
+    # Pathology gaps (scripts/pathology_gaps.py).
+    pg = _load("results/breast_cancer/aggregate/pathology_margin_vs_invasive.json")
+    if pg:
+        m["PathMarginInvasiveGap"] = f"{pg['margin_vs_invasive_gap']:.2f}"
+        m["PathMarginInvasiveCILow"] = f"{pg['margin_vs_invasive_ci95'][0]:.3f}"
+        m["PathMarginInvasiveCIHigh"] = f"{pg['margin_vs_invasive_ci95'][1]:.3f}"
+        m["PathMarginRestGap"] = f"{pg['margin_vs_rest_gap']:.2f}"
+        m["PathMarginRestCILow"] = f"{pg['margin_vs_rest_ci95'][0]:.3f}"
+        m["PathMarginRestCIHigh"] = f"{pg['margin_vs_rest_ci95'][1]:.3f}"
+    # Gene-level selection frequency vs call consistency.
+    pf = PROJECT / "results" / "aggregate" / "per_feature_stability.csv"
+    if pf.exists():
+        s3 = pd.read_csv(pf)["s3_score"]
+        m["GeneSelFreqLowFrac"] = _pct((s3 < 0.5).mean())
+        m["GeneConsistentFrac"] = _pct((np.maximum(s3, 1 - s3) > 0.8).mean())
+    # Single-pipeline predictor (mosaic.predict_fragility).
+    fr = _load("results/aggregate/fragility_prediction.json")
+    fs = _load("results/aggregate/fragility_prediction_spatial_cv.json")
+    fb = _load("results/aggregate/fragility_prediction_buffered_spatial_cv.json")
+    if fr:
+        m["FragPredAUCRandomCILow"] = f"{fr['significance']['ci95_low']:.3f}"
+        m["FragPredAUCRandomCIHigh"] = f"{fr['significance']['ci95_high']:.3f}"
+        m["FragPredPermP"] = "$p\\le0.001$"
+        m["FragPredBestFeatAUC"] = f"{max(fr['per_feature_auc'].values()):.2f}"
+        m["FragPredDepthAUC"] = f"{fr['per_feature_auc']['depth']:.2f}"
+        m["FragPredNFragile"] = str(fr["n_fragile"])
+    if fs:
+        m["FragPredAUCSpatial"] = f"{fs['auc_combined_spatial_cv']:.2f}"
+        m["FragPredAUCSpatialCILow"] = f"{fs['significance']['ci95_low']:.3f}"
+        m["FragPredAUCSpatialCIHigh"] = f"{fs['significance']['ci95_high']:.3f}"
+        m["FragPredSpatialBlocks"] = str(fs["n_blocks"])
+    if fb:
+        m["FragPredAUCBuffered"] = f"{fb['auc_combined_buffered_spatial_cv']:.2f}"
+        m["FragPredAUCBufferedCILow"] = f"{fb['significance']['ci95_low']:.3f}"
+        m["FragPredAUCBufferedCIHigh"] = f"{fb['significance']['ci95_high']:.3f}"
+        m["FragPredBufferMultiple"] = f"{fb['buffer_multiple']:.0f}"
+        m["FragPredBufferDroppedPerFold"] = f"{fb['mean_train_spots_dropped_per_fold']:.0f}"
+    # Reference dependence of per-spot S3 (mosaic.reference_robustness).
+    rr = _load("results/aggregate/reference_robustness.json")
+    if rr:
+        m["RefRobustN"] = str(rr["n_references"])
+        m["RefRobustMeanPearson"] = f"{rr['mean_pairwise_pearson_r']:.2f}"
+        m["RefRobustMinPearson"] = f"{rr['min_pairwise_pearson_r']:.2f}"
+        m["RefRobustMeanPerSpotStd"] = f"{rr['mean_per_spot_std_across_refs']:.3f}"
+        m["RefRobustAggMeanStd"] = f"{rr['s3_across_refs_std_of_means']:.3f}"
+        lo, hi = rr.get("s3_across_refs_min"), rr.get("s3_across_refs_max")
+        if lo is not None and hi is not None:
+            m["RefRobustAggMeanRange"] = f"{lo:.2f}, {hi:.2f}"
+    # Reference-free consensus selection (mosaic.consensus_selection).
+    cs = _load("results/aggregate/consensus_selection_blind.json")
+    if cs:
+        m["ConsensusBlindLinkage"] = cs["blind_linkage"]
+        m["ConsensusBlindK"] = str(cs["blind_k"])
+        m["ConsensusBlindARI"] = f"{cs['blind_ari']:.3f}"
+        m["ConsensusOracleARI"] = f"{cs['oracle_ari']:.3f}"
+        m["ConsensusBlindOracleGap"] = f"{cs['ari_gap_blind_vs_oracle']:.3f}"
+        m["ConsensusSilARISpearman"] = f"{cs['silhouette_ari_spearman']:.2f}"
+        m["ConsensusNSettings"] = str(cs["n_settings_evaluated"])
+    cr = _load("results/aggregate/consensus_recovery_summary.json")
+    if cr and "uncertainty" in cr:
+        m["ConsensusSthreeCorrect"] = f"{cr['uncertainty']['mean_s3_correct']:.2f}"
+        m["ConsensusSthreeWrong"] = f"{cr['uncertainty']['mean_s3_incorrect']:.2f}"
+    # Full factorial (results/full_*) and categorical variance shares.
+    spec = importlib.util.spec_from_file_location(
+        "variance_categorical", PROJECT / "scripts" / "variance_categorical.py")
+    vc = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(vc)
+
+    def cat(prefix, path):
+        if not (PROJECT / path).exists():
+            return
+        base, ci, n = vc.shares_with_ci(PROJECT / path)
+        for term, name in (("res", "Res"), ("k", "K"), ("norm", "Norm"),
+                           ("hvgm", "Hvg"), ("Residual", "Resid")):
+            if term in base:
+                m[f"{prefix}{name}"] = _pct(base[term])
+                lo, hi = ci[term]
+                m[f"{prefix}{name}CI"] = f"{100 * lo:.0f}--{100 * hi:.0f}\\%"
+        return n
+
+    cat("CatHne", "results/aggregate/specification_curves.json")
+    cat("CatBreast", "results/breast_cancer/aggregate/specification_curves.json")
+    n_full = cat("FullHne", "results/full_hne/aggregate/specification_curves.json")
+    cat("FullBreast", "results/full_breast_cancer/aggregate/specification_curves.json")
+    if n_full:
+        m["FullNspecs"] = str(n_full)
+    for tag, d in (("Hne", "full_hne"), ("Breast", "full_breast_cancer")):
+        pa = _load(f"results/{d}/aggregate/partition_concordance_ari.json")
+        st = _load(f"results/{d}/aggregate/statistics_summary.json")
+        ps = PROJECT / "results" / d / "aggregate" / "per_spot_stability.csv"
+        if pa:
+            m[f"FullAri{tag}"] = f"{pa['mean']:.2f}"
+        if ps.exists():
+            m[f"FullFragile{tag}"] = _pct((pd.read_csv(ps)["s3_score"] < 0.5).mean())
+        if st:
+            m[f"FullGap{tag}"] = f"{st['stakes_stratified']['gap_interior_minus_boundary']:.2f}"
+    return m
+
 def main() -> None:
     per_spot = pd.read_csv(AGG / "per_spot_stability.csv")
     per_feature = pd.read_csv(AGG / "per_feature_stability.csv")
@@ -143,6 +258,8 @@ def main() -> None:
         pdp = pj.get("p_value_depth_controlled", 1)
         macros["PathP"] = "\\le 0.001" if pp < 0.001 else _fmt(pp, digits=3)
         macros["PathDepthP"] = "\\le 0.001" if pdp < 0.001 else _fmt(pdp, digits=3)
+
+    macros.update(_extra_macros())
 
     lines = [
         "% Auto-generated by scripts/report_numbers.py -- do not edit by hand.",

@@ -194,11 +194,7 @@ def figure1_spec_montage(
         ax.text(-0.08, 1.14, chr(ord("A") + i), transform=ax.transAxes,
                 fontsize=16, fontweight="bold", va="top", ha="left")
 
-    fig.suptitle(
-        "Biological conclusions depend sensitively on analytical choices",
-        fontsize=15, fontweight="bold",
-    )
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.tight_layout()
     _save(fig, output_path)
 
 
@@ -311,7 +307,7 @@ def figure3_stability_summary(
              color="#4DAF4A", ecolor="#555555", capsize=2)
     axC.set_yticks(range(len(dom)))
     axC.set_yticklabels([f"domain {int(i)} (n={int(c)})" for i, c in zip(dom.index, dom["count"])],
-                        fontsize=8)
+                        fontsize=12)
     axC.set_xlim(0, 1)
     axC.set_xlabel("Mean S3")
     axC.set_title("C  Stability by consensus domain")
@@ -360,7 +356,7 @@ def ed4_spec_space_table(
         tbl[0, j].set_facecolor("#377EB8")
         tbl[0, j].set_text_props(color="white", fontweight="bold")
     ax.set_title("Extended Data 4 | Curated specification space",
-                 fontsize=13, fontweight="bold", pad=12)
+                 fontsize=17, fontweight="bold", pad=12)
     _save(fig, output_path)
 
 
@@ -395,7 +391,7 @@ def ed5_per_feature_stability(
     colors = ["#D73027" if v < 0.5 else "#FEE08B" if v < 0.8 else "#1A9850" for v in freq]
     axes[0].barh(range(len(freq)), freq.values, color=colors)
     axes[0].set_yticks(range(len(freq)))
-    axes[0].set_yticklabels(freq.index, fontsize=8)
+    axes[0].set_yticklabels(freq.index, fontsize=12)
     axes[0].invert_yaxis()
     axes[0].set_xlim(0, 1)
     axes[0].axvline(0.5, color="#555555", ls="--", lw=1)
@@ -405,7 +401,7 @@ def ed5_per_feature_stability(
     sub = conc.loc[freq.index]
     axes[1].imshow(sub.values, aspect="auto", cmap="binary", interpolation="nearest")
     axes[1].set_yticks(range(len(sub)))
-    axes[1].set_yticklabels(sub.index, fontsize=8)
+    axes[1].set_yticklabels(sub.index, fontsize=12)
     axes[1].set_xticks(range(sub.shape[1]))
     axes[1].set_xticklabels(sub.columns, rotation=90, fontsize=6)
     axes[1].set_title("B  SVG called (black) per specification")
@@ -467,7 +463,7 @@ def ed6_headline_instability(
     axes[2].set_xlabel("Clustering resolution")
     axes[2].set_ylabel("N domains")
     axes[2].set_title("C  Domain count vs resolution\n(color = algorithm)")
-    axes[2].legend(fontsize=9)
+    axes[2].legend(fontsize=13)
 
     fig.suptitle("Extended Data 6 | Instability in headline conclusions",
                  fontsize=14, fontweight="bold")
@@ -509,9 +505,9 @@ def ed7_reference_validation(
 
     im = axes[0].imshow(ct_norm.values, aspect="auto", cmap="magma", vmin=0, vmax=1)
     axes[0].set_xticks(range(ct_norm.shape[1]))
-    axes[0].set_xticklabels(ct_norm.columns, fontsize=8)
+    axes[0].set_xticklabels(ct_norm.columns, fontsize=12)
     axes[0].set_yticks(range(ct_norm.shape[0]))
-    axes[0].set_yticklabels(ct_norm.index, fontsize=9)
+    axes[0].set_yticklabels(ct_norm.index, fontsize=13)
     axes[0].set_xlabel("Consensus domain")
     axes[0].set_ylabel("Reference anatomical region")
     axes[0].set_title("A  Consensus domains recover known anatomy")
@@ -523,7 +519,7 @@ def ed7_reference_validation(
                  color="#1B9E77", ecolor="#555555", capsize=2)
     axes[1].set_yticks(range(len(agg)))
     axes[1].set_yticklabels([f"{r} (n={int(c)})" for r, c in zip(agg.index, agg["count"])],
-                            fontsize=8)
+                            fontsize=12)
     axes[1].set_xlim(0, 1)
     axes[1].set_xlabel("Mean S3")
     axes[1].set_title("B  Stability by anatomical region")
@@ -584,7 +580,7 @@ def ed8_cross_dataset(
     axd.set_xlabel("Per-spot S3")
     axd.set_ylabel("Spots")
     axd.set_title("S3 distributions are conserved across datasets")
-    axd.legend(fontsize=9)
+    axd.legend(fontsize=13)
 
     fig.suptitle("Extended Data 8 | Generalization across independent datasets",
                  fontsize=14, fontweight="bold")

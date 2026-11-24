@@ -68,13 +68,9 @@ def main() -> None:
         pc.set_facecolor(COLORS.get(cats[i], "#999999"))
         pc.set_alpha(0.7)
     ax.set_xticks(range(1, len(cats) + 1))
-    ax.set_xticklabels([f"{c}\n(n={int((df['annot_type']==c).sum())})" for c in cats], fontsize=9)
+    ax.set_xticklabels([f"{c}\n(n={int((df['annot_type']==c).sum())})" for c in cats], fontsize=13)
     ax.set_ylabel("Per-spot S3 (stability)")
-    ax.set_title("Analytical fragility peaks at the pathologist-annotated tumor margin\n"
-                 f"(margin S3={res['margin_mean_s3']:.2f} vs invasive core "
-                 f"{res['per_category_mean_s3'].get('Invasive', float('nan')):.2f}; "
-                 f"p<0.001, survives depth control)",
-                 fontsize=12, fontweight="bold")
+    ax.set_title("Per-spot S3 by SEDR pathology region", fontsize=16, fontweight="bold")
     fig.savefig(PROJECT / "results" / "breast_cancer" / "figures" / "16_pathology_stakes.png",
                 dpi=300, bbox_inches="tight")
     plt.close(fig)

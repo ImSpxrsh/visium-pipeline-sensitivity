@@ -1,12 +1,12 @@
 {
   "blind_linkage": "average",
-  "blind_k": 18,
-  "blind_silhouette": 0.7663758397102356,
-  "blind_ari": 0.7609268640574286,
+  "blind_k": 15,
+  "blind_silhouette": 0.7586894035339355,
+  "blind_ari": 0.7801901298957251,
   "oracle_linkage": "average",
-  "oracle_k": 18,
-  "oracle_ari": 0.7609268640574286,
-  "ari_gap_blind_vs_oracle": 0.0,
-  "silhouette_ari_spearman": 0.9112487100103198,
+  "oracle_k": 17,
+  "oracle_ari": 0.7828105491838057,
+  "ari_gap_blind_vs_oracle": 0.0026204192880805444,
+  "silhouette_ari_spearman": 0.7213622291021672,
   "n_settings_evaluated": 18
 }

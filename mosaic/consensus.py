@@ -257,13 +257,12 @@ def plot_consensus_recovery(result: Dict[str, Any], output_path: Optional[Path] 
                 label=f"consensus ({linkage} linkage)")
     ax.axvline(result["n_reference_regions"], color="#D73027", ls="-", lw=1, alpha=0.6)
     ax.text(result["n_reference_regions"], ax.get_ylim()[0], " reference\n granularity",
-            color="#D73027", fontsize=8, va="bottom")
+            color="#D73027", fontsize=12, va="bottom")
     ax.set_xlabel("Consensus granularity (k domains)")
     ax.set_ylabel("Anatomy recovery (ARI vs reference)")
-    ax.set_title("The multiverse consensus recovers anatomy as well as, or better than,\n"
-                 "any single pipeline — without needing the ground truth to pick it",
-                 fontsize=12, fontweight="bold")
-    ax.legend(fontsize=8, loc="lower right")
+    ax.set_title("Consensus vs single pipelines (ARI with reference)",
+                 fontsize=16, fontweight="bold")
+    ax.legend(fontsize=12, loc="lower right")
     if output_path is not None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output_path, dpi=300, bbox_inches="tight")

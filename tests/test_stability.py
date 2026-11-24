@@ -109,3 +109,35 @@ def test_headline_instability_stats():
     assert stats["min"] == 5.0
     assert stats["max"] == 9.0
     assert stats["range"] == 4.0
+
+
+def test_unmatched_clusters_do_not_share_labels():
+    """Unmatched clusters get distinct labels within and across specs."""
+    ref = np.array([0, 0, 1, 1, 1, 1])
+    a = np.array([0, 0, 1, 1, 2, 3])  # clusters 2 and 3 cannot both match
+    b = np.array([0, 0, 1, 1, 2, 3])
+    la = _align_labels_to_reference(a, ref, spec_index=0)
+    lb = _align_labels_to_reference(b, ref, spec_index=1)
+    unmatched_a = set(la[la >= 2])
+    unmatched_b = set(lb[lb >= 2])
+    assert len(unmatched_a) == 2          # not merged into one overflow label
+    assert unmatched_a.isdisjoint(unmatched_b)  # and never shared across specs
+
+
+def test_unmatched_spots_do_not_inflate_s3():
+    """Spots in unrelated unmatched clusters should not count as agreeing."""
+    import anndata as ad
+    import pandas as pd
+
+    n = 6
+    ref = ["0", "0", "1", "1", "1", "1"]
+    other = ["0", "0", "1", "1", "2", "3"]
+    sc = StabilityScorer(verbose=False)
+    for i, labs in enumerate([ref, other, other]):
+        a = ad.AnnData(np.zeros((n, 1), dtype=np.float32))
+        a.obs["leiden"] = pd.Categorical(labs)
+        sc.add_result({"name": str(i)}, a, {})
+    s3 = sc.compute_per_spot_stability("leiden")["s3_score"].values
+    # The two unmatched spots never share a label across the 3 specs.
+    assert np.all(s3[:4] == 1.0)
+    assert np.all(s3[4:] < 1.0)

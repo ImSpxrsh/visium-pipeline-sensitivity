@@ -23,13 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 def _align_labels_to_reference(
-    labels: np.ndarray, ref_labels: np.ndarray
+    labels: np.ndarray, ref_labels: np.ndarray, spec_index: int = 0
 ) -> np.ndarray:
     """
     Relabel ``labels`` so its clusters best match ``ref_labels`` by overlap.
 
     Uses the Hungarian algorithm on the negative contingency table. Returns an
-    integer array aligned to the reference label space.
+    integer array aligned to the reference label space. Clusters left unmatched
+    (when ``labels`` has more clusters than the reference) each get their own
+    label, ``n_ref + 1000 * spec_index + code``, so unmatched clusters never
+    share a label with each other or with unmatched clusters from other specs.
+    Callers comparing several specs must pass distinct ``spec_index`` values.
     """
     from scipy.optimize import linear_sum_assignment
 
@@ -47,14 +51,16 @@ def _align_labels_to_reference(
     row_ind, col_ind = linear_sum_assignment(-contingency)
     mapping = {int(r): int(c) for r, c in zip(row_ind, col_ind)}
 
-    # Clusters with no assigned reference (n_cur > n_ref) keep a fresh label.
-    next_label = n_ref
-    aligned = np.empty_like(cur_codes)
+    # Clusters with no assigned reference (n_cur > n_ref) get a label unique to
+    # this (spec, cluster). Earlier versions gave every unmatched cluster the
+    # same label n_ref in every spec, which made unrelated unmatched clusters
+    # count as agreeing.
+    aligned = np.empty(len(cur_codes), dtype=np.int64)
     for i, code in enumerate(cur_codes):
         if code in mapping:
             aligned[i] = mapping[code]
         else:
-            aligned[i] = next_label
+            aligned[i] = int(n_ref) + 1000 * int(spec_index) + int(code)
     return aligned
 
 
@@ -92,7 +98,7 @@ class StabilityScorer:
         ref_labels = ref_adata.obs[cluster_key].values
 
         aligned_cols = []
-        for _, adata, _ in self.results:
+        for spec_index, (_, adata, _) in enumerate(self.results):
             if cluster_key not in adata.obs:
                 logger.warning("Missing cluster key %r; skipping a spec", cluster_key)
                 continue
@@ -100,7 +106,9 @@ class StabilityScorer:
                 logger.warning("Spot index mismatch vs reference; skipping a spec")
                 continue
             aligned_cols.append(
-                _align_labels_to_reference(adata.obs[cluster_key].values, ref_labels)
+                _align_labels_to_reference(
+                    adata.obs[cluster_key].values, ref_labels, spec_index=spec_index
+                )
             )
 
         cluster_matrix = np.array(aligned_cols).T  # (n_spots, n_specs_used)

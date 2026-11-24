@@ -1,16 +1,15 @@
 {
-  "auc_combined_spatial_cv": 0.7891341164703141,
+  "auc_combined_spatial_cv": 0.6974360426589942,
   "n_blocks": 10,
-  "n_fragile": 294,
+  "n_fragile": 383,
   "n_spots": 2688,
   "significance": {
-    "auc_observed": 0.7891341164703141,
-    "ci95_low": 0.7587979403345664,
-    "ci95_high": 0.8184047265966684,
+    "auc_observed": 0.6974360426589942,
+    "ci95_low": 0.665052436904803,
+    "ci95_high": 0.732086071851704,
     "n_boot_used": 1000,
     "permutation_p_value": 0.000999000999000999,
     "n_perm": 1000
   },
-  "random_split_auc_for_comparison": 0.8148389681687209,
-  "methodology": "Same features/classifier as fragility_prediction.json (local_heterogeneity, neighbor_disagreement, depth, n_genes; logistic regression), but cross-validated with GroupKFold over 10 k-means spatial blocks of spot coordinates instead of random StratifiedKFold, so no fold's held-out spots are spatially adjacent to its training spots."
+  "random_split_auc_for_comparison": 0.7489077553054717
 }

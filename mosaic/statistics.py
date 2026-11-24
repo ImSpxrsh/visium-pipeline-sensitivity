@@ -29,11 +29,12 @@ def build_aligned_matrix(runs: List[Dict[str, Any]], cluster_key: str = "leiden"
 
     ref = runs[0]["adata"]
     cols = []
-    for r in runs:
+    for spec_index, r in enumerate(runs):
         a = r["adata"]
         if cluster_key in a.obs and a.obs_names.equals(ref.obs_names):
             cols.append(_align_labels_to_reference(a.obs[cluster_key].values,
-                                                    ref.obs[cluster_key].values))
+                                                    ref.obs[cluster_key].values,
+                                                    spec_index=spec_index))
     return np.array(cols).T, ref.obs_names
 
 
@@ -497,10 +498,10 @@ def plot_fragility_report(runs: List[Dict[str, Any]], output_path: Optional[Path
     ax.set_ylabel("FDR-adjusted Moran's I p-value (log)")
     n_sig = int(df["significant"].sum())
     ax.set_title(f"'{gene}' is called a significant SVG in {n_sig}/{len(df)} defensible "
-                 f"pipelines (S3 = {s3:.2f})", fontsize=12, fontweight="bold")
+                 f"pipelines (S3 = {s3:.2f})", fontsize=16, fontweight="bold")
     ax.legend()
     fig.suptitle("Fragility-aware reporting: a headline SVG that flips across pipelines",
-                 fontsize=13, fontweight="bold")
+                 fontsize=17, fontweight="bold")
     _save(fig, output_path)
 
 
@@ -597,10 +598,10 @@ def generate_stats_figures(results_dir: Path, output_dir: Path, lean: bool = Fal
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.barh(var["term"][::-1], 100 * var["variance_fraction"][::-1], color="#377EB8")
     ax.set_xlabel("Variance in domain count explained (%)")
-    ax.set_title("Which analytical choice drives instability most?",
-                 fontsize=12, fontweight="bold")
+    ax.set_title("Share of variance in domain count (linear-term fit)",
+                 fontsize=16, fontweight="bold")
     for i, v in enumerate(var["variance_fraction"][::-1]):
-        ax.text(100 * v + 0.5, i, f"{100 * v:.0f}%", va="center", fontsize=9)
+        ax.text(100 * v + 0.5, i, f"{100 * v:.0f}%", va="center", fontsize=13)
     _save(fig, output_dir / "08_variance_decomposition.png")
 
     # Fig 9: permutation null vs observed per-region S3.
@@ -611,12 +612,12 @@ def generate_stats_figures(results_dir: Path, output_dir: Path, lean: bool = Fal
         ax.barh(range(len(perm)), perm["observed_mean_s3"], color=colors)
         ax.set_yticks(range(len(perm)))
         ax.set_yticklabels([f"{r}  (p={p:.3f})" for r, p in
-                            zip(perm["region"], perm["p_value"])], fontsize=8)
+                            zip(perm["region"], perm["p_value"])], fontsize=12)
         ax.invert_yaxis()
         ax.set_xlim(0, 1)
         ax.set_xlabel("Observed mean S3")
         ax.set_title("Per-region stability vs permutation null (green: p<0.05)",
-                     fontsize=12, fontweight="bold")
+                     fontsize=16, fontweight="bold")
         _save(fig, output_dir / "09_permutation_test.png")
 
     # Fig 10: multiverse-size convergence.
@@ -627,7 +628,7 @@ def generate_stats_figures(results_dir: Path, output_dir: Path, lean: bool = Fal
     ax.set_xlabel("Number of specifications sampled")
     ax.set_ylabel("Mean per-spot S3")
     ax.set_title("S3 estimates converge as the multiverse grows",
-                 fontsize=12, fontweight="bold")
+                 fontsize=16, fontweight="bold")
     ax.grid(True, alpha=0.3)
     _save(fig, output_dir / "10_convergence.png")
 
@@ -644,7 +645,7 @@ def generate_stats_figures(results_dir: Path, output_dir: Path, lean: bool = Fal
         ax.set_xlabel("Total UMI counts per spot")
         ax.set_ylabel("Per-spot S3")
         ax.set_title(f"S3 is not a depth artifact (Pearson r = {conf['pearson_r']:.2f})",
-                     fontsize=12, fontweight="bold")
+                     fontsize=16, fontweight="bold")
         ax.legend()
         _save(fig, output_dir / "11_confound_umi.png")
 
@@ -662,19 +663,19 @@ def generate_stats_figures(results_dir: Path, output_dir: Path, lean: bool = Fal
     axes[0].invert_yaxis()
     axes[0].set_xticks([])
     axes[0].set_yticks([])
-    axes[0].legend(loc="upper right", fontsize=8)
-    axes[0].set_title("A  Consensus-domain boundary proxy", fontsize=12, fontweight="bold")
+    axes[0].legend(loc="upper right", fontsize=12)
+    axes[0].set_title("A  Consensus-domain boundary proxy", fontsize=16, fontweight="bold")
     axes[1].hist(s3[~boundary], bins=25, histtype="step", lw=2, color="#555555",
                  density=True, label=f"interior (mean {stakes['interior_mean_s3']:.2f})")
     axes[1].hist(s3[boundary], bins=25, histtype="step", lw=2, color="#D73027",
                  density=True, label=f"boundary (mean {stakes['boundary_mean_s3']:.2f})")
     axes[1].set_xlabel("Per-spot S3")
     axes[1].set_ylabel("Density")
-    axes[1].legend(fontsize=9)
+    axes[1].legend(fontsize=13)
     axes[1].set_title(f"B  Boundaries are more fragile (p={stakes['p_value']:.4f})",
-                      fontsize=12, fontweight="bold")
+                      fontsize=16, fontweight="bold")
     fig.suptitle("H1: analytical fragility concentrates at domain boundaries",
-                 fontsize=13, fontweight="bold")
+                 fontsize=17, fontweight="bold")
     _save(fig, output_dir / "13_stakes_stratified.png")
 
     # Fig 14: fragility-aware reporting demo (a headline SVG that flips).

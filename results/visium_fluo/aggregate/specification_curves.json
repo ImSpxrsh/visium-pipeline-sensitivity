@@ -27,7 +27,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 110.54565930366516,
+      "runtime_seconds": 119.24435043334961,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -36,6 +36,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 10,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "canonical_seurat",
       "spec_hash": "20beec4d"
@@ -67,7 +68,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 69.95671391487122,
+      "runtime_seconds": 82.99158549308777,
       "normalization_used": "log1p",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -76,6 +77,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 12,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 2000,
       "spec_name": "conservative_2k_hvgs",
       "spec_hash": "dbfd74b8"
@@ -107,7 +109,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 164.27980589866638,
+      "runtime_seconds": 175.17374181747437,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -116,6 +118,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 11,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 5000,
       "spec_name": "aggressive_5k_hvgs",
       "spec_hash": "50813a56"
@@ -147,7 +150,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 101.19104528427124,
+      "runtime_seconds": 113.90608882904053,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -156,6 +159,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 11,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "hvg_cellranger",
       "spec_hash": "d0955b63"
@@ -187,7 +191,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 102.1314160823822,
+      "runtime_seconds": 104.56236243247986,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -196,6 +200,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 10,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "norm_sqrt",
       "spec_hash": "d5bb2464"
@@ -227,7 +232,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 98.9604721069336,
+      "runtime_seconds": 111.6131203174591,
       "normalization_used": "total",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -236,6 +241,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 9,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "norm_total",
       "spec_hash": "0f689eda"
@@ -267,7 +273,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 103.74243092536926,
+      "runtime_seconds": 113.08253765106201,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -275,7 +281,8 @@
       "graph_param": 15,
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
-      "n_clusters_found": 10,
+      "n_clusters_found": 9,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "pca_50",
       "spec_hash": "413d6e07"
@@ -307,7 +314,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 97.99687504768372,
+      "runtime_seconds": 113.25552940368652,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -316,6 +323,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 12,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "small_k6",
       "spec_hash": "c868d3ff"
@@ -347,7 +355,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 98.9729962348938,
+      "runtime_seconds": 113.75559592247009,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -356,6 +364,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 10,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "medium_k10",
       "spec_hash": "2e3f9edc"
@@ -387,7 +396,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 103.99621891975403,
+      "runtime_seconds": 109.9487624168396,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -395,7 +404,8 @@
       "graph_param": 15,
       "clustering_method": "leiden",
       "clustering_resolution": 0.3,
-      "n_clusters_found": 8,
+      "n_clusters_found": 9,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "coarse_res03",
       "spec_hash": "2cc49477"
@@ -427,7 +437,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 99.68559098243713,
+      "runtime_seconds": 114.24221277236938,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -436,6 +446,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.8,
       "n_clusters_found": 14,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "fine_res08",
       "spec_hash": "28401edf"
@@ -467,7 +478,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 97.34019207954407,
+      "runtime_seconds": 111.82831597328186,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -476,6 +487,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 1.2,
       "n_clusters_found": 16,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "veryfine_res12",
       "spec_hash": "fb369d66"
@@ -507,7 +519,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 97.37912702560425,
+      "runtime_seconds": 110.9862232208252,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -516,6 +528,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 0.5,
       "n_clusters_found": 10,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "louvain_res05",
       "spec_hash": "865655d2"
@@ -547,7 +560,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 98.15848302841187,
+      "runtime_seconds": 118.4516499042511,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -556,6 +569,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 0.8,
       "n_clusters_found": 14,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "louvain_res08",
       "spec_hash": "157982b4"
@@ -587,7 +601,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 68.24675583839417,
+      "runtime_seconds": 75.35756540298462,
       "normalization_used": "sqrt",
       "n_hvgs": 2000,
       "n_pca_components": 50,
@@ -595,7 +609,8 @@
       "graph_param": 6,
       "clustering_method": "louvain",
       "clustering_resolution": 1.2,
-      "n_clusters_found": 16,
+      "n_clusters_found": 17,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 2000,
       "spec_name": "extreme_sqrt_2k_fine",
       "spec_hash": "132fa514"
@@ -627,7 +642,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 163.4102258682251,
+      "runtime_seconds": 173.75645065307617,
       "normalization_used": "total",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -636,6 +651,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.3,
       "n_clusters_found": 9,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 5000,
       "spec_name": "extreme_total_5k_coarse",
       "spec_hash": "ed76a202"
@@ -667,7 +683,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 99.153813123703,
+      "runtime_seconds": 124.71535587310791,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -675,7 +691,8 @@
       "graph_param": 15,
       "clustering_method": "leiden",
       "clustering_resolution": 0.8,
-      "n_clusters_found": 12,
+      "n_clusters_found": 13,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "pca50_fine",
       "spec_hash": "de3a5ace"
@@ -707,7 +724,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 103.2602641582489,
+      "runtime_seconds": 122.80954122543335,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -716,6 +733,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 0.5,
       "n_clusters_found": 10,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "pca50_louvain",
       "spec_hash": "c8b286f4"
@@ -747,7 +765,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 185.57537388801575,
+      "runtime_seconds": 122.76517844200134,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -756,6 +774,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 0.3,
       "n_clusters_found": 9,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "louvain_coarse_res03",
       "spec_hash": "a8a1485d"
@@ -787,7 +806,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 102.43286299705505,
+      "runtime_seconds": 121.9054582118988,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -796,6 +815,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 1.2,
       "n_clusters_found": 17,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "louvain_fine_res12",
       "spec_hash": "488d0e3c"
@@ -827,7 +847,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 99.62434673309326,
+      "runtime_seconds": 123.21244812011719,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -836,6 +856,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.8,
       "n_clusters_found": 16,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "small_k6_fine",
       "spec_hash": "ac69cb39"
@@ -867,7 +888,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 796.4888429641724,
+      "runtime_seconds": 114.54452967643738,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -875,7 +896,8 @@
       "graph_param": 6,
       "clustering_method": "leiden",
       "clustering_resolution": 0.3,
-      "n_clusters_found": 9,
+      "n_clusters_found": 8,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "sqrt_smallk_coarse",
       "spec_hash": "9af853eb"
@@ -907,7 +929,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 324.7324318885803,
+      "runtime_seconds": 179.14765429496765,
       "normalization_used": "sqrt",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -916,6 +938,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
       "n_clusters_found": 13,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 5000,
       "spec_name": "sqrt_5k_medium",
       "spec_hash": "6904c73e"
@@ -947,7 +970,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 71.36589884757996,
+      "runtime_seconds": 90.68799090385437,
       "normalization_used": "total",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -955,7 +978,8 @@
       "graph_param": 15,
       "clustering_method": "leiden",
       "clustering_resolution": 0.8,
-      "n_clusters_found": 11,
+      "n_clusters_found": 12,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 2000,
       "spec_name": "total_2k_fine",
       "spec_hash": "d10cc090"
@@ -987,7 +1011,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 68.94427514076233,
+      "runtime_seconds": 85.84615635871887,
       "normalization_used": "log1p",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -996,6 +1020,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.3,
       "n_clusters_found": 8,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 2000,
       "spec_name": "cellranger_2k_coarse",
       "spec_hash": "f92ec48e"
@@ -1027,7 +1052,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 164.81053709983826,
+      "runtime_seconds": 176.38489770889282,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 50,
@@ -1036,6 +1061,7 @@
       "clustering_method": "leiden",
       "clustering_resolution": 0.8,
       "n_clusters_found": 13,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 5000,
       "spec_name": "cellranger_5k_fine",
       "spec_hash": "92b85d95"
@@ -1067,7 +1093,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 99.84498476982117,
+      "runtime_seconds": 116.93385863304138,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -1075,7 +1101,8 @@
       "graph_param": 6,
       "clustering_method": "leiden",
       "clustering_resolution": 0.5,
-      "n_clusters_found": 11,
+      "n_clusters_found": 9,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "pca50_k6",
       "spec_hash": "5abb376a"
@@ -1107,7 +1134,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 99.59580302238464,
+      "runtime_seconds": 105.5922920703888,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -1116,6 +1143,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 0.8,
       "n_clusters_found": 13,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "sqrt_louvain_res08",
       "spec_hash": "ab377306"
@@ -1147,7 +1175,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 105.34013104438782,
+      "runtime_seconds": 115.14879488945007,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -1155,7 +1183,8 @@
       "graph_param": 10,
       "clustering_method": "leiden",
       "clustering_resolution": 1.2,
-      "n_clusters_found": 18,
+      "n_clusters_found": 17,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "k10_veryfine_res12",
       "spec_hash": "31634f8a"
@@ -1187,7 +1216,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 171.83073091506958,
+      "runtime_seconds": 174.10247611999512,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -1196,6 +1225,7 @@
       "clustering_method": "louvain",
       "clustering_resolution": 0.5,
       "n_clusters_found": 11,
+      "svg_method": "morans_i",
       "n_svg_genes_tested": 5000,
       "spec_name": "aggressive_5k_louvain",
       "spec_hash": "20b301f3"

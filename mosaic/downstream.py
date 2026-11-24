@@ -133,8 +133,7 @@ def plot_downstream(df: pd.DataFrame, output_path: Optional[Path] = None) -> Non
     axes[0].set_xlabel("Specification (sorted by accuracy)")
     axes[0].set_ylabel("Region-classification accuracy (5-fold CV)")
     rng = 100 * (d["accuracy"].max() - d["accuracy"].min())
-    axes[0].set_title(f"A  Downstream accuracy varies {rng:.1f} pp across pipelines",
-                      fontsize=12, fontweight="bold")
+    axes[0].set_title("A  Accuracy", fontsize=16, fontweight="bold")
 
     if "ece" in df.columns:
         de = df.sort_values("ece").reset_index(drop=True)
@@ -142,16 +141,13 @@ def plot_downstream(df: pd.DataFrame, output_path: Optional[Path] = None) -> Non
         axes[1].set_xlabel("Specification (sorted by ECE)")
         axes[1].set_ylabel("Expected calibration error")
         rng_e = de["ece"].max() - de["ece"].min()
-        axes[1].set_title(f"B  Calibration (ECE) varies {rng_e:.3f} across pipelines",
-                          fontsize=12, fontweight="bold")
+        axes[1].set_title("B  Calibration error", fontsize=16, fontweight="bold")
     else:
         axes[1].scatter(df["resolution"], df["accuracy"], c="#984EA3", s=50)
         axes[1].set_xlabel("Clustering resolution")
         axes[1].set_ylabel("Accuracy")
-        axes[1].set_title("B  Accuracy vs upstream resolution", fontsize=12, fontweight="bold")
+        axes[1].set_title("B  Accuracy vs upstream resolution", fontsize=16, fontweight="bold")
 
-    fig.suptitle("Pipeline choice propagates into downstream accuracy and calibration",
-                 fontsize=13, fontweight="bold")
     if output_path is not None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output_path, dpi=300, bbox_inches="tight")

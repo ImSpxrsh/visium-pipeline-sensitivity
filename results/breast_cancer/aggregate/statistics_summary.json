@@ -1,32 +1,32 @@
 {
   "confound_umi": {
-    "pearson_r": 0.4470851698948344,
-    "pearson_p": 4.4108931785783395e-186,
-    "spearman_r": 0.5073943542286561,
-    "spearman_p": 1.109258432701559e-247,
+    "pearson_r": 0.4502513104613662,
+    "pearson_p": 5.120609627607586e-189,
+    "spearman_r": 0.5110885665929837,
+    "spearman_p": 7.154908416289109e-252,
     "n_spots": 3798
   },
   "variance_top_axis": {
     "term": "resolution",
-    "variance_fraction": 0.7192452708470135
+    "variance_fraction": 0.6783044390490747
   },
   "regions_stable_p05": 0,
   "n_regions": 0,
   "stakes_stratified": {
     "strata": "consensus_boundary_proxy",
-    "boundary_mean_s3": 0.7265862944162436,
-    "interior_mean_s3": 0.873087308730873,
-    "gap_interior_minus_boundary": 0.14650101431462947,
+    "boundary_mean_s3": 0.7268789808917198,
+    "interior_mean_s3": 0.8726810293237584,
+    "gap_interior_minus_boundary": 0.1458020484320386,
     "p_value": 0.000999000999000999,
-    "n_boundary": 1576,
-    "n_interior": 2222
+    "n_boundary": 1570,
+    "n_interior": 2228
   },
   "stakes_stratified_depth_controlled": {
-    "gap_interior_minus_boundary": 0.14650101431462947,
+    "gap_interior_minus_boundary": 0.1458020484320386,
     "p_value_depth_controlled": 0.000999000999000999,
-    "depth_boundary_median": 15443.0,
-    "depth_interior_median": 25226.0,
-    "depth_groups_differ_mannwhitney_p": 5.045989298755135e-55,
+    "depth_boundary_median": 15532.0,
+    "depth_interior_median": 25152.0,
+    "depth_groups_differ_mannwhitney_p": 1.429183248497365e-52,
     "n_depth_bins": 10
   },
   "fragility_example": {

@@ -177,9 +177,11 @@ both at the given resolution. Moran's $I$ uses
 (\texttt{sq.gr.spatial\_neighbors}) with 100 permutations and BH
 correction over all HVGs tested in that specification. All random steps
 use seed 42. Repeated runs of a fixed specification with the same
-software versions gave identical spot labels; we have not checked
-determinism across library versions. Package versions are pinned in the
-repository (\texttt{constraints.txt}).
+software versions gave identical spot labels. Labels are not identical
+across library versions: rerunning the curated pipelines on a second
+machine changed mean domain count by at most 0.04 and mean pairwise ARI by
+at most 0.003 per section. All numbers here come from that rerun, with the
+package versions pinned in the repository (\texttt{constraints.txt}).
 
 \subsection{Agreement score}
 \label{sec:s3}
@@ -190,8 +192,9 @@ specification $s_0$ (the canonical pipeline) using the overlap matrix
 $M^{(s)}_{ab}=|\{i: c_{s_0}(i)=a \wedge c_s(i)=b\}|$ and the one-to-one
 assignment that maximizes total overlap (Hungarian
 algorithm~\cite{kuhn1955hungarian}). If $s$ has more clusters than $s_0$,
-the unmatched clusters all receive one shared overflow label, which is the
-same in every specification. If $s$ has fewer clusters, some reference
+each unmatched cluster receives its own new label, unique to that
+specification, so unmatched clusters never count as agreeing with each
+other. If $s$ has fewer clusters, some reference
 labels go unused. With matched labels $\tilde c_s(i)$, per-spot agreement
 is the fraction of specifications that give the most common label,
 \begin{equation}
@@ -211,12 +214,15 @@ specifications, which needs no label matching.
 
 \textbf{Limitations of $S^3_{\text{spot}}$.} One-to-one matching handles
 splits and merges poorly: when one pipeline splits a reference cluster in
-two, only one half can match, and the shared overflow label can make spots
-in unrelated unmatched clusters look like they agree. $S^3_{\text{spot}}$
+two, only one half can match, and spots in the other half count as
+disagreeing. (An earlier version of our code gave all unmatched clusters
+one shared label, which made unrelated unmatched clusters look like they
+agreed; about 15\% of spot--pipeline entries were affected. All results
+here use the corrected rule.) $S^3_{\text{spot}}$
 also depends on the reference. Recomputing it with each of the
 \RefRobustN{} mouse-brain specifications as the reference, the
-section-wide mean stays in $[\RefRobustAggMeanRange{}]$ (standard
-deviation \RefRobustAggMeanStd{}), but per-spot maps from different
+section-wide mean changes little (standard deviation
+\RefRobustAggMeanStd{} across references), but per-spot maps from different
 references correlate at only \RefRobustMeanPearson{} on average (lowest
 pair \RefRobustMinPearson{}), and a spot's score varies by
 \RefRobustMeanPerSpotStd{} (standard deviation) across references. The
@@ -257,7 +263,7 @@ structure fall into the residual, which we report. In the curated set the
 axes are correlated, so the shares are not an exact partition. Intervals
 are 95\% bootstrap intervals over 1000 resamples of pipelines.
 Fig.~\ref{fig:variance} shows an earlier fit with the four numeric axes as
-linear terms; its shares are within two points of the categorical fit.
+linear terms; its shares are within five points of the categorical fit.
 Finally,
 we \textbf{correlate $S^3$ with sequencing depth} (total UMI per spot).
 
@@ -322,11 +328,11 @@ ensemble labels.
 specifications agree with the reference anatomy at mean ARI \RefAriMean{}
 (best \RefAriMax{}). \RegionsStable{} of \NregionsTotal{} anatomical regions
 have higher mean $S^3$ than under label shuffling ($p<0.05$, uncorrected).
-$S^3$ is nearly uncorrelated with sequencing depth ($r=\ConfoundR{}$).
+$S^3$ is only weakly correlated with sequencing depth ($r=\ConfoundR{}$).
 
 \textbf{Variance in domain count.} In the curated set, resolution has the
-largest share (\CatResHne{}, 95\% interval \CatResHneCI{}), then $k$
-(\CatKHne{}, \CatKHneCI{}); the residual is \CatResidHne{}, and every
+largest share (\CatHneRes{}, 95\% interval \CatHneResCI{}), then $k$
+(\CatHneK{}, \CatHneKCI{}); the residual is \CatHneResid{}, and every
 other axis is under 2\%. The wide intervals reflect only 30 correlated
 pipelines; the factorial (\S\ref{sec:factorial}) gives a cleaner estimate.
 
@@ -357,24 +363,24 @@ absolute level, is the result of interest.
 \textbf{Fluorescence section.} The fluorescence section shows a similar
 $S^3$ distribution and similar pairwise ARI.
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
-  \includegraphics[width=\linewidth]{fig1_spec_montage.png}
+  \includegraphics[width=0.85\textwidth]{fig1_spec_montage.png}
   \caption{Mouse-brain H\&E section analyzed with five of the curated
   pipelines (A--E), which give 8--18 domains. (F) Per-spot $S^3$
   across all \Nspecs{} curated pipelines (reference: canonical pipeline).}
   \label{fig:montage}
-\end{figure}
+\end{figure*}
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
-  \includegraphics[width=0.9\linewidth]{12_downstream_ml.png}
-  \caption{Accuracy and multiclass Brier score of a cross-validated
-  anatomical-region classifier trained on each curated pipeline's embedding
-  of the same mouse-brain section. Accuracy varies by \DownstreamRangePP{}
-  percentage points across pipelines.}
+  \includegraphics[width=0.85\textwidth]{12_downstream_ml.png}
+  \caption{Region classifier trained on each curated pipeline's embedding
+  of the same mouse-brain section (random 5-fold CV). (A) Accuracy, which
+  varies by \DownstreamRangePP{} percentage points across pipelines.
+  (B) Expected calibration error.}
   \label{fig:downstreamml}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[t]
   \centering
@@ -411,9 +417,9 @@ from one patient, and ``Surrounding tumor'' is a dataset label, not a
 verified surgical margin, so we make no general claim about tumor margins.
 
 Resolution again has the largest share of variance in domain count
-(\CatResBreast{}, \CatResBreastCI{}), followed by $k$ (\CatKBreast{}) and
-normalization (\CatNormBreast{}, \CatNormBreastCI{}); residual
-\CatResidBreast{}. We had expected the dominant axis to differ from
+(\CatBreastRes{}, \CatBreastResCI{}), followed by $k$ (\CatBreastK{}) and
+normalization (\CatBreastNorm{}, \CatBreastNormCI{}); residual
+\CatBreastResid{}. We had expected the dominant axis to differ from
 brain; in this section it did not.
 
 \begin{figure}[t]
@@ -438,15 +444,15 @@ so the axes are uncorrelated and the Type-II shares approximately partition
 the variance of the main-effects model; interactions remain in the
 residual. Compared with the curated set, pipelines agree less (mean
 pairwise ARI \FullAriHne{} vs.\ \AriMean{} in brain, \FullAriBreast{} in
-tumor), and more spots have $S^3<0.5$ (\FullFragileHne{} in both sections).
+tumor), and more spots have $S^3<0.5$ (\FullFragileHne{} in brain, \FullFragileBreast{} in tumor).
 
 With all axes categorical, resolution has the largest share
-(\FullVarResHne{}, 95\% interval \FullCatResHneCI{} in brain;
-\FullVarResBreast{}, \FullCatResBreastCI{} in tumor), followed by $k$
-(\FullCatKHne{}, \FullVarKBreast{}). In tumor, HVG method
-(\FullVarHvgBreast{}, \FullCatHvgBreastCI{}) has a larger share than
-normalization (\FullVarNormBreast{}), and the residual is
-\FullResidBreast{} (\FullCatResidBreastCI{}) versus \FullCatResidHne{} in
+(\FullHneRes{}, 95\% interval \FullHneResCI{} in brain;
+\FullBreastRes{}, \FullBreastResCI{} in tumor), followed by $k$
+(\FullHneK{}, \FullBreastK{}). In tumor, HVG method
+(\FullBreastHvg{}, \FullBreastHvgCI{}) has a larger share than
+normalization (\FullBreastNorm{}), and the residual is
+\FullBreastResid{} (\FullBreastResidCI{}) versus \FullHneResid{} in
 brain, which suggests larger interactions between choices in that section.
 We did not fit interaction terms. Boundary spots have lower
 $S^3$ than interior spots in both sections (gap \FullGapHne{} in brain,
@@ -458,7 +464,8 @@ or prediction analyses on the factorial.
 \label{sec:consensus}
 
 Both analyses in this and the next section rely on per-spot $S^3$, with
-its reference dependence and shared overflow label (\S\ref{sec:s3}).
+its reference dependence and the split/merge limitation of one-to-one
+matching (\S\ref{sec:s3}).
 
 We build a co-association matrix (the fraction of curated specifications
 that put each pair of spots in the same matched cluster) and cluster it
@@ -483,7 +490,7 @@ This rule was checked only on the same section used to evaluate it, and we
 have not compared the consensus with other ensemble methods.
 
 Where the consensus disagrees with the reference, $S^3$ is lower (mean
-$0.69$ vs.\ $0.81$), and $S^3$ separates correct from incorrect consensus
+\ConsensusSthreeWrong{} vs.\ \ConsensusSthreeCorrect{}), and $S^3$ separates correct from incorrect consensus
 spots at ROC AUC \ConsensusUncAUC{} (consensus accuracy \ConsensusAcc{}).
 Given the reference dependence of per-spot $S^3$ (\S\ref{sec:s3}), this is
 exploratory.
@@ -518,18 +525,18 @@ removed training spots within \FragPredBufferMultiple{} median spot
 spacings of the held-out block (\FragPredBufferDroppedPerFold{} spots per
 fold on average; AUC \FragPredAUCBuffered{},
 $[\FragPredAUCBufferedCILow{}, \FragPredAUCBufferedCIHigh{}]$). The best
-single feature, neighbor disagreement, gives AUC $0.77$, and depth alone
-gives $0.57$. All folds come from one section, so this does not show
+single feature, neighbor disagreement, gives AUC \FragPredBestFeatAUC{},
+and depth alone gives \FragPredDepthAUC{}. All folds come from one section, so this does not show
 transfer to new sections, specimens, or platforms.
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
-  \includegraphics[width=0.9\linewidth]{17_fragility_prediction.png}
+  \includegraphics[width=0.85\textwidth]{17_fragility_prediction.png}
   \caption{Left: predicted probability that a spot has $S^3<0.5$, from one
   pipeline's local features (random split). Right: $S^3$ across the curated
   pipelines. Mouse-brain H\&E section.}
   \label{fig:fragpred}
-\end{figure}
+\end{figure*}
 
 \section{Practical Notes}
 In each of the three sections we analyzed, resolution changed the number

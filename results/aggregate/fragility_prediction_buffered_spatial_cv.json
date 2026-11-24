@@ -1,16 +1,16 @@
 {
-  "auc_combined_buffered_spatial_cv": 0.7729982552753766,
+  "auc_combined_buffered_spatial_cv": 0.6817124765664381,
   "n_blocks": 10,
   "buffer_radius": 411.0,
   "buffer_multiple": 3.0,
   "mean_train_spots_dropped_per_fold": 132.0,
-  "n_fragile": 294,
+  "n_fragile": 383,
   "n_spots": 2688,
   "n_spots_scored": 2688,
   "significance": {
-    "auc_observed": 0.7729982552753766,
-    "ci95_low": 0.7394603902631152,
-    "ci95_high": 0.8036711045056527,
+    "auc_observed": 0.6817124765664381,
+    "ci95_low": 0.6474651662252655,
+    "ci95_high": 0.718441924009875,
     "n_boot_used": 1000,
     "permutation_p_value": 0.000999000999000999,
     "n_perm": 1000

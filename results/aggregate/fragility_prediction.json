@@ -1,17 +1,17 @@
 {
-  "auc_combined": 0.8148389681687209,
+  "auc_combined": 0.7489077553054717,
   "per_feature_auc": {
-    "local_heterogeneity": 0.7392972226484579,
-    "neighbor_disagreement": 0.769726896606596,
-    "depth": 0.5680840423053097,
-    "n_genes": 0.5743951716024756
+    "local_heterogeneity": 0.641477546258276,
+    "neighbor_disagreement": 0.7081257115024099,
+    "depth": 0.5322032362386231,
+    "n_genes": 0.6184625317875206
   },
-  "n_fragile": 294,
+  "n_fragile": 383,
   "n_spots": 2688,
   "significance": {
-    "auc_observed": 0.8148389681687209,
-    "ci95_low": 0.7882276868316704,
-    "ci95_high": 0.8406619133797514,
+    "auc_observed": 0.7489077553054717,
+    "ci95_low": 0.7219425184752929,
+    "ci95_high": 0.7769481912139579,
     "n_boot_used": 1000,
     "permutation_p_value": 0.000999000999000999,
     "n_perm": 1000

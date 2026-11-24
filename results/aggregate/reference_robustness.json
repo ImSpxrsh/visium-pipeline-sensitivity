@@ -1,14 +1,14 @@
 {
   "n_references": 30,
   "n_spots": 2688,
-  "mean_pairwise_pearson_r": 0.7598387451483672,
-  "min_pairwise_pearson_r": 0.3369191858242463,
-  "mean_pairwise_spearman_r": 0.7855430292574079,
-  "min_pairwise_spearman_r": 0.40187497090215063,
-  "mean_per_spot_std_across_refs": 0.07856623955258069,
-  "median_per_spot_std_across_refs": 0.07560737461243736,
-  "p95_per_spot_std_across_refs": 0.1580734911612895,
-  "mean_s3_range_across_refs": 0.3187251984126984,
-  "s3_across_refs_mean": 0.7898718584656085,
-  "s3_across_refs_std_of_means": 0.01214156954083173
+  "mean_pairwise_pearson_r": 0.709587960603449,
+  "min_pairwise_pearson_r": 0.2498432616774497,
+  "mean_pairwise_spearman_r": 0.762660646205198,
+  "min_pairwise_spearman_r": 0.27928146172346785,
+  "mean_per_spot_std_across_refs": 0.09725181057758484,
+  "median_per_spot_std_across_refs": 0.09302970752524875,
+  "p95_per_spot_std_across_refs": 0.19237043872705828,
+  "mean_s3_range_across_refs": 0.39565972222222223,
+  "s3_across_refs_mean": 0.7824892526455025,
+  "s3_across_refs_std_of_means": 0.025717455298045745
 }

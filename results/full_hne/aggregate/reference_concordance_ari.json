@@ -1,0 +1,9 @@
+{
+  "metric": "ari_vs_reference",
+  "reference_key": "cluster",
+  "n_specs": 864,
+  "mean": 0.6516429836617328,
+  "std": 0.06285330061792622,
+  "min": 0.4761696381577372,
+  "max": 0.7952270091233528
+}

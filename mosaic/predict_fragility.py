@@ -297,19 +297,17 @@ def plot_predicted_vs_actual(result: Dict[str, Any], output_path: Optional[Path]
     coords = np.asarray(a.obsm["spatial"])
     fig, axes = plt.subplots(1, 2, figsize=(13, 6))
     sc0 = axes[0].scatter(coords[:, 0], coords[:, 1], c=result["proba"], cmap="magma", s=10)
-    axes[0].set_title(f"A  Predicted P(fragile) from ONE pipeline\n(AUC {result['auc_combined']:.2f})",
-                      fontsize=12, fontweight="bold")
+    axes[0].set_title("A  Predicted P(S3 < 0.5), one pipeline",
+                      fontsize=16, fontweight="bold")
     sc1 = axes[1].scatter(coords[:, 0], coords[:, 1], c=result["s3"], cmap="RdYlGn",
                           vmin=0, vmax=1, s=10)
-    axes[1].set_title("B  Actual multiverse S3 (30 pipelines)", fontsize=12, fontweight="bold")
+    axes[1].set_title("B  S3 across 30 pipelines", fontsize=16, fontweight="bold")
     for ax, sc in zip(axes, (sc0, sc1)):
         ax.set_aspect("equal")
         ax.invert_yaxis()
         ax.set_xticks([])
         ax.set_yticks([])
         fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04)
-    fig.suptitle("Fragility is predictable before running the multiverse",
-                 fontsize=13, fontweight="bold")
     if output_path is not None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output_path, dpi=300, bbox_inches="tight")
@@ -346,6 +344,19 @@ def main() -> None:
          "significance": spatial_significance,
          "random_split_auc_for_comparison": result["auc_combined"]},
         project / "results" / "aggregate" / "fragility_prediction_spatial_cv.json",
+    )
+
+    buffered = predict_fragility_buffered_spatial_cv(runs, per_spot)
+    b_fragile = (buffered["s3"] < 0.5).astype(int)
+    valid = ~np.isnan(buffered["proba"])
+    b_significance = fragility_prediction_significance(
+        b_fragile[valid], buffered["proba"][valid]
+    )
+    save_json(
+        {**{k: v for k, v in buffered.items()
+            if k not in ("proba", "s3", "adata", "groups", "valid_mask")},
+         "significance": b_significance},
+        project / "results" / "aggregate" / "fragility_prediction_buffered_spatial_cv.json",
     )
 
 

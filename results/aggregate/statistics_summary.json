@@ -1,24 +1,38 @@
 {
   "confound_umi": {
-    "pearson_r": -0.09099701629119931,
-    "pearson_p": 2.2962173442183007e-06,
-    "spearman_r": -0.1716868412836807,
-    "spearman_p": 3.1380058115282693e-19,
+    "pearson_r": -0.1270308155033836,
+    "pearson_p": 3.8494509251085375e-11,
+    "spearman_r": -0.2110563881099865,
+    "spearman_p": 1.9143474991768272e-28,
     "n_spots": 2688
   },
   "variance_top_axis": {
     "term": "resolution",
-    "variance_fraction": 0.8011558808422848
+    "variance_fraction": 0.8081107985337324
   },
   "regions_stable_p05": 6,
   "n_regions": 15,
   "stakes_stratified": {
     "strata": "consensus_boundary_proxy",
-    "boundary_mean_s3": 0.7149152542372882,
-    "interior_mean_s3": 0.8486295313881521,
-    "gap_interior_minus_boundary": 0.13371427715086392,
+    "boundary_mean_s3": 0.7133333333333333,
+    "interior_mean_s3": 0.8256362119315812,
+    "gap_interior_minus_boundary": 0.11230287859824795,
     "p_value": 0.000999000999000999,
-    "n_boundary": 1180,
-    "n_interior": 1508
+    "n_boundary": 1090,
+    "n_interior": 1598
+  },
+  "stakes_stratified_depth_controlled": {
+    "gap_interior_minus_boundary": 0.11230287859824795,
+    "p_value_depth_controlled": 0.000999000999000999,
+    "depth_boundary_median": 24965.5,
+    "depth_interior_median": 29279.0,
+    "depth_groups_differ_mannwhitney_p": 4.0497480103634104e-15,
+    "n_depth_bins": 10
+  },
+  "fragility_example": {
+    "gene": "Rin3",
+    "s3": 0.7333333333333333,
+    "n_significant": 22,
+    "n_specs": 30
   }
 }

@@ -27,7 +27,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 155.82279801368713,
+      "runtime_seconds": 160.1910536289215,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -68,7 +68,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 100.92208218574524,
+      "runtime_seconds": 118.23171186447144,
       "normalization_used": "log1p",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -109,7 +109,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 223.600417137146,
+      "runtime_seconds": 247.42557883262634,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -150,7 +150,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 134.40217399597168,
+      "runtime_seconds": 200.713698387146,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -191,7 +191,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 136.50154399871826,
+      "runtime_seconds": 278.0346477031708,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -232,7 +232,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 142.05406188964844,
+      "runtime_seconds": 230.63158178329468,
       "normalization_used": "total",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -273,7 +273,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 145.7068591117859,
+      "runtime_seconds": 198.53085207939148,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -314,7 +314,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 142.511470079422,
+      "runtime_seconds": 207.64866137504578,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -355,7 +355,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 146.1553361415863,
+      "runtime_seconds": 150.19540643692017,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -396,7 +396,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 133.29049611091614,
+      "runtime_seconds": 148.76572489738464,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -437,7 +437,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 136.90593600273132,
+      "runtime_seconds": 150.4531946182251,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -478,7 +478,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 135.94034218788147,
+      "runtime_seconds": 148.71936058998108,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -519,7 +519,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 135.95952320098877,
+      "runtime_seconds": 150.4317033290863,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -560,7 +560,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 140.4028389453888,
+      "runtime_seconds": 150.1764781475067,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -601,7 +601,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 93.27257180213928,
+      "runtime_seconds": 138.07050848007202,
       "normalization_used": "sqrt",
       "n_hvgs": 2000,
       "n_pca_components": 50,
@@ -609,7 +609,7 @@
       "graph_param": 6,
       "clustering_method": "louvain",
       "clustering_resolution": 1.2,
-      "n_clusters_found": 20,
+      "n_clusters_found": 22,
       "svg_method": "morans_i",
       "n_svg_genes_tested": 2000,
       "spec_name": "extreme_sqrt_2k_fine",
@@ -642,7 +642,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 225.57308912277222,
+      "runtime_seconds": 307.3356685638428,
       "normalization_used": "total",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -683,7 +683,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 134.17004799842834,
+      "runtime_seconds": 149.75514912605286,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -691,7 +691,7 @@
       "graph_param": 15,
       "clustering_method": "leiden",
       "clustering_resolution": 0.8,
-      "n_clusters_found": 11,
+      "n_clusters_found": 10,
       "svg_method": "morans_i",
       "n_svg_genes_tested": 3000,
       "spec_name": "pca50_fine",
@@ -724,7 +724,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 132.4470636844635,
+      "runtime_seconds": 151.1016881465912,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -765,7 +765,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 128.3678891658783,
+      "runtime_seconds": 144.18033599853516,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -806,7 +806,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 129.10858392715454,
+      "runtime_seconds": 144.61536622047424,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -847,7 +847,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 127.51656699180603,
+      "runtime_seconds": 142.74582314491272,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -888,7 +888,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 131.5337381362915,
+      "runtime_seconds": 134.6043198108673,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -929,7 +929,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 229.24008584022522,
+      "runtime_seconds": 218.20421171188354,
       "normalization_used": "sqrt",
       "n_hvgs": 5000,
       "n_pca_components": 30,
@@ -970,7 +970,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 92.08000898361206,
+      "runtime_seconds": 107.60248112678528,
       "normalization_used": "total",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -1011,7 +1011,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 87.31622695922852,
+      "runtime_seconds": 143.53393387794495,
       "normalization_used": "log1p",
       "n_hvgs": 2000,
       "n_pca_components": 30,
@@ -1052,7 +1052,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 216.44397807121277,
+      "runtime_seconds": 285.03868222236633,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 50,
@@ -1093,7 +1093,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 128.90894412994385,
+      "runtime_seconds": 155.20927166938782,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 50,
@@ -1134,7 +1134,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 128.86760306358337,
+      "runtime_seconds": 182.21799516677856,
       "normalization_used": "sqrt",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -1175,7 +1175,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 133.46595883369446,
+      "runtime_seconds": 176.78282070159912,
       "normalization_used": "log1p",
       "n_hvgs": 3000,
       "n_pca_components": 30,
@@ -1216,7 +1216,7 @@
         }
       },
       "random_state": 42,
-      "runtime_seconds": 226.81412410736084,
+      "runtime_seconds": 243.4110291004181,
       "normalization_used": "log1p",
       "n_hvgs": 5000,
       "n_pca_components": 30,

@@ -261,12 +261,12 @@ specifications, which needs no label matching.
 
 \textbf{Limitations of $S^3_{\text{spot}}$.} One-to-one matching handles
 splits and merges poorly: when one pipeline splits a reference cluster in
-two, only one half can match, and the shared overflow label can make spots
-in unrelated unmatched clusters look like they agree. $S^3_{\text{spot}}$
+two, only one half can match, and spots in the unmatched half count as
+disagreeing. $S^3_{\text{spot}}$
 also depends on the reference. Recomputing it with each of the
 \RefRobustN{} mouse-brain specifications as the reference, the
-section-wide mean stays in $[\RefRobustAggMeanRange{}]$ (standard
-deviation \RefRobustAggMeanStd{}), but per-spot maps from different
+section-wide mean changes little (standard deviation
+\RefRobustAggMeanStd{} across references), but per-spot maps from different
 references correlate at only \RefRobustMeanPearson{} on average (lowest
 pair \RefRobustMinPearson{}), and a spot's score varies by
 \RefRobustMeanPerSpotStd{} (standard deviation) across references. The
@@ -375,8 +375,8 @@ have higher mean $S^3$ than under label shuffling ($p<0.05$, uncorrected).
 $S^3$ is nearly uncorrelated with sequencing depth ($r=\ConfoundR{}$).
 
 \textbf{Variance in domain count.} In the curated set, resolution has the
-largest share (\CatResHne{}, 95\% interval \CatResHneCI{}), then $k$
-(\CatKHne{}, \CatKHneCI{}); the residual is \CatResidHne{}, and every
+largest share (\CatHneRes{}, 95\% interval \CatHneResCI{}), then $k$
+(\CatHneK{}, \CatHneKCI{}); the residual is \CatHneResid{}, and every
 other axis is under 2\%. The wide intervals reflect only 30 correlated
 pipelines; the factorial (\S\ref{sec:factorial}) gives a cleaner estimate.
 
@@ -431,7 +431,9 @@ $S^3$ distribution and similar pairwise ARI.
   \includegraphics[width=0.85\linewidth]{08_variance_decomposition.png}
   \caption{Type-II ANOVA shares of variance in domain count for the curated
   mouse-brain pipelines (main effects only; axes correlated, so shares are
-  approximate).}
+  approximate). The figure fits resolution, $k$, PCs and HVG count as linear
+  terms, so its shares differ by a few points from the all-categorical
+  values in the text.}
   \label{fig:variance}
 \end{figure}
 
@@ -461,9 +463,9 @@ from one patient, and ``Surrounding tumor'' is a dataset label, not a
 verified surgical margin, so we make no general claim about tumor margins.
 
 Resolution again has the largest share of variance in domain count
-(\CatResBreast{}, \CatResBreastCI{}), followed by $k$ (\CatKBreast{}) and
-normalization (\CatNormBreast{}, \CatNormBreastCI{}); residual
-\CatResidBreast{}. We had expected the dominant axis to differ from
+(\CatBreastRes{}, \CatBreastResCI{}), followed by $k$ (\CatBreastK{}) and
+normalization (\CatBreastNorm{}, \CatBreastNormCI{}); residual
+\CatBreastResid{}. We had expected the dominant axis to differ from
 brain; in this section it did not.
 
 \begin{figure}[t]
@@ -488,15 +490,15 @@ so the axes are uncorrelated and the Type-II shares approximately partition
 the variance of the main-effects model; interactions remain in the
 residual. Compared with the curated set, pipelines agree less (mean
 pairwise ARI \FullAriHne{} vs.\ \AriMean{} in brain, \FullAriBreast{} in
-tumor), and more spots have $S^3<0.5$ (\FullFragileHne{} in both sections).
+tumor), and more spots have $S^3<0.5$ (\FullFragileHne{} in brain, \FullFragileBreast{} in tumor).
 
 With all axes categorical, resolution has the largest share
-(\FullVarResHne{}, 95\% interval \FullCatResHneCI{} in brain;
-\FullVarResBreast{}, \FullCatResBreastCI{} in tumor), followed by $k$
-(\FullCatKHne{}, \FullVarKBreast{}). In tumor, HVG method
-(\FullVarHvgBreast{}, \FullCatHvgBreastCI{}) has a larger share than
-normalization (\FullVarNormBreast{}), and the residual is
-\FullResidBreast{} (\FullCatResidBreastCI{}) versus \FullCatResidHne{} in
+(\FullHneRes{}, 95\% interval \FullHneResCI{} in brain;
+\FullBreastRes{}, \FullBreastResCI{} in tumor), followed by $k$
+(\FullHneK{}, \FullBreastK{}). In tumor, HVG method
+(\FullBreastHvg{}, \FullBreastHvgCI{}) has a larger share than
+normalization (\FullBreastNorm{}), and the residual is
+\FullBreastResid{} (\FullBreastResidCI{}) versus \FullHneResid{} in
 brain, which suggests larger interactions between choices in that section.
 We did not fit interaction terms. Boundary spots have lower
 $S^3$ than interior spots in both sections (gap \FullGapHne{} in brain,

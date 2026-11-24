@@ -33,8 +33,45 @@ def shares_with_ci(path, n_boot=1000, seed=0):
     return base, ci, len(df)
 
 
+LABELS = {"res": "Resolution", "k": "Neighbors (k)", "norm": "Normalization",
+          "hvgm": "HVG method", "hvgn": "HVG count", "pc": "PCs",
+          "cl": "Cluster method", "Residual": "Residual"}
+
+
+def plot(path, out, title=None):
+    """Bar chart of categorical shares with 95% bootstrap intervals."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    try:
+        from mosaic import _paper_style
+        _paper_style()
+    except Exception:
+        pass
+    base, ci, n = shares_with_ci(path)
+    order = base.sort_values().index
+    vals = base[order] * 100
+    lo = np.array([vals[t] - ci.get(t, (base[t], base[t]))[0] * 100 for t in order])
+    hi = np.array([ci.get(t, (base[t], base[t]))[1] * 100 - vals[t] for t in order])
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = ["#999999" if t == "Residual" else "#3B6EA8" for t in order]
+    ax.barh([LABELS.get(t, t) for t in order], vals, color=colors,
+            xerr=[np.clip(lo, 0, None), np.clip(hi, 0, None)], capsize=4)
+    for i, v in enumerate(vals):
+        ax.text(v + 1, i + 0.25, f"{v:.0f}%", fontsize=12)
+    ax.set_xlabel("Share of variance in domain count (%)")
+    ax.set_xlim(0, 100)
+    ax.set_title(title or f"Categorical Type-II ANOVA ({n} pipelines)")
+    fig.savefig(out, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
-    for path in sys.argv[1:]:
+    args = sys.argv[1:]
+    if args and args[0] == "--figure":
+        plot(args[1], args[2])
+        sys.exit(0)
+    for path in args:
         base, ci, n = shares_with_ci(path)
         print(path, n)
         for t in base.sort_values(ascending=False).index:

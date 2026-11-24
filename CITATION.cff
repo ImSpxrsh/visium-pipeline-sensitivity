@@ -30,7 +30,7 @@ authors:
   - family-names: "Langille"
     given-names: "William"
     affiliation: "Hopewell Valley Central High School"
-repository-code: "https://github.com/ImSpxrsh/MOSAIC-ISEF"
+repository-code: "https://github.com/ImSpxrsh/visium-pipeline-sensitivity"
 keywords:
   - spatial transcriptomics
   - multiverse analysis

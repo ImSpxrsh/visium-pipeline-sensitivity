@@ -22,8 +22,8 @@ cluster, not your laptop.
 
 ```bash
 cd ~/orcd/pool
-git clone https://github.com/ImSpxrsh/MOSAIC-ISEF.git
-cd MOSAIC-ISEF
+git clone https://github.com/ImSpxrsh/visium-pipeline-sensitivity.git
+cd visium-pipeline-sensitivity
 module load miniforge/26.7.2-0                       # `module spider miniforge` lists versions
 conda create -y -p ~/orcd/pool/py312 python=3.12     # the default Python is 3.14
 ~/orcd/pool/py312/bin/python -m venv .venv
@@ -138,7 +138,7 @@ Copy only the aggregates to your laptop:
 
 ```bash
 # run this on your laptop
-scp -r YOUR_KERBEROS@orcd-login.mit.edu:~/orcd/pool/MOSAIC-ISEF/results/full_hne/aggregate results/full_hne/
+scp -r YOUR_KERBEROS@orcd-login.mit.edu:~/orcd/pool/visium-pipeline-sensitivity/results/full_hne/aggregate results/full_hne/
 ```
 
 ## What to run, in order of value to the paper

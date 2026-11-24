@@ -1,6 +1,6 @@
 # MOSAIC: The Garden of Forking Tissues
 
-[![CI](https://github.com/ImSpxrsh/MOSAIC-ISEF/actions/workflows/ci.yml/badge.svg)](https://github.com/ImSpxrsh/MOSAIC-ISEF/actions/workflows/ci.yml)
+[![CI](https://github.com/ImSpxrsh/visium-pipeline-sensitivity/actions/workflows/ci.yml/badge.svg)](https://github.com/ImSpxrsh/visium-pipeline-sensitivity/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -174,7 +174,7 @@ make paper              # build the IEEE PDF (needs LaTeX / tectonic)
             the Fragility of Biological Conclusions in Spatial Transcriptomics},
   author = {Roy, Sparsh},
   year   = {2026},
-  note   = {https://github.com/ImSpxrsh/MOSAIC-ISEF}
+  note   = {https://github.com/ImSpxrsh/visium-pipeline-sensitivity}
 }
 ```
 

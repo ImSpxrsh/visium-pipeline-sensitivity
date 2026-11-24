@@ -297,11 +297,10 @@ def plot_predicted_vs_actual(result: Dict[str, Any], output_path: Optional[Path]
     coords = np.asarray(a.obsm["spatial"])
     fig, axes = plt.subplots(1, 2, figsize=(13, 6))
     sc0 = axes[0].scatter(coords[:, 0], coords[:, 1], c=result["proba"], cmap="magma", s=10)
-    axes[0].set_title("A  Predicted P(S3 < 0.5), one pipeline",
-                      fontsize=16, fontweight="bold")
+    axes[0].set_title("A  Predicted P(S3 < 0.5)")
     sc1 = axes[1].scatter(coords[:, 0], coords[:, 1], c=result["s3"], cmap="RdYlGn",
                           vmin=0, vmax=1, s=10)
-    axes[1].set_title("B  S3 across 30 pipelines", fontsize=16, fontweight="bold")
+    axes[1].set_title("B  S3, 30 pipelines")
     for ax, sc in zip(axes, (sc0, sc1)):
         ax.set_aspect("equal")
         ax.invert_yaxis()

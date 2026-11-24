@@ -124,24 +124,25 @@ def plot_downstream(df: pd.DataFrame, output_path: Optional[Path] = None) -> Non
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5), gridspec_kw={"width_ratios": [1.3, 1]})
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5), layout="constrained",
+                             gridspec_kw={"width_ratios": [1.3, 1], "wspace": 0.08})
 
     d = df.sort_values("accuracy").reset_index(drop=True)
     axes[0].errorbar(range(len(d)), d["accuracy"], yerr=d["accuracy_std"],
                      marker="o", color="#377EB8", capsize=2, lw=1)
     axes[0].axhspan(d["accuracy"].min(), d["accuracy"].max(), color="#377EB8", alpha=0.1)
-    axes[0].set_xlabel("Specification (sorted by accuracy)")
-    axes[0].set_ylabel("Region-classification accuracy (5-fold CV)")
+    axes[0].set_xlabel("Pipeline (sorted by accuracy)")
+    axes[0].set_ylabel("Accuracy (5-fold CV)")
     rng = 100 * (d["accuracy"].max() - d["accuracy"].min())
-    axes[0].set_title("A  Accuracy", fontsize=16, fontweight="bold")
+    axes[0].set_title("A", loc="left")
 
     if "ece" in df.columns:
         de = df.sort_values("ece").reset_index(drop=True)
         axes[1].bar(range(len(de)), de["ece"], color="#E6550D")
-        axes[1].set_xlabel("Specification (sorted by ECE)")
-        axes[1].set_ylabel("Expected calibration error")
+        axes[1].set_xlabel("Pipeline (sorted by ECE)")
+        axes[1].set_ylabel("ECE")
         rng_e = de["ece"].max() - de["ece"].min()
-        axes[1].set_title("B  Calibration error", fontsize=16, fontweight="bold")
+        axes[1].set_title("B", loc="left")
     else:
         axes[1].scatter(df["resolution"], df["accuracy"], c="#984EA3", s=50)
         axes[1].set_xlabel("Clustering resolution")

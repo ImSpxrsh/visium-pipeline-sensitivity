@@ -43,7 +43,7 @@ plt.rcParams.update(
         "savefig.dpi": 300,
         "font.size": 11,
         "axes.titlesize": 12,
-        "axes.titleweight": "bold",
+        "axes.titleweight": "normal",
         "axes.spines.top": False,
         "axes.spines.right": False,
     }
@@ -162,11 +162,11 @@ def figure1_spec_montage(
     """Five specification clusterings + the per-spot S3 overlay (2x3 grid)."""
     named = _by_name(runs)
     wanted = [
-        ("canonical_seurat", "Canonical: Seurat 3k HVGs, Leiden res=0.5"),
-        ("conservative_2k_hvgs", "Conservative: 2k HVGs"),
-        ("aggressive_5k_hvgs", "Aggressive: 5k HVGs"),
-        ("coarse_res03", "Coarse: Leiden res=0.3"),
-        ("fine_res08", "Fine: Leiden res=0.8"),
+        ("canonical_seurat", "Canonical"),
+        ("conservative_2k_hvgs", "2k HVGs"),
+        ("aggressive_5k_hvgs", "5k HVGs"),
+        ("coarse_res03", "Resolution 0.3"),
+        ("fine_res08", "Resolution 0.8"),
     ]
     # Fall back to the first runs if a named spec is missing.
     picks = [named.get(n) for n, _ in wanted]
@@ -178,20 +178,20 @@ def figure1_spec_montage(
         a = run["adata"]
         n = int(a.obs["leiden"].nunique())
         _spatial_scatter(ax, a.obsm["spatial"], a.obs["leiden"].values,
-                         categorical=True, title=f"{label}\n-> {n} domains")
-        ax.title.set_fontsize(10)
+                         categorical=True, title=f"{label}: {n} domains")
+        ax.title.set_fontsize(14)
 
     # Panel F: S3 overlay on the canonical geometry.
     ref = picks[0]["adata"]
     s3 = per_spot.set_index("spot_id").reindex(ref.obs_names)["s3_score"].values
     scF = _spatial_scatter(axes[5], ref.obsm["spatial"], s3, categorical=False,
-                           title="Spatial Stability Score (S3)", cmap=S3_CMAP, vmin=0, vmax=1)
+                           title="Per-spot S3", cmap=S3_CMAP, vmin=0, vmax=1)
     cb = fig.colorbar(scF, ax=axes[5], fraction=0.046, pad=0.04)
-    cb.set_label("S3 (green robust, red fragile)")
-    axes[5].title.set_fontsize(10)
+    cb.set_label("S3")
+    axes[5].title.set_fontsize(14)
 
     for i, ax in enumerate(axes):
-        ax.text(-0.08, 1.14, chr(ord("A") + i), transform=ax.transAxes,
+        ax.text(-0.08, 1.08, chr(ord("A") + i), transform=ax.transAxes,
                 fontsize=16, fontweight="bold", va="top", ha="left")
 
     fig.tight_layout()

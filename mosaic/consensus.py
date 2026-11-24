@@ -246,7 +246,7 @@ def plot_consensus_recovery(result: Dict[str, Any], output_path: Optional[Path] 
     import matplotlib.pyplot as plt
 
     table = result["table"]
-    fig, ax = plt.subplots(figsize=(9, 5.5))
+    fig, ax = plt.subplots(figsize=(9, 6), layout="constrained")
     ax.axhspan(result["single_min"], result["single_max"], color="#999999", alpha=0.2,
                label="single-pipeline range")
     ax.axhline(result["single_median"], color="#555555", ls="--", label="median single pipeline")
@@ -256,13 +256,12 @@ def plot_consensus_recovery(result: Dict[str, Any], output_path: Optional[Path] 
         ax.plot(sub["k"], sub["ari"], marker="o", color=colors.get(linkage, "#E6550D"),
                 label=f"consensus ({linkage} linkage)")
     ax.axvline(result["n_reference_regions"], color="#D73027", ls="-", lw=1, alpha=0.6)
-    ax.text(result["n_reference_regions"], ax.get_ylim()[0], " reference\n granularity",
-            color="#D73027", fontsize=12, va="bottom")
-    ax.set_xlabel("Consensus granularity (k domains)")
-    ax.set_ylabel("Anatomy recovery (ARI vs reference)")
-    ax.set_title("Consensus vs single pipelines (ARI with reference)",
-                 fontsize=16, fontweight="bold")
-    ax.legend(fontsize=12, loc="lower right")
+    ax.text(result["n_reference_regions"], ax.get_ylim()[1], " reference k",
+            color="#D73027", fontsize=12, va="top")
+    ax.set_xlabel("Consensus clusters (k)")
+    ax.set_ylabel("ARI with reference")
+    ax.legend(fontsize=12, loc="upper center", bbox_to_anchor=(0.5, -0.15),
+              ncol=2, frameon=False)
     if output_path is not None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output_path, dpi=300, bbox_inches="tight")

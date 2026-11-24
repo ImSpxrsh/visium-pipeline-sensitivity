@@ -12,7 +12,7 @@ def _paper_style() -> None:
     matplotlib.rcParams.update({
         "font.size": 14, "axes.titlesize": 16, "axes.labelsize": 15,
         "xtick.labelsize": 13, "ytick.labelsize": 13, "legend.fontsize": 12,
-        "figure.titlesize": 17,
+        "figure.titlesize": 17, "axes.titleweight": "normal",
     })
 
 

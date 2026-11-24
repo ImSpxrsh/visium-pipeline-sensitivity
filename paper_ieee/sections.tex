@@ -1,29 +1,12 @@
 \section{Introduction}
 \label{sec:intro}
 
-There is rarely one correct way to analyze a spatial transcriptomics
-dataset. Going from raw counts to a map of tissue domains requires
-choosing a normalization, a number of highly variable genes (HVGs), a number
-of principal components, a neighbor graph, Leiden~\cite{traag2019louvain} or
-Louvain~\cite{blondel2008fast} clustering and a resolution, and a test for
-spatially variable genes (SVGs)~\cite{moran1950notes,
-svensson2018spatialde, weber2023nnsvg}. Each option has been used in
-published work, so each is defensible. But a study usually runs one
-pipeline and reports its output.
+There is no universal formula for analyzing spatial transcriptomics data. Going from raw gene expression counts to a map of the tissue domains requires a multi-step pipeline that involves many choices at different steps: one must choose a method of normalization, decide how many highly variable genes (HVGs) to retain, and perhaps decide whether to use Leiden \cite{traag2019louvain} or Louvain \cite{blondel2008fast} clustering. Identifying spatially variable genes brings in more choices: this includes Moran's $I$, Spatial IDE, and nnSVG \cite{moran1950notes, svensson2018spatialde, weber2023nnsvg}. All options are defensible, yet a study usually only runs on one pipeline and reports that output. 
 
-Gelman and Loken call this the \emph{garden of forking
-paths}~\cite{gelman2013garden}: even without deliberate cherry-picking, a
-reported result can depend on which path was taken rather than on the
-biology. \emph{Multiverse analysis}~\cite{steegen2016increasing} addresses
-this by running many reasonable analyses and reporting the spread of
-outcomes. When 70 teams analyzed the same neuroimaging dataset, they
-reached substantially different conclusions~\cite{botvinik2020variability}.
-Spatial transcriptomics benchmarks usually compare methods against a
-reference; here we instead ask how much reasonable analysis choices change
-the results on a fixed tissue section.
+This is known as the garden of forking paths, a term coined by Gelman and Loken ~\cite{gelman2013garden}. A reported result can actually depend on which path was taken, instead of the biology itself, even without deliberately cherry-picking the most statistically significant findings. However, multiverse analysis ~\cite{steegen2016increasing} addresses
+this by running many reasonable analyses and then reporting the spread of the outcomes. For example, a neuroimaging study demonstrated that when 70 teams analyzed the same neuroimaging dataset, they produced significantly different conclusions ~\cite{botvinik2020variability}. So, while spatial transcriptomics benchmarks usually compare methods against a reference, we ask a different question: how much do reasonable analysis choices change the result on a fixed tissue section? 
 
-This paper is a descriptive pipeline-sensitivity (multiverse) analysis of
-three public Visium sections. We contribute:
+We borrow the multiverse analysis idea into a spatial transcriptomics pipeline, running the analyses on three public Visium sections. Our three main contribution points are as listed:
 
 \begin{enumerate}
 \item[\textbf{C1}] A configurable pipeline and a simple agreement score
